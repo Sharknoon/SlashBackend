@@ -1,16 +1,18 @@
 package de.sharknoon.slash.networking.endpoints.register;
 
 public class RegisterMessage {
-    private String username;
-    private String email;
-    private String password;
+    private String username = "";
+    private String email = "";
+    private String password = "";
     
     public String getUsername() {
         return username;
     }
     
     public void setUsername(String username) {
-        this.username = username;
+        if (username != null) {
+            this.username = username;
+        }
     }
     
     public String getEmail() {
@@ -18,7 +20,9 @@ public class RegisterMessage {
     }
     
     public void setEmail(String email) {
-        this.email = email;
+        if (email != null) {
+            this.email = email;
+        }
     }
     
     public String getPassword() {
@@ -26,6 +30,8 @@ public class RegisterMessage {
     }
     
     public void setPassword(String password) {
-        this.password = password;
+        if (password != null) {
+            this.password = password;
+        }
     }
 }

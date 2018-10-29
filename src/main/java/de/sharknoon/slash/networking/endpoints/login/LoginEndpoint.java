@@ -30,8 +30,4 @@ public class LoginEndpoint extends Endpoint<LoginMessage> {
         session.getAsyncRemote().sendText(returnMessage);
     }
     
-    private void hashPassword(LoginMessage message) {
-    
-    }
-    
 }
