@@ -1,5 +1,7 @@
 let conn;
 
+let ip = "sharknoon.de";
+
 function connect() {
     const coffee = document.forms[0];
     let link = "";
@@ -7,7 +9,7 @@ function connect() {
     for (i = 0; i < coffee.length; i++) {
         if (coffee[i].checked) {
             link = coffee[i].labels[0].innerText;
-            link = "wss://sharknoon.de/slash" + link;
+            link = "wss://" + ip + "/slash" + link;
             break;
         }
     }
@@ -22,11 +24,15 @@ function connect() {
 
 function disconnect() {
     conn.close();
-    document.getElementById("out").value = "";
+    clearLog();
     document.getElementById("disconnect").setAttribute("disabled", "disabled");
     document.getElementById("connect").removeAttribute("disabled");
 }
 
 function sendMessage() {
     conn.send(document.getElementById("msg").value);
+}
+
+function clearLog() {
+    document.getElementById("out").value = "";
 }

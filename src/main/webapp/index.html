@@ -8,20 +8,38 @@
 </head>
 
 <body>
-<h1>Slash Backend Tool</h1>
-<form>
-    <label class="radio-inline">
-        <input type="radio" name="optradio" checked>/login</label>
-    <label class="radio-inline">
-        <input type="radio" name="optradio">/register</label>
-</form>
-<button type="submit" onclick="connect()" style="color: green" id="connect">Connect</button>
-<button type="submit" onclick="disconnect()" style="color: red" id="disconnect" disabled>Disconnect</button>
-<hr/>
-<input type="text" placeholder="Enter JSON-Message" id="msg">
-<button type="submit" onclick="sendMessage()">Send</button>
-<br/>
-<textarea cols="50" rows="10" disabled id="out" title="log"></textarea>
+<h1 align="center">Slash Backend Tool</h1>
+<div style="width: 50%;margin: auto;">
+    <fieldset>
+        <legend>1. Connect to the server</legend>
+        <form>
+            <label class="radio-inline">
+                <input type="radio" name="optradio" checked>/login</label>
+            <label class="radio-inline">
+                <input type="radio" name="optradio">/register</label>
+        </form>
+        <button type="submit" onclick="connect()" style="color: green" id="connect">Connect</button>
+        <button type="submit" onclick="disconnect()" style="color: red" id="disconnect" disabled>Disconnect</button>
+    </fieldset>
+    <br>
+    <fieldset>
+        <legend>2. Send messages to the server</legend>
+
+        <textarea rows="9" placeholder="Enter JSON-Message" id="msg"
+                  style="box-sizing: border-box; width: 100%; resize: none;"></textarea>
+        <br>
+        <button type="submit" onclick="sendMessage()">Send</button>
+    </fieldset>
+    <br>
+    <fieldset>
+        <legend>3. Receive messages from the server</legend>
+        <textarea rows="10" disabled id="out" title="log"
+                  style="box-sizing: border-box; width: 100%; resize: none; "></textarea>
+        <br>
+        <button type="submit" onclick="clearLog()">Clear</button>
+    </fieldset>
+
+</div>
 </body>
 
 </html>

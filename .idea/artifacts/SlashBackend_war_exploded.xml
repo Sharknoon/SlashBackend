@@ -8,6 +8,12 @@
         </element>
         <element id="directory" name="lib">
           <element id="library" level="project" name="Maven: com.google.code.gson:gson:2.8.5" />
+          <element id="library" level="project" name="Maven: org.mongodb:mongodb-driver-sync:3.8.2" />
+          <element id="library" level="project" name="Maven: org.mongodb:bson:3.8.2" />
+          <element id="library" level="project" name="Maven: org.mongodb:mongodb-driver-core:3.8.2" />
+          <element id="library" level="project" name="Maven: org.aeonbits.owner:owner-java8:1.0.10" />
+          <element id="library" level="project" name="Maven: org.aeonbits.owner:owner:1.0.10" />
+          <element id="library" level="project" name="Maven: org.springframework.security:spring-security-crypto:5.1.1.RELEASE" />
         </element>
       </element>
       <element id="directory" name="META-INF">
