@@ -2,13 +2,17 @@ package de.sharknoon.slash.database;
 
 import com.mongodb.*;
 import com.mongodb.client.*;
+import com.mongodb.client.model.*;
+import de.sharknoon.slash.database.models.User;
 import de.sharknoon.slash.networking.endpoints.login.LoginMessage;
 import de.sharknoon.slash.networking.endpoints.register.RegisterMessage;
 import de.sharknoon.slash.properties.*;
+import de.sharknoon.slash.properties.Properties;
 import org.bson.Document;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 
-import java.util.Collections;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.logging.*;
 
 import static com.mongodb.client.model.Filters.*;
@@ -17,6 +21,7 @@ public class DB {
     
     private static MongoDatabase database;
     private static MongoCollection<Document> users;
+    private static final Collation caseInsensitiveCollation = Collation.builder().locale("en").collationStrength(CollationStrength.SECONDARY).build();
     
     static {
         DBConfig props = Properties.getProperties();
@@ -48,28 +53,34 @@ public class DB {
      * Logs the user in
      *
      * @param login The login credentials of the user
-     * @return True if the login was successful
+     * @return The user if the login was successful
      */
-    public static boolean login(LoginMessage login) {
-        String salt = getSalt(login.getUsernameOrEmail().toLowerCase());
+    public static Optional<User> login(LoginMessage login) {
+        String salt = getSalt(login.getUsernameOrEmail());
         if (salt.isEmpty()) {
-            return false;
+            return Optional.empty();
         }
         hashPasswordOnLogin(login, salt);
-        return users
+        Document userDocument = users
                 .find(
                         or(
                                 and(
-                                        eq(Values.USERS_COLLECTION_USERNAME, login.getUsernameOrEmail().toLowerCase()),
+                                        eq(Values.USERS_COLLECTION_USERNAME, login.getUsernameOrEmail()),
                                         eq(Values.USERS_COLLECTION_PASSWORD, login.getPassword())
                                 ),
                                 and(
-                                        eq(Values.USERS_COLLECTION_EMAIL, login.getUsernameOrEmail().toLowerCase()),
+                                        eq(Values.USERS_COLLECTION_EMAIL, login.getUsernameOrEmail()),
                                         eq(Values.USERS_COLLECTION_PASSWORD, login.getPassword())
                                 )
                         )
                 )
-                .first() != null;
+                .collation(caseInsensitiveCollation)
+                .first();
+        if (userDocument == null) {
+            return Optional.empty();
+        }
+        User user = new User(userDocument);
+        return Optional.of(user);
     }
     
     private static void hashPasswordOnLogin(LoginMessage message, String salt) {
@@ -87,10 +98,11 @@ public class DB {
         Document first = users
                 .find(
                         or(
-                                eq(Values.USERS_COLLECTION_USERNAME, usernameOrEmail.toLowerCase()),
-                                eq(Values.USERS_COLLECTION_EMAIL, usernameOrEmail.toLowerCase())
+                                eq(Values.USERS_COLLECTION_USERNAME, usernameOrEmail),
+                                eq(Values.USERS_COLLECTION_EMAIL, usernameOrEmail)
                         )
                 )
+                .collation(caseInsensitiveCollation)
                 .first();
         if (first == null) {
             return "";
@@ -102,11 +114,12 @@ public class DB {
      * @param email The email to check for duplicates
      * @return True if this email already exists
      */
-    public static synchronized boolean checkEmail(String email) {
+    public static synchronized boolean existsEmail(String email) {
         return users
                 .find(
-                        eq(Values.USERS_COLLECTION_EMAIL, email.toLowerCase())
+                        eq(Values.USERS_COLLECTION_EMAIL, email)
                 )
+                .collation(caseInsensitiveCollation)
                 .first() != null;
     }
     
@@ -114,11 +127,12 @@ public class DB {
      * @param username The username to check for duplicates
      * @return True if this username already exists
      */
-    public static synchronized boolean checkUsername(String username) {
+    public static synchronized boolean existsUsername(String username) {
         return users
                 .find(
-                        eq(Values.USERS_COLLECTION_USERNAME, username.toLowerCase())
+                        eq(Values.USERS_COLLECTION_USERNAME, username)
                 )
+                .collation(caseInsensitiveCollation)
                 .first() != null;
     }
     
@@ -126,14 +140,15 @@ public class DB {
      * @param login The username and the password to check for duplicates
      * @return True ich this username or email already exists
      */
-    public static synchronized boolean checkEmailAndUsername(LoginMessage login) {
+    public static synchronized boolean existsEmailOrUsername(LoginMessage login) {
         return users
                 .find(
                         or(
-                                eq(Values.USERS_COLLECTION_USERNAME, login.getUsernameOrEmail().toLowerCase()),
-                                eq(Values.USERS_COLLECTION_EMAIL, login.getUsernameOrEmail().toLowerCase())
+                                eq(Values.USERS_COLLECTION_USERNAME, login.getUsernameOrEmail()),
+                                eq(Values.USERS_COLLECTION_EMAIL, login.getUsernameOrEmail())
                         )
                 )
+                .collation(caseInsensitiveCollation)
                 .first() != null;
     }
     
@@ -146,12 +161,14 @@ public class DB {
     public static boolean register(RegisterMessage message) {
         String salt = BCrypt.gensalt();
         hashPasswordOnRegister(message, salt);
+        String registrationDate = LocalDateTime.now().toString();
         
         Document doc = new Document();
         doc.put(Values.USERS_COLLECTION_USERNAME, message.getUsername());
         doc.put(Values.USERS_COLLECTION_EMAIL, message.getEmail());
         doc.put(Values.USERS_COLLECTION_PASSWORD, message.getPassword());
         doc.put(Values.USERS_COLLECTION_SALT, salt);
+        doc.put(Values.USERS_COLLECTION_REGISTRATION_DATE, registrationDate);
         
         try {
             users.insertOne(doc);

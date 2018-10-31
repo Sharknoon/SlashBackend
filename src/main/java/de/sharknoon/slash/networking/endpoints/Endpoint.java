@@ -4,16 +4,17 @@ import com.google.gson.*;
 
 import javax.websocket.*;
 import java.util.*;
-import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.logging.*;
 
 public abstract class Endpoint<M> {
     
-    
+    //Gson to convert JSON
     private static final Gson GSON = new Gson();
-    private static final Set<Endpoint> ENDPOINTS = new CopyOnWriteArraySet<>();
+    //The class of the Messages e.g. RegisterMessage or LoginMessage
     private final Class<M> messageClass;
+    //The type of the extending class of this class e.g. LoginEndpoint or RegisterEndpoint
     private final Class<? extends Endpoint> endpointClass;
+    //The set of
     
     public Endpoint(Class<M> messageClass) {
         this.messageClass = messageClass;
@@ -23,8 +24,6 @@ public abstract class Endpoint<M> {
     @OnOpen
     public void onOpen(Session session) {
         Logger.getGlobal().log(Level.INFO, session.getId() + " connected");
-        ENDPOINTS.add(this);
-        
         session.getAsyncRemote().sendText(
                 OpeningMessage.getOpeningMessage(endpointClass)
         );
@@ -50,14 +49,13 @@ public abstract class Endpoint<M> {
     protected abstract void onMessage(Session session, M message);
     
     @OnClose
-    public void onClose(Session session) {
+    public void onClose(Session session, CloseReason closeReason) {
         Logger.getGlobal().log(Level.INFO, session.getId() + " disconnected");
-        ENDPOINTS.remove(this);
     }
     
     @OnError
     public void onError(Session session, Throwable throwable) {
-        Logger.getGlobal().log(Level.WARNING, session.getId() + " has an Error", throwable);
+        Logger.getGlobal().log(Level.SEVERE, session.getId() + " has an Error", throwable);
         
         session.getAsyncRemote().sendText(
                 ErrorMessage.getErrorMessage(throwable)
@@ -65,7 +63,7 @@ public abstract class Endpoint<M> {
     }
     
     private void onError(Session session, String errorMessage) {
-        Logger.getGlobal().log(Level.WARNING, session.getId() + " has an Error: " + errorMessage);
+        Logger.getGlobal().log(Level.SEVERE, session.getId() + " has an Error: " + errorMessage);
         
         session.getAsyncRemote().sendText(
                 ErrorMessage.getErrorMessage(errorMessage)
@@ -73,8 +71,8 @@ public abstract class Endpoint<M> {
     }
     
     private static class OpeningMessage {
-        
-        private static final String JSON = "{\"status\":\"OK\",\"message\":\"Connected to $\"}";
+    
+        private static final String JSON = "{\"status\":\"CONNECTED\",\"message\":\"Connected to $\"}";
         private static final Map<Class<?>, String> JSONS = new HashMap<>();
         
         static String getOpeningMessage(Class<?> messageClass) {

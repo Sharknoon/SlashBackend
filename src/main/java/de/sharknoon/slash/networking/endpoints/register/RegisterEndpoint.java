@@ -17,15 +17,15 @@ public class RegisterEndpoint extends Endpoint<RegisterMessage> {
     @Override
     protected void onMessage(Session session, RegisterMessage message) {
         String returnMessage;
-        
-        if (DB.checkEmail(message.getEmail())) {
-            returnMessage = "{\"status\":\"EMAIL_ALREADY_REGISTERED\",\"message\":\"The specified email is already taken by another account. Please log in.\"}";
-        } else if (DB.checkUsername(message.getUsername())) {
+    
+        if (DB.existsUsername(message.getUsername())) {
             returnMessage = "{\"status\":\"USERNAME_ALREADY_REGISTERED\",\"message\":\"The specified username is already taken by another account. Please choose another one.\"}";
-        } else if (!checkEmailSyntax(message.getEmail())) {
-            returnMessage = "{\"status\":\"WRONG_EMAIL\",\"message\":\"The specified email does not meet the specifications\"}";
+        } else if (DB.existsEmail(message.getEmail())) {
+            returnMessage = "{\"status\":\"EMAIL_ALREADY_REGISTERED\",\"message\":\"The specified email is already taken by another account. Please log in.\"}";
         } else if (!checkUsernameSyntax(message.getUsername())) {
             returnMessage = "{\"status\":\"WRONG_USERNAME\",\"message\":\"The specified username does not meet the specifications\"}";
+        } else if (!checkEmailSyntax(message.getEmail())) {
+            returnMessage = "{\"status\":\"WRONG_EMAIL\",\"message\":\"The specified email does not meet the specifications\"}";
         } else if (!DB.register(message)) {
             returnMessage = "{\"status\":\"ERROR\",\"message\":\"Could not register the user due to an unexpected error\"}";
         } else {
