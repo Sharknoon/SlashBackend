@@ -9,7 +9,7 @@ import java.util.logging.*;
 public abstract class Endpoint<M> {
     
     //Gson to convert JSON
-    private static final Gson GSON = new Gson();
+    protected static final Gson GSON = new Gson();
     //The class of the Messages e.g. RegisterMessage or LoginMessage
     private final Class<M> messageClass;
     //The type of the extending class of this class e.g. LoginEndpoint or RegisterEndpoint

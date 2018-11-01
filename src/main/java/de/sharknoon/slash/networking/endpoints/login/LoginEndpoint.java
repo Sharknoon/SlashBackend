@@ -6,14 +6,15 @@ import de.sharknoon.slash.database.models.User;
 import de.sharknoon.slash.networking.LoginSessions;
 import de.sharknoon.slash.networking.endpoints.Endpoint;
 
-import javax.websocket.*;
+import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 import java.util.*;
 
 @ServerEndpoint("/login")
 public class LoginEndpoint extends Endpoint<LoginMessage> {
     
-    private static final String SESSION_ID = "id";
+    private static final String SESSION = "id";
+    private static final String USER = "user";
     
     public LoginEndpoint() {
         super(LoginMessage.class);
@@ -24,12 +25,15 @@ public class LoginEndpoint extends Endpoint<LoginMessage> {
         String returnMessage;
         Optional<User> optionalUser = Optional.empty();
     
-        String sessionID = "";
-        if (session.getUserProperties().containsKey(SESSION_ID)) {
+        if (session.getUserProperties().containsKey(SESSION)) {
             returnMessage = "{\"status\":\"USER_ALREADY_LOGGED_IN\",\"message\":\"The requested user is already logged in\"}";
         } else if ((optionalUser = DB.login(message)).isPresent()) {
-            sessionID = UUID.randomUUID().toString();
-            session.getUserProperties().put(SESSION_ID, sessionID);
+            User user = optionalUser.get();
+            session.getUserProperties().put(USER, user);
+        
+            String sessionID = generateSessionID();
+            session.getUserProperties().put(SESSION, sessionID);
+            
             returnMessage = "{\"status\":\"OK\",\"message\":\"Successfully logged in\",\"sessionid\":\"" + sessionID + "\"}";
         } else if (!DB.existsEmailOrUsername(message)) {
             returnMessage = "{\"status\":\"USER_DOES_NOT_EXIST\",\"message\":\"The requested user does not exist\"}";
@@ -41,20 +45,26 @@ public class LoginEndpoint extends Endpoint<LoginMessage> {
     
         //Do it here instead in the if above to send the response to the client as quickly as possible
         if (optionalUser.isPresent()) {
-            User user = optionalUser.get();
+            String sessionID = (String) session.getUserProperties().get(SESSION);
+            User user = (User) session.getUserProperties().get(USER);
+            DB.addSessionID(user, sessionID);
             LoginSessions.addSession(user, sessionID);
         }
     }
     
-    @Override
-    public void onClose(Session session, CloseReason closeReason) {
-        super.onClose(session, closeReason);
-        LoginSessions.removeSession(String.valueOf(session.getUserProperties().get(SESSION_ID)));
+    private String generateSessionID() {
+        return UUID.randomUUID().toString();
     }
     
-    @Override
-    public void onError(Session session, Throwable throwable) {
-        super.onError(session, throwable);
-        LoginSessions.removeSession(String.valueOf(session.getUserProperties().get(SESSION_ID)));
+    /**
+     * maybe needed in the future
+     *
+     * @param session
+     */
+    private void logout(Session session) {
+        String sessionID = (String) session.getUserProperties().get(SESSION);
+        User user = (User) session.getUserProperties().get(USER);
+        DB.removeSessionID(user, sessionID);
+        LoginSessions.removeSession(sessionID);
     }
 }

@@ -30,11 +30,13 @@ public class LoginSessions {
         }
     }
     
-    public boolean isLoggedIn(String sessionID) {
-        return LOGGED_IN_SESSIONS.containsKey(sessionID);
-    }
-    
-    public Optional<User> getUser(String sessionID) {
+    /**
+     * Checks and returns the user for the specified session ID
+     *
+     * @param sessionID The sessionID from the client
+     * @return The user if the client has successfully logged in, an empty optional otherwise
+     */
+    public static Optional<User> getUser(String sessionID) {
         return Optional.ofNullable(LOGGED_IN_SESSIONS.get(sessionID));
     }
     

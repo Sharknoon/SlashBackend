@@ -62,6 +62,12 @@
             <artifactId>spring-security-crypto</artifactId>
             <version>LATEST</version>
         </dependency>
+        <!-- Utils Library -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>LATEST</version>
+        </dependency>
     </dependencies>
 
 </project>
