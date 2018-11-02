@@ -16,7 +16,7 @@ public enum Values {
     USERS_COLLECTION_PASSWORD("password"),
     USERS_COLLECTION_SALT("salt"),
     USERS_COLLECTION_REGISTRATION_DATE("registrationDate"),
-    USERS_COLLECTION_SESSION_IDS("sessionIds"),
+    USERS_COLLECTION_SESSION_IDS("sessionIDs"),
     
     //Collection projects
     PROJECTS_COLLECTION_NAME("name"),
