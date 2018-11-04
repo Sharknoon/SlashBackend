@@ -30,6 +30,7 @@ public class DB {
     private static final Collation caseInsensitiveCollation = Collation.builder().locale("en").collationStrength(SECONDARY).build();
     //Pushoptions
     private static final PushOptions maxDevicesSlice = new PushOptions().slice(-Properties.getUserConfig().maxdevices());
+    private static final PushOptions maxStoredMessagesSlice = new PushOptions().slice(-Properties.getUserConfig().amountstoredchatmessages());
     //The database
     private static MongoDatabase database;
     //The collections
@@ -40,13 +41,13 @@ public class DB {
     static {
         try {
             DBConfig props = Properties.getDBConfig();
-        
+    
             String ip = props.databaseip();
             int port = props.databaseport();
             String database = props.database();
             String username = props.dbuser();
             String password = props.dbpassword();
-        
+    
             MongoCredential credential = MongoCredential.createCredential(username, database, password.toCharArray());
             CodecRegistry codecRegistry = fromRegistries(
                     MongoClientSettings.getDefaultCodecRegistry(),
@@ -62,8 +63,8 @@ public class DB {
                             .codecRegistry(codecRegistry)
                             .build()
             );
-        
-        
+    
+    
             DB.database = mongoClient.getDatabase(database);
             DB.users = DB.database.getCollection(USERS_COLLECTION.value, User.class);
             DB.projects = DB.database.getCollection(PROJECTS_COLLECTION.value, Project.class);
@@ -218,6 +219,25 @@ public class DB {
                 .into(new HashSet<>());
     }
     
+    public static void addProject(Project project) {
+        projects.insertOne(project);
+    }
+    
+    public static Optional<Project> getProject(ObjectId projectID) {
+        return Optional.ofNullable(
+                projects
+                        .find(eq(COLLECTION_ID.value, projectID))
+                        .first()
+        );
+    }
+    
+    //Not yet needed
+//    public static boolean existsProjectID(ObjectId id) {
+//        return projects
+//                .find(eq(COLLECTION_ID.value, id))
+//                .first() != null;
+//    }
+    
     //
     // CHATS
     //
@@ -235,5 +255,38 @@ public class DB {
                 .limit(n)
                 .into(new HashSet<>());
     }
+    
+    public static Optional<Chat> getChatByPartnerID(ObjectId id) {
+        return Optional.ofNullable(
+                chats
+                        .find(
+                                eq(CHATS_COLLECTION_PERSON_B.value, id)
+                        ).first()
+        );
+    }
+    
+    public static void addChat(Chat chat) {
+        chats.insertOne(chat);
+    }
+    
+    public static boolean existsUserID(ObjectId id) {
+        return users
+                .find(eq(COLLECTION_ID.value, id))
+                .first() != null;
+    }
+    
+    //
+    // USER
+    //
+    
+    public static Optional<User> getUserForUsername(String username) {
+        return Optional.ofNullable(
+                users
+                        .find(eq(USERS_COLLECTION_USERNAME.value, username))
+                        .collation(caseInsensitiveCollation)
+                        .first()
+        );
+    }
+    
     
 }

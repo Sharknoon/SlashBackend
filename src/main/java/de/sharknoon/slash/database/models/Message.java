@@ -4,20 +4,20 @@ import com.google.gson.annotations.Expose;
 import org.bson.types.ObjectId;
 
 import java.time.LocalDateTime;
-import java.util.Set;
 
-public class Project {
+public class Message {
     
     @Expose
-    public ObjectId id;
+    ObjectId id;
     @Expose
-    public String name;
+    LocalDateTime creationDate;
     @Expose
-    public String image;
+    MessageTypes type;
     @Expose
-    public LocalDateTime creationDate;
-    @Expose
-    public Set<ObjectId> users;
+    Object message;
     
+    public enum MessageTypes {
+        TEXT
+    }
     
 }

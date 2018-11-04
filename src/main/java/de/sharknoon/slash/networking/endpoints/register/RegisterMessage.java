@@ -1,8 +1,13 @@
 package de.sharknoon.slash.networking.endpoints.register;
 
+import com.google.gson.annotations.Expose;
+
 public class RegisterMessage {
+    @Expose
     private String username = "";
+    @Expose
     private String email = "";
+    @Expose
     private String password = "";
     
     public String getUsername() {

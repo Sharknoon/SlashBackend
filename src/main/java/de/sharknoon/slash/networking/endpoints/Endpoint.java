@@ -1,15 +1,22 @@
 package de.sharknoon.slash.networking.endpoints;
 
 import com.google.gson.*;
+import de.sharknoon.slash.networking.utils.*;
+import org.bson.types.ObjectId;
 
 import javax.websocket.*;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.logging.*;
 
 public abstract class Endpoint<M> {
     
     //Gson to convert JSON
-    protected static final Gson GSON = new Gson();
+    protected static final Gson GSON = new GsonBuilder()
+            .excludeFieldsWithoutExposeAnnotation()
+            .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeConverter())
+            .registerTypeAdapter(ObjectId.class, new ObjectIdConverter())
+            .create();
     //The class of the Messages e.g. RegisterMessage or LoginMessage
     private final Class<M> messageClass;
     //The type of the extending class of this class e.g. LoginEndpoint or RegisterEndpoint

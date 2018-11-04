@@ -1,7 +1,11 @@
 package de.sharknoon.slash.networking.endpoints.login;
 
+import com.google.gson.annotations.Expose;
+
 public class LoginMessage {
+    @Expose
     private String usernameOrEmail = "";
+    @Expose
     private String password = "";
     
     public String getUsernameOrEmail() {
