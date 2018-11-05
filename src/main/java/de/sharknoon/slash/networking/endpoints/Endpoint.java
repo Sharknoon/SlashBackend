@@ -5,6 +5,7 @@ import de.sharknoon.slash.networking.utils.*;
 import org.bson.types.ObjectId;
 
 import javax.websocket.*;
+import java.lang.reflect.Modifier;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.logging.*;
@@ -12,44 +13,40 @@ import java.util.logging.*;
 public abstract class Endpoint<M> {
     
     //Gson to convert JSON
-    protected static final Gson GSON = new GsonBuilder()
+    private static final Gson GSON = new GsonBuilder()
             .excludeFieldsWithoutExposeAnnotation()
             .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeConverter())
             .registerTypeAdapter(ObjectId.class, new ObjectIdConverter())
+            .excludeFieldsWithModifiers(Modifier.STATIC)
             .create();
     //The class of the Messages e.g. RegisterMessage or LoginMessage
     private final Class<M> messageClass;
     //The type of the extending class of this class e.g. LoginEndpoint or RegisterEndpoint
     private final Class<? extends Endpoint> endpointClass;
-    //The set of
+    
+    protected static String toJSON(Object o) {
+        try {
+            return GSON.toJson(o);
+        } catch (Exception e) {
+            return "{\"status\":\"ERROR\"," +
+                    "\"message\":\"An unexpected error occurred, please try again later\"}";
+        }
+    }
     
     public Endpoint(Class<M> messageClass) {
         this.messageClass = messageClass;
         this.endpointClass = getClass();
     }
     
+    private Session session;
+    
     @OnOpen
     public void onOpen(Session session) {
         Logger.getGlobal().log(Level.INFO, session.getId() + " connected");
+        this.session = session;
         session.getAsyncRemote().sendText(
                 OpeningMessage.getOpeningMessage(endpointClass)
         );
-    }
-    
-    @OnMessage
-    public final void onMessage(Session session, String message) {
-        Logger.getGlobal().log(Level.INFO, session.getId() + ": " + message);
-        try {
-            M messageObject = GSON.fromJson(message, messageClass);
-            onMessage(
-                    session,
-                    messageObject
-            );
-        } catch (JsonSyntaxException je) {
-            onError(session, "JSON not well formattet");
-        } catch (Exception e) {
-            onError(session, e);
-        }
     }
     
     //To be implemented
@@ -75,6 +72,33 @@ public abstract class Endpoint<M> {
         session.getAsyncRemote().sendText(
                 ErrorMessage.getErrorMessage(errorMessage)
         );
+    }
+    
+    @OnMessage
+    public final void onMessage(Session session, String message) {
+        Logger.getGlobal().log(Level.INFO, session.getId() + ": " + message);
+        this.session = session;
+        try {
+            M messageObject = GSON.fromJson(message, messageClass);
+            onMessage(
+                    session,
+                    messageObject
+            );
+        } catch (JsonSyntaxException je) {
+            onError(session, "JSON not well formattet");
+        } catch (Exception e) {
+            onError(session, e);
+        }
+    }
+    
+    protected void send(String json) {
+        if (session != null) {
+            session.getAsyncRemote().sendText(json);
+        }
+    }
+    
+    protected void send(Object o) {
+        send(toJSON(o));
     }
     
     private static class OpeningMessage {
@@ -111,7 +135,7 @@ public abstract class Endpoint<M> {
             if (JSONS_THROWABLES.containsKey(t)) {
                 return JSONS_THROWABLES.get(t);
             }
-            String errorMessage = t.getLocalizedMessage();
+            String errorMessage = t.getClass().getSimpleName() + " " + t.getLocalizedMessage();
             errorMessage = JSON.replace("$", errorMessage);
             JSONS_THROWABLES.put(t, errorMessage);
             return errorMessage;

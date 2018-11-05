@@ -5,6 +5,8 @@ import de.sharknoon.slash.database.DB;
 import de.sharknoon.slash.database.models.User;
 import de.sharknoon.slash.networking.LoginSessions;
 import de.sharknoon.slash.networking.endpoints.Endpoint;
+import de.sharknoon.slash.properties.Properties;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
@@ -20,6 +22,11 @@ public class LoginEndpoint extends Endpoint<LoginMessage> {
         super(LoginMessage.class);
     }
     
+    private static void hashPasswordOnLogin(LoginMessage message, String salt) {
+        String saltedPassword = BCrypt.hashpw(message.getPassword(), salt);
+        message.setPassword(saltedPassword);
+    }
+    
     @Override
     protected void onMessage(Session session, LoginMessage message) {
         String returnMessage;
@@ -27,7 +34,7 @@ public class LoginEndpoint extends Endpoint<LoginMessage> {
     
         if (session.getUserProperties().containsKey(SESSION)) {
             returnMessage = "{\"status\":\"USER_ALREADY_LOGGED_IN\",\"message\":\"The requested user is already logged in\"}";
-        } else if ((optionalUser = DB.login(message)).isPresent()) {
+        } else if ((optionalUser = DB.login(message.getUsernameOrEmail())).isPresent() && login(optionalUser.get(), message)) {
             User user = optionalUser.get();
             session.getUserProperties().put(USER, user);
         
@@ -47,20 +54,27 @@ public class LoginEndpoint extends Endpoint<LoginMessage> {
         if (optionalUser.isPresent()) {
             String sessionID = (String) session.getUserProperties().get(SESSION);
             User user = (User) session.getUserProperties().get(USER);
+            while (user.sessionIDs.size() > Properties.getUserConfig().maxdevices()) {
+                user.sessionIDs.remove(user.sessionIDs.iterator().next());
+            }
+            user.sessionIDs.add(sessionID);
             DB.addSessionID(user, sessionID);
-            LoginSessions.addSession(user, sessionID);
+            LoginSessions.addSession(user, sessionID, LoginEndpoint.class, session);
         }
     }
+    
+    private boolean login(User user, LoginMessage message) {
+        String salt = user.salt;
+        hashPasswordOnLogin(message, salt);
+        return message.getPassword().equals(user.password);
+    }
+    
     
     private String generateSessionID() {
         return UUID.randomUUID().toString();
     }
     
-    /**
-     * maybe needed in the future
-     *
-     * @param session
-     */
+    
     private void logout(Session session) {
         String sessionID = (String) session.getUserProperties().get(SESSION);
         User user = (User) session.getUserProperties().get(USER);

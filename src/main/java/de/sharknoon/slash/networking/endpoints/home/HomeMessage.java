@@ -19,9 +19,14 @@ public class HomeMessage {
     //Get Chat
     @Expose
     private String partnerUserID = "";
-    //Search user by username
+    //GET_USER
     @Expose
     private String username = "";
+    //ADD_MESSAGE
+    @Expose
+    private String chatID = "";
+    @Expose
+    private String message = "";
     
     public String getSessionid() {
         return sessionid;
@@ -80,6 +85,26 @@ public class HomeMessage {
     public void setUsername(String username) {
         if (username != null) {
             this.username = username;
+        }
+    }
+    
+    public String getChatID() {
+        return chatID;
+    }
+    
+    public void setChatID(String chatID) {
+        if (chatID != null) {
+            this.chatID = chatID;
+        }
+    }
+    
+    public String getMessage() {
+        return message;
+    }
+    
+    public void setMessage(String message) {
+        if (message != null) {
+            this.message = message;
         }
     }
 }

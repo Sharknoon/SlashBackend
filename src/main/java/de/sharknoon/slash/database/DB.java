@@ -5,15 +5,12 @@ import com.mongodb.client.*;
 import com.mongodb.client.model.*;
 import de.sharknoon.slash.database.models.*;
 import de.sharknoon.slash.networking.endpoints.login.LoginMessage;
-import de.sharknoon.slash.networking.endpoints.register.RegisterMessage;
 import de.sharknoon.slash.properties.*;
 import de.sharknoon.slash.properties.Properties;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
 import org.bson.types.ObjectId;
-import org.springframework.security.crypto.bcrypt.BCrypt;
 
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.logging.*;
 
@@ -51,7 +48,11 @@ public class DB {
             MongoCredential credential = MongoCredential.createCredential(username, database, password.toCharArray());
             CodecRegistry codecRegistry = fromRegistries(
                     MongoClientSettings.getDefaultCodecRegistry(),
-                    fromProviders(PojoCodecProvider.builder().automatic(true).build())
+                    fromProviders(PojoCodecProvider
+                            .builder()
+                            .automatic(true)
+                            .build()
+                    )
             );
             MongoClient mongoClient = MongoClients.create(
                     MongoClientSettings
@@ -82,28 +83,20 @@ public class DB {
     /**
      * Logs the user in
      *
-     * @param login The login credentials of the user
+     * @param usernameOrEmail The login credentials of the user
      * @return The user if the login was successful
      */
-    public static Optional<User> login(LoginMessage login) {
+    public static Optional<User> login(String usernameOrEmail) {
         User user = users
                 .find(
                         or(
-                                eq(USERS_COLLECTION_USERNAME.value, login.getUsernameOrEmail()),
-                                eq(USERS_COLLECTION_EMAIL.value, login.getUsernameOrEmail())
+                                eq(USERS_COLLECTION_USERNAME.value, usernameOrEmail),
+                                eq(USERS_COLLECTION_EMAIL.value, usernameOrEmail)
                         )
                 )
                 .collation(caseInsensitiveCollation)
                 .first();
-        if (user == null) {
-            return Optional.empty();
-        }
-        String salt = user.salt;
-        hashPasswordOnLogin(login, salt);
-        if (login.getPassword().equals(user.password)) {
-            return Optional.of(user);
-        }
-        return Optional.empty();
+        return Optional.ofNullable(user);
     }
     
     public static void addSessionID(User user, String sessionID) {
@@ -122,10 +115,6 @@ public class DB {
         user.sessionIDs.remove(sessionID);
     }
     
-    private static void hashPasswordOnLogin(LoginMessage message, String salt) {
-        String saltedPassword = BCrypt.hashpw(message.getPassword(), salt);
-        message.setPassword(saltedPassword);
-    }
     
     //
     // REGISTER
@@ -176,22 +165,10 @@ public class DB {
     /**
      * Registers a new user
      *
-     * @param message The user registration data
+     * @param user The user registration data
      * @return true if the registration was successful
      */
-    public static boolean register(RegisterMessage message) {
-        String salt = BCrypt.gensalt();
-        hashPasswordOnRegister(message, salt);
-        LocalDateTime registrationDate = LocalDateTime.now();
-    
-        User user = new User();
-        user.username = message.getUsername();
-        user.email = message.getEmail();
-        user.password = message.getPassword();
-        user.salt = salt;
-        user.registrationDate = registrationDate;
-        user.sessionIDs = Set.of();
-        
+    public static boolean register(User user) {
         try {
             users.insertOne(user);
             return true;
@@ -201,10 +178,6 @@ public class DB {
         }
     }
     
-    private static void hashPasswordOnRegister(RegisterMessage message, String salt) {
-        String saltedPassword = BCrypt.hashpw(message.getPassword(), salt);
-        message.setPassword(saltedPassword);
-    }
     
     //
     // PROJECTS
@@ -220,7 +193,11 @@ public class DB {
     }
     
     public static void addProject(Project project) {
-        projects.insertOne(project);
+        try {
+            projects.insertOne(project);
+        } catch (Exception e) {
+            Logger.getGlobal().log(Level.WARNING, e.getLocalizedMessage());
+        }
     }
     
     public static Optional<Project> getProject(ObjectId projectID) {
@@ -242,14 +219,10 @@ public class DB {
     // CHATS
     //
     
-    public static Set<Chat> getNLastChatsForUser(User u, int n) {
-        ObjectId userId = u.id;
+    public static Set<Chat> getNLastChatsForUser(ObjectId id, int n) {
         return chats
                 .find(
-                        or(
-                                eq(CHATS_COLLECTION_PERSON_A.value, userId),
-                                eq(CHATS_COLLECTION_PERSON_B.value, userId)
-                        )
+                        eq(CHATS_COLLECTION_PERSON_A.value, id)
                 )
                 .sort(descending(CHATS_COLLECTION_CREATION_DATE.value))
                 .limit(n)
@@ -266,18 +239,41 @@ public class DB {
     }
     
     public static void addChat(Chat chat) {
-        chats.insertOne(chat);
+        try {
+            chats.insertOne(chat);
+        } catch (Exception e) {
+            Logger.getGlobal().log(Level.WARNING, e.getLocalizedMessage());
+        }
     }
     
-    public static boolean existsUserID(ObjectId id) {
-        return users
-                .find(eq(COLLECTION_ID.value, id))
-                .first() != null;
+    
+    public static Optional<Chat> getChat(ObjectId objectId) {
+        return Optional.ofNullable(
+                chats.find(
+                        eq(COLLECTION_ID.value, objectId)
+                ).first()
+        );
+    }
+    
+    public static void addMessageToChat(Chat chat, String message) {
+        chats.updateOne(
+                eq(COLLECTION_ID.value, chat.id),
+                pushEach(CHATS_COLLECTION_MESSAGES.value, List.of(message), maxStoredMessagesSlice)
+        );
+        chat.messages.add(message);
     }
     
     //
     // USER
     //
+    
+    public static Optional<User> getUser(ObjectId id) {
+        return Optional.ofNullable(
+                users
+                        .find(eq(COLLECTION_ID.value, id))
+                        .first()
+        );
+    }
     
     public static Optional<User> getUserForUsername(String username) {
         return Optional.ofNullable(
@@ -287,6 +283,5 @@ public class DB {
                         .first()
         );
     }
-    
     
 }
