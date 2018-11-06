@@ -54,7 +54,11 @@ public class HomeEndpoint extends Endpoint<HomeMessage> {
                 home.chats = DB.getNLastChatsForUser(user.id, Properties.getUserConfig().amountfavouritechats());
                 //TMP
                 for (Chat chat : home.chats) {
-                    chat.personBUsername = DB.getUser(chat.personB).map(u -> u.username).orElse("ERROR");
+                    if (Objects.equals(chat.personA, user.id)) {//I am user a
+                        chat.partnerUsername = DB.getUser(chat.personB).map(u -> u.username).orElse("ERROR");
+                    } else {
+                        chat.partnerUsername = DB.getUser(chat.personA).map(u -> u.username).orElse("ERROR");
+                    }
                 }
                 send(home);
                 break;
@@ -66,12 +70,12 @@ public class HomeEndpoint extends Endpoint<HomeMessage> {
                     send(error);
                 } else {
                     ObjectId partnerID = new ObjectId(message.getPartnerUserID());
-                    Optional<Chat> chat = DB.getChatByPartnerID(partnerID);
+                    Optional<Chat> chat = DB.getChatByPartnerID(user.id, partnerID);
                     Optional<User> partner = DB.getUser(partnerID);
                     if (chat.isPresent() && partner.isPresent()) {
                         ChatResponse cm = new ChatResponse();
                         cm.chat = chat.get();
-                        cm.chat.personBUsername = partner.get().username;
+                        cm.chat.partnerUsername = partner.get().username;
                         send(cm);
                     } else {
                         if (!partner.isPresent()) {
@@ -86,7 +90,7 @@ public class HomeEndpoint extends Endpoint<HomeMessage> {
                             newChat.personA = user.id;
                             //newChat.nameA = user.username;
                             newChat.personB = partner.get().id;
-                            newChat.personBUsername = partner.get().username;
+                            newChat.partnerUsername = partner.get().username;
                             newChat.id = new ObjectId();
                             DB.addChat(newChat);
                             ChatResponse cm = new ChatResponse();
@@ -157,18 +161,26 @@ public class HomeEndpoint extends Endpoint<HomeMessage> {
                         Optional<Chat> chat = DB.getChat(new ObjectId(message.getChatID()));
                         if (chat.isPresent()) {
                             Chat c = chat.get();
-                            Optional<User> partner = DB.getUser(c.personB);
+                            Optional<User> partner;
+                            if (Objects.equals(c.personA, user.id)) {//I am user a
+                                partner = DB.getUser(c.personB);
+                            } else {
+                                partner = DB.getUser(c.personA);
+                            }
                             if (partner.isPresent()) {
                                 DB.addMessageToChat(c, chatMessage);
                                 ChatResponse cr = new ChatResponse();
                                 cr.chat = c;
-                                String chatResponse = toJSON(cr);
+                                c.partnerUsername = partner.get().username;
+                                String chatResponseToMe = toJSON(cr);
                                 LoginSessions.getSession(HomeEndpoint.class, user)
-                                        .ifPresent(session -> session.getAsyncRemote().sendText(chatResponse));
+                                        .ifPresent(session -> session.getAsyncRemote().sendText(chatResponseToMe));
+                                c.partnerUsername = user.username;
+                                String chatResponseToPartner = toJSON(cr);
                                 LoginSessions.getSession(HomeEndpoint.class, partner.get())
-                                        .ifPresent(session -> session.getAsyncRemote().sendText(chatResponse));
+                                        .ifPresent(session -> session.getAsyncRemote().sendText(chatResponseToPartner));
                             } else {
-                                //partner doesnt exists
+                                //partner doesn't exists
                                 ErrorResponse error = new ErrorResponse();
                                 error.status = "CHAT_PARTNER_NOT_FOUND";
                                 error.description = "No corresponding chat partner to the chat-ID was found";

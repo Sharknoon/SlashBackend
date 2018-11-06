@@ -19,7 +19,7 @@ public class Chat {
     public ObjectId personB;
     //TMP
     @Expose
-    public String personBUsername;
+    public String partnerUsername;
     @Expose
     public LocalDateTime creationDate;
     //The IDs of the messages

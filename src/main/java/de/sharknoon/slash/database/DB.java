@@ -222,18 +222,30 @@ public class DB {
     public static Set<Chat> getNLastChatsForUser(ObjectId id, int n) {
         return chats
                 .find(
-                        eq(CHATS_COLLECTION_PERSON_A.value, id)
+                        or(
+                                eq(CHATS_COLLECTION_PERSON_A.value, id),
+                                eq(CHATS_COLLECTION_PERSON_B.value, id)
+                        )
                 )
                 .sort(descending(CHATS_COLLECTION_CREATION_DATE.value))
                 .limit(n)
                 .into(new HashSet<>());
     }
     
-    public static Optional<Chat> getChatByPartnerID(ObjectId id) {
+    public static Optional<Chat> getChatByPartnerID(ObjectId userID, ObjectId partnerID) {
         return Optional.ofNullable(
                 chats
                         .find(
-                                eq(CHATS_COLLECTION_PERSON_B.value, id)
+                                or(
+                                        and(
+                                                eq(CHATS_COLLECTION_PERSON_A.value, userID),
+                                                eq(CHATS_COLLECTION_PERSON_B.value, partnerID)
+                                        ),
+                                        and(
+                                                eq(CHATS_COLLECTION_PERSON_A.value, partnerID),
+                                                eq(CHATS_COLLECTION_PERSON_B.value, userID)
+                                        )
+                                )
                         ).first()
         );
     }
