@@ -17,7 +17,6 @@ import java.util.*;
 public class HomeEndpoint extends Endpoint<HomeMessage> {
     
     private static final String GET_USER_STATUS = "GET_USER";
-    
     private static final String GET_HOME_STATUS = "GET_HOME";
     private static final String GET_CHAT_STATUS = "GET_CHAT";
     private static final String ADD_PROJECT_STATUS = "ADD_PROJECT";

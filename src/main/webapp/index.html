@@ -14,9 +14,11 @@
         <legend>1. Connect to the server</legend>
         <form>
             <label class="radio-inline">
+                <input type="radio" name="optradio">/register</label>
+            <label class="radio-inline">
                 <input type="radio" name="optradio" checked>/login</label>
             <label class="radio-inline">
-                <input type="radio" name="optradio">/register</label>
+                <input type="radio" name="optradio">/home</label>
         </form>
         <button type="submit" onclick="connect()" style="color: green" id="connect">Connect</button>
         <button type="submit" onclick="disconnect()" style="color: red" id="disconnect" disabled>Disconnect</button>
@@ -33,7 +35,7 @@
     <br>
     <fieldset>
         <legend>3. Receive messages from the server</legend>
-        <textarea rows="10" disabled id="out" title="log"
+        <textarea rows="10" readonly id="out" title="log"
                   style="box-sizing: border-box; width: 100%; resize: none; "></textarea>
         <br>
         <button type="submit" onclick="clearLog()">Clear</button>

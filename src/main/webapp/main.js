@@ -1,6 +1,7 @@
 let conn;
 
-let ip = "sharknoon.de";
+let slashHost = window.location.host;
+let slashPath = window.location.pathname;
 
 function connect() {
     const coffee = document.forms[0];
@@ -9,7 +10,7 @@ function connect() {
     for (i = 0; i < coffee.length; i++) {
         if (coffee[i].checked) {
             link = coffee[i].labels[0].innerText;
-            link = "wss://" + ip + "/slash" + link;
+            link = "wss://" + slashHost + slashPath + link.substr(1);
             break;
         }
     }
