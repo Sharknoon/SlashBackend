@@ -33,7 +33,8 @@ public abstract class Endpoint<M> {
         }
     }
     
-    protected Endpoint(Class<M> messageClass) {
+    @SuppressWarnings("WeakerAccess")
+    public Endpoint(Class<M> messageClass) {
         this.messageClass = messageClass;
         this.endpointClass = getClass();
     }
@@ -85,9 +86,9 @@ public abstract class Endpoint<M> {
                     messageObject
             );
         } catch (JsonSyntaxException je) {
-            onError(session, "JSON not well formattet");
+            onError(session, "JSON not well formatted");
         } catch (Exception e) {
-            onError(session, e);
+            onError(session, "Internal server error occurred");
         }
     }
     

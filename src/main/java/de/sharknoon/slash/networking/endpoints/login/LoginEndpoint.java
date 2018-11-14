@@ -12,13 +12,15 @@ import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 import java.util.*;
 
-@ServerEndpoint("/getUser")
+@ServerEndpoint("/login")
 public class LoginEndpoint extends Endpoint<LoginMessage> {
     
     private static final String SESSION = "id";
     private static final String USER = "user";
     
-    LoginEndpoint() {
+    //Needs to stay public
+    @SuppressWarnings("WeakerAccess")
+    public LoginEndpoint() {
         super(LoginMessage.class);
     }
     

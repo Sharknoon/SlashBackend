@@ -13,8 +13,9 @@ import java.util.Set;
 @ServerEndpoint("/register")
 public class RegisterEndpoint extends Endpoint<RegisterMessage> {
     
-    
-    RegisterEndpoint() {
+    //Needs to stay public
+    @SuppressWarnings("WeakerAccess")
+    public RegisterEndpoint() {
         super(RegisterMessage.class);
     }
     

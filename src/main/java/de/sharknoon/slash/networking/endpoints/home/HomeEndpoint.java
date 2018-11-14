@@ -27,7 +27,9 @@ public class HomeEndpoint extends Endpoint<HomeMessage> {
         return message.length() < 5000;
     }
     
-    private HomeEndpoint() {
+    //Needs to stay public
+    @SuppressWarnings("WeakerAccess")
+    public HomeEndpoint() {
         super(HomeMessage.class);
     }
     
