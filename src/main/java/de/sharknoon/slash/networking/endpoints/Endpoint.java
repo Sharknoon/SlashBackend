@@ -33,7 +33,7 @@ public abstract class Endpoint<M> {
         }
     }
     
-    public Endpoint(Class<M> messageClass) {
+    protected Endpoint(Class<M> messageClass) {
         this.messageClass = messageClass;
         this.endpointClass = getClass();
     }

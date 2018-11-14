@@ -3,12 +3,16 @@
     <words>
       <w>amountfavouritechats</w>
       <w>amountstoredchatmessages</w>
+      <w>blub</w>
+      <w>caseinsensitivity</w>
       <w>databaseip</w>
       <w>databaseport</w>
       <w>dbpassword</w>
       <w>dbuser</w>
       <w>jsons</w>
       <w>maxdevices</w>
+      <w>timeoutmillis</w>
+      <w>websocket</w>
     </words>
   </dictionary>
 </component>

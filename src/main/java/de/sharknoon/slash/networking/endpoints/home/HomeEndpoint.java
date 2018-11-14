@@ -28,12 +28,12 @@ public class HomeEndpoint extends Endpoint<HomeMessage> {
         return message.length() < 5000;
     }
     
-    public HomeEndpoint() {
-        super(de.sharknoon.slash.networking.endpoints.home.HomeMessage.class);
+    private HomeEndpoint() {
+        super(HomeMessage.class);
     }
     
     @Override
-    protected void onMessage(Session session, de.sharknoon.slash.networking.endpoints.home.HomeMessage message) {
+    protected void onMessage(Session session, HomeMessage message) {
         Optional<User> user = LoginSessions.getUser(message.getSessionid());
         
         if (!user.isPresent()) {//To be replaced with isEmpty, this is because intellij shows a warning because it doesnt know the new isEmtpy()
@@ -243,7 +243,7 @@ public class HomeEndpoint extends Endpoint<HomeMessage> {
         Project project;
     }
     
-    public class UserResponse {
+    class UserResponse {
         @Expose
         String status = "OK_USER";
         @Expose

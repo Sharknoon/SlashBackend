@@ -12,7 +12,7 @@ import java.util.Map.Entry;
  */
 public class LoginSessions {
     
-    private static Map<String, LoginSession> LOGGED_IN_SESSIONS = new HashMap<>();
+    private static final Map<String, LoginSession> LOGGED_IN_SESSIONS = new HashMap<>();
     
     public static void addSession(User user, String sessionID, Class<? extends Endpoint> endpoint, Session session) {
         if (LOGGED_IN_SESSIONS.containsKey(sessionID)) {

@@ -76,17 +76,27 @@ public class DB {
         }
     }
     
+    /**
+     * USE WITH CAUTION NO WARRANTY FOR ANY DAMAGE, USE ONLY FOR TESTS
+     *
+     * @return the database instance
+     */
+    public static MongoDatabase leakDatabase() {
+        return database;
+    }
+    
+    
     //
     // LOGIN
     //
     
     /**
-     * Logs the user in
+     * Gets a user
      *
-     * @param usernameOrEmail The login credentials of the user
-     * @return The user if the login was successful
+     * @param usernameOrEmail The email or password of the user
+     * @return The user if the getUser was successful
      */
-    public static Optional<User> login(String usernameOrEmail) {
+    public static Optional<User> getUser(String usernameOrEmail) {
         User user = users
                 .find(
                         or(
@@ -178,6 +188,14 @@ public class DB {
         }
     }
     
+    /**
+     * Unregisters a user, mainly used in tests for now
+     *
+     * @param user the user to be deleted
+     */
+    public static void unregister(User user) {
+        users.deleteOne(eq(COLLECTION_ID.value, user.id));
+    }
     
     //
     // PROJECTS

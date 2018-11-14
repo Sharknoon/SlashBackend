@@ -12,19 +12,14 @@ import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 import java.util.*;
 
-@ServerEndpoint("/login")
+@ServerEndpoint("/getUser")
 public class LoginEndpoint extends Endpoint<LoginMessage> {
     
     private static final String SESSION = "id";
     private static final String USER = "user";
     
-    public LoginEndpoint() {
+    LoginEndpoint() {
         super(LoginMessage.class);
-    }
-    
-    private static void hashPasswordOnLogin(LoginMessage message, String salt) {
-        String saltedPassword = BCrypt.hashpw(message.getPassword(), salt);
-        message.setPassword(saltedPassword);
     }
     
     @Override
@@ -34,7 +29,7 @@ public class LoginEndpoint extends Endpoint<LoginMessage> {
     
         if (session.getUserProperties().containsKey(SESSION)) {
             returnMessage = "{\"status\":\"USER_ALREADY_LOGGED_IN\",\"message\":\"The requested user is already logged in\"}";
-        } else if ((optionalUser = DB.login(message.getUsernameOrEmail())).isPresent() && login(optionalUser.get(), message)) {
+        } else if ((optionalUser = login(message)).isPresent()) {
             User user = optionalUser.get();
             session.getUserProperties().put(USER, user);
         
@@ -63,10 +58,18 @@ public class LoginEndpoint extends Endpoint<LoginMessage> {
         }
     }
     
-    private boolean login(User user, LoginMessage message) {
-        String salt = user.salt;
-        hashPasswordOnLogin(message, salt);
-        return message.getPassword().equals(user.password);
+    private Optional<User> login(LoginMessage message) {
+        Optional<User> user = DB.getUser(message.getUsernameOrEmail());
+        if (!user.isPresent()) {
+            return user;
+        }
+        
+        String salt = user.get().salt;
+        String hashedPW = BCrypt.hashpw(message.getPassword(), salt);
+        if (hashedPW.equals(user.get().password)) {
+            return user;
+        }
+        return Optional.empty();
     }
     
     

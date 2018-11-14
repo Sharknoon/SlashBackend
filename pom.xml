@@ -68,6 +68,13 @@
             <artifactId>commons-lang3</artifactId>
             <version>LATEST</version>
         </dependency>
+        <!-- Test Library -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>LATEST</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
 </project>

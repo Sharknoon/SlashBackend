@@ -14,7 +14,7 @@ import java.util.Set;
 public class RegisterEndpoint extends Endpoint<RegisterMessage> {
     
     
-    public RegisterEndpoint() {
+    RegisterEndpoint() {
         super(RegisterMessage.class);
     }
     

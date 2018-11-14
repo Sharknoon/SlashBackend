@@ -2,7 +2,7 @@ package de.sharknoon.slash.networking.endpoints.register;
 
 import com.google.gson.annotations.Expose;
 
-public class RegisterMessage {
+class RegisterMessage {
     @Expose
     private String username = "";
     @Expose
@@ -10,31 +10,31 @@ public class RegisterMessage {
     @Expose
     private String password = "";
     
-    public String getUsername() {
+    String getUsername() {
         return username;
     }
     
-    public void setUsername(String username) {
+    void setUsername(String username) {
         if (username != null) {
             this.username = username;
         }
     }
     
-    public String getEmail() {
+    String getEmail() {
         return email;
     }
     
-    public void setEmail(String email) {
+    void setEmail(String email) {
         if (email != null) {
             this.email = email;
         }
     }
     
-    public String getPassword() {
+    String getPassword() {
         return password;
     }
     
-    public void setPassword(String password) {
+    void setPassword(String password) {
         if (password != null) {
             this.password = password;
         }
