@@ -4,12 +4,12 @@ let slashHost = window.location.host;
 let slashPath = window.location.pathname;
 
 function connect() {
-    const coffee = document.forms[0];
+    const endpoints = document.forms[0];
     let link = "";
     let i;
-    for (i = 0; i < coffee.length; i++) {
-        if (coffee[i].checked) {
-            link = coffee[i].labels[0].innerText;
+    for (i = 0; i < endpoints.length; i++) {
+        if (endpoints[i].checked) {
+            link = endpoints[i].labels[0].innerText;
             link = "wss://" + slashHost + slashPath + link.substr(1);
             break;
         }
@@ -21,6 +21,9 @@ function connect() {
     };
     document.getElementById("connect").setAttribute("disabled", "disabled");
     document.getElementById("disconnect").removeAttribute("disabled");
+    for (let i = 0; i < endpoints.length; i++) {
+        endpoints[i].readOnly = false;
+    }
 }
 
 function disconnect() {
@@ -28,6 +31,10 @@ function disconnect() {
     clearLog();
     document.getElementById("disconnect").setAttribute("disabled", "disabled");
     document.getElementById("connect").removeAttribute("disabled");
+    const endpoints = document.forms;
+    for (let i = 0; i < endpoints.length; i++) {
+        endpoints[i].readOnly = true;
+    }
 }
 
 function sendMessage() {
