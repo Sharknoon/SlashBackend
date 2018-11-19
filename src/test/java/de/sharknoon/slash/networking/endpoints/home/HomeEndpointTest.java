@@ -4,16 +4,12 @@ import de.sharknoon.slash.database.DB;
 import de.sharknoon.slash.database.models.User;
 import de.sharknoon.slash.networking.endpoints.TestSession;
 import org.bson.types.ObjectId;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 
 import javax.websocket.Session;
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.UUID;
+import java.util.*;
 
 class HomeEndpointTest {
 
@@ -52,6 +48,7 @@ class HomeEndpointTest {
         // Wrong session id
         hm.setSessionid(sessionId);
         hm.setStatus(HomeEndpoint.GET_HOME_STATUS);
+        he.onOpen(s);
         he.onMessage(s, hm);
         Assertions.assertEquals("", sendText);
     }
