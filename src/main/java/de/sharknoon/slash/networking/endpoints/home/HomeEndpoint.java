@@ -241,8 +241,8 @@ public class HomeEndpoint extends Endpoint<HomeMessage> {
         @Expose
         Chat chat;
     }
-    
-    private class ProjectResponse {
+
+    public class ProjectResponse {
         @Expose
         String status = "OK_PROJECT";
         @Expose
