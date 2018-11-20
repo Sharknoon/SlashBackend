@@ -27,16 +27,11 @@ import com.google.gson.*;
 
 import java.lang.reflect.Type;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 /**
  * GSON serialiser/deserialiser for converting {@link LocalDateTime} objects.
  */
 public class LocalDateTimeConverter implements JsonSerializer<LocalDateTime>, JsonDeserializer<LocalDateTime> {
-    /**
-     * Formatter.
-     */
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
     
     /**
      * Gson invokes this call-back method during serialization when it encounters a field of the
@@ -54,7 +49,7 @@ public class LocalDateTimeConverter implements JsonSerializer<LocalDateTime>, Js
      */
     @Override
     public JsonElement serialize(LocalDateTime src, Type typeOfSrc, JsonSerializationContext context) {
-        return new JsonPrimitive(FORMATTER.format(src));
+        return new JsonPrimitive(src.toString());
     }
     
     /**
@@ -75,6 +70,6 @@ public class LocalDateTimeConverter implements JsonSerializer<LocalDateTime>, Js
     @Override
     public LocalDateTime deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
             throws JsonParseException {
-        return FORMATTER.parse(json.getAsString(), LocalDateTime::from);
+        return LocalDateTime.parse(json.getAsString());
     }
 }
