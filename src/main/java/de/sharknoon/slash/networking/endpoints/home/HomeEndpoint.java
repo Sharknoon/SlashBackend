@@ -91,7 +91,7 @@ public class HomeEndpoint extends Endpoint<HomeMessage> {
                             send(error);
                         } else {
                             Chat newChat = new Chat();
-                            newChat.creationDate = LocalDateTime.now();
+                            newChat.creationDate = LocalDateTime.now().withNano(0);
                             newChat.messages = List.of();
                             newChat.personA = user.id;
                             //newChat.nameA = user.username;
@@ -116,7 +116,7 @@ public class HomeEndpoint extends Endpoint<HomeMessage> {
                 } else {
                     Project newProject = new Project();
                     newProject.image = "https://www.myfloridacfo.com/division/oit/images/DIS-HomeResponse.png";
-                    newProject.creationDate = LocalDateTime.now();
+                    newProject.creationDate = LocalDateTime.now().withNano(0);
                     newProject.users = Set.of(user.id);
                     newProject.id = new ObjectId();
                     newProject.name = projectName;

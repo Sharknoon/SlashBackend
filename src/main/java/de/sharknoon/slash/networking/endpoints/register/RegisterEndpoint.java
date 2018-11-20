@@ -28,7 +28,7 @@ public class RegisterEndpoint extends Endpoint<RegisterMessage> {
     private static boolean register(RegisterMessage message) {
         String salt = BCrypt.gensalt();
         hashPasswordOnRegister(message, salt);
-        LocalDateTime registrationDate = LocalDateTime.now();
+        LocalDateTime registrationDate = LocalDateTime.now().withNano(0);
         
         User user = new User();
         user.username = message.getUsername();
