@@ -2,7 +2,9 @@ package de.sharknoon.slash.networking.endpoints.home;
 
 import com.google.gson.annotations.Expose;
 import de.sharknoon.slash.database.DB;
-import de.sharknoon.slash.database.models.*;
+import de.sharknoon.slash.database.models.Chat;
+import de.sharknoon.slash.database.models.Project;
+import de.sharknoon.slash.database.models.User;
 import de.sharknoon.slash.networking.LoginSessions;
 import de.sharknoon.slash.networking.endpoints.Endpoint;
 import de.sharknoon.slash.properties.Properties;
@@ -11,17 +13,20 @@ import org.bson.types.ObjectId;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 
 @ServerEndpoint("/home")
 public class HomeEndpoint extends Endpoint<HomeMessage> {
-    
-    private static final String GET_USER_STATUS = "GET_USER";
-    private static final String GET_HOME_STATUS = "GET_HOME";
-    private static final String GET_CHAT_STATUS = "GET_CHAT";
-    private static final String ADD_PROJECT_STATUS = "ADD_PROJECT";
-    private static final String GET_PROJECT_STATUS = "GET_PROJECT";
-    private static final String ADD_MESSAGE_STATUS = "ADD_MESSAGE";
+
+    public static final String GET_USER_STATUS = "GET_USER";
+    public static final String GET_HOME_STATUS = "GET_HOME";
+    public static final String GET_CHAT_STATUS = "GET_CHAT";
+    public static final String ADD_PROJECT_STATUS = "ADD_PROJECT";
+    public static final String GET_PROJECT_STATUS = "GET_PROJECT";
+    public static final String ADD_MESSAGE_STATUS = "ADD_MESSAGE";
     
     private static boolean isValidChatMessage(String message) {
         return message.length() < 5000;
