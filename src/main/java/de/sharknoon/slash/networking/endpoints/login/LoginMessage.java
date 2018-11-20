@@ -7,6 +7,8 @@ public class LoginMessage {
     private String usernameOrEmail = "";
     @Expose
     private String password = "";
+    @Expose
+    private String deviceID = "";
     
     public String getUsernameOrEmail() {
         return usernameOrEmail;
@@ -26,5 +28,13 @@ public class LoginMessage {
         if (password != null) {
             this.password = password;
         }
+    }
+
+    public String getDeviceID() {
+        return deviceID;
+    }
+
+    public void setDeviceID(String deviceID) {
+        this.deviceID = deviceID;
     }
 }

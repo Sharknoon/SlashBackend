@@ -124,8 +124,22 @@ public class DB {
         );
         user.sessionIDs.remove(sessionID);
     }
-    
-    
+
+    public static void addDeviceID(User user, String deviceID) {
+        users.updateOne(
+                eq(COLLECTION_ID.value, user.id),
+                pushEach(USERS_COLLECTION_DEVICE_IDS.value, List.of(deviceID), maxDevicesSlice)
+        );
+        user.deviceIDs.add(deviceID);
+    }
+
+    public static void removeDeviceID(User user, String deviceID) {
+        users.updateOne(
+                eq(COLLECTION_ID.value, user.id),
+                pull(USERS_COLLECTION_DEVICE_IDS.value, deviceID)
+        );
+        user.deviceIDs.remove(deviceID);
+    }
     //
     // REGISTER
     //

@@ -41,7 +41,7 @@ class HomeEndpointTest {
         user.username = UUID.randomUUID().toString().substring(0, 15);
         user.sessionIDs = new HashSet<>();
         user.salt = BCrypt.gensalt();
-        user.registrationDate = LocalDateTime.now();
+        user.registrationDate = LocalDateTime.now().withNano(0);
         user.password = BCrypt.hashpw("123456", user.salt);
         user.email = user.username + "@web.de";
 
