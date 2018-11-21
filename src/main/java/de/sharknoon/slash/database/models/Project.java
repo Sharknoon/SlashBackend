@@ -4,6 +4,7 @@ import com.google.gson.annotations.Expose;
 import org.bson.codecs.pojo.annotations.BsonId;
 import org.bson.types.ObjectId;
 
+import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.Set;
 public class Project {
@@ -14,10 +15,11 @@ public class Project {
     @Expose
     public String name;
     @Expose
-    public String image;
+    public URL image;
     @Expose
     public LocalDateTime creationDate;
     @Expose
     public Set<ObjectId> users;
-    
+    @Expose
+    public Set<Message> messages;
 }

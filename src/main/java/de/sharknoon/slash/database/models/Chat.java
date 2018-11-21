@@ -6,7 +6,7 @@ import org.bson.codecs.pojo.annotations.BsonIgnore;
 import org.bson.types.ObjectId;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Set;
 
 public class Chat {
     
@@ -17,14 +17,11 @@ public class Chat {
     public ObjectId personA;
     @Expose
     public ObjectId personB;
-    //TMP
     @BsonIgnore
     @Expose
     public String partnerUsername;
     @Expose
     public LocalDateTime creationDate;
-    //The IDs of the messages
     @Expose
-    public List<String> messages;
-    
+    public Set<Message> messages;
 }
