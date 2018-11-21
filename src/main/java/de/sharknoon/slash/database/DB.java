@@ -13,6 +13,7 @@ import de.sharknoon.slash.database.models.Chat;
 import de.sharknoon.slash.database.models.Project;
 import de.sharknoon.slash.database.models.User;
 import de.sharknoon.slash.networking.endpoints.login.LoginMessage;
+import de.sharknoon.slash.networking.utils.JavaURLCodec;
 import de.sharknoon.slash.properties.DBConfig;
 import de.sharknoon.slash.properties.Properties;
 import org.bson.codecs.configuration.CodecRegistry;
@@ -32,8 +33,7 @@ import static com.mongodb.client.model.Sorts.descending;
 import static com.mongodb.client.model.Updates.pull;
 import static com.mongodb.client.model.Updates.pushEach;
 import static de.sharknoon.slash.database.Values.*;
-import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
-import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
+import static org.bson.codecs.configuration.CodecRegistries.*;
 
 public class DB {
     
@@ -61,6 +61,7 @@ public class DB {
     
             MongoCredential credential = MongoCredential.createCredential(username, database, password.toCharArray());
             CodecRegistry codecRegistry = fromRegistries(
+                    fromCodecs(new JavaURLCodec()),
                     MongoClientSettings.getDefaultCodecRegistry(),
                     fromProviders(PojoCodecProvider
                             .builder()

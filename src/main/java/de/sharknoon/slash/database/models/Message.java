@@ -1,6 +1,7 @@
 package de.sharknoon.slash.database.models;
 
 import com.google.gson.annotations.Expose;
+import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 
 import java.net.URL;
@@ -8,17 +9,17 @@ import java.time.LocalDateTime;
 
 public class Message {
     @Expose
-    public MessageType type;
+    public MessageType type = MessageType.TEXT;
     @Expose
-    public String subject;
+    public String subject = StringUtils.EMPTY;
     @Expose
-    public String content;
+    public String content = StringUtils.EMPTY;
     @Expose
-    public LocalDateTime creationDate;
+    public LocalDateTime creationDate = LocalDateTime.now();
     @Expose
-    public ObjectId sender;
+    public ObjectId sender = new ObjectId();
     @Expose
-    public EmotionCategory emotionCategory;
+    public EmotionCategory emotionCategory = EmotionCategory.NONE;
 
     @Expose
     public URL imageUrl;
@@ -48,6 +49,18 @@ public class Message {
         return sender;
     }
 
+    public MessageType getType() {
+        return type;
+    }
+
+    public EmotionCategory getEmotionCategory() {
+        return emotionCategory;
+    }
+
+    public URL getImageUrl() {
+        return imageUrl;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -55,18 +68,24 @@ public class Message {
 
         Message message = (Message) o;
 
+        if (type != message.type) return false;
         if (!subject.equals(message.subject)) return false;
         if (!content.equals(message.content)) return false;
         if (!creationDate.equals(message.creationDate)) return false;
-        return sender != null ? sender.equals(message.sender) : message.sender == null;
+        if (!sender.equals(message.sender)) return false;
+        if (emotionCategory != message.emotionCategory) return false;
+        return imageUrl.equals(message.imageUrl);
     }
 
     @Override
     public int hashCode() {
-        int result = subject.hashCode();
+        int result = type.hashCode();
+        result = 31 * result + subject.hashCode();
         result = 31 * result + content.hashCode();
         result = 31 * result + creationDate.hashCode();
-        result = 31 * result + (sender != null ? sender.hashCode() : 0);
+        result = 31 * result + sender.hashCode();
+        result = 31 * result + emotionCategory.hashCode();
+        result = 31 * result + imageUrl.hashCode();
         return result;
     }
 }

@@ -1,25 +1,27 @@
 package de.sharknoon.slash.database.models;
 
 import com.google.gson.annotations.Expose;
+import org.apache.commons.lang3.StringUtils;
 import org.bson.codecs.pojo.annotations.BsonId;
 import org.bson.types.ObjectId;
 
 import java.net.URL;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.Set;
 public class Project {
     
     @BsonId
     @Expose
-    public ObjectId id;
+    public ObjectId id = new ObjectId();
     @Expose
-    public String name;
+    public String name = StringUtils.EMPTY;
     @Expose
     public URL image;
     @Expose
-    public LocalDateTime creationDate;
+    public LocalDateTime creationDate = LocalDateTime.now();
     @Expose
-    public Set<ObjectId> users;
+    public Set<ObjectId> users = Collections.emptySet();
     @Expose
-    public Set<Message> messages;
+    public Set<Message> messages = Collections.emptySet();
 }
