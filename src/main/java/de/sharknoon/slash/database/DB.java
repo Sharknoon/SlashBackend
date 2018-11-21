@@ -1,25 +1,39 @@
 package de.sharknoon.slash.database;
 
-import com.mongodb.*;
-import com.mongodb.client.*;
-import com.mongodb.client.model.*;
-import de.sharknoon.slash.database.models.*;
+import com.mongodb.MongoClientSettings;
+import com.mongodb.MongoCredential;
+import com.mongodb.ServerAddress;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Collation;
+import com.mongodb.client.model.PushOptions;
+import de.sharknoon.slash.database.models.Chat;
+import de.sharknoon.slash.database.models.Project;
+import de.sharknoon.slash.database.models.User;
 import de.sharknoon.slash.networking.endpoints.login.LoginMessage;
-import de.sharknoon.slash.properties.*;
+import de.sharknoon.slash.properties.DBConfig;
 import de.sharknoon.slash.properties.Properties;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
 import org.bson.types.ObjectId;
 
-import java.util.*;
-import java.util.logging.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static com.mongodb.client.model.CollationStrength.SECONDARY;
 import static com.mongodb.client.model.Filters.*;
 import static com.mongodb.client.model.Sorts.descending;
-import static com.mongodb.client.model.Updates.*;
+import static com.mongodb.client.model.Updates.pull;
+import static com.mongodb.client.model.Updates.pushEach;
 import static de.sharknoon.slash.database.Values.*;
-import static org.bson.codecs.configuration.CodecRegistries.*;
+import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
+import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 
 public class DB {
     
@@ -300,11 +314,13 @@ public class DB {
     }
     
     public static void addMessageToChat(Chat chat, String message) {
+        /*
         chats.updateOne(
                 eq(COLLECTION_ID.value, chat.id),
                 pushEach(CHATS_COLLECTION_MESSAGES.value, List.of(message), maxStoredMessagesSlice)
         );
         chat.messages.add(message);
+        */
     }
     
     //

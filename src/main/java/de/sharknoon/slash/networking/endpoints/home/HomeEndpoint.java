@@ -12,8 +12,9 @@ import org.bson.types.ObjectId;
 
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -92,7 +93,7 @@ public class HomeEndpoint extends Endpoint<HomeMessage> {
                         } else {
                             Chat newChat = new Chat();
                             newChat.creationDate = LocalDateTime.now().withNano(0);
-                            newChat.messages = List.of();
+                            newChat.messages = Set.of();
                             newChat.personA = user.id;
                             //newChat.nameA = user.username;
                             newChat.personB = partner.get().id;
@@ -115,7 +116,11 @@ public class HomeEndpoint extends Endpoint<HomeMessage> {
                     send(error);
                 } else {
                     Project newProject = new Project();
-                    newProject.image = "https://www.myfloridacfo.com/division/oit/images/DIS-HomeResponse.png";
+                    try {
+                        newProject.image = new URL("https://www.myfloridacfo.com/division/oit/images/DIS-HomeResponse.png");
+                    } catch (MalformedURLException e) {
+                        e.printStackTrace();
+                    }
                     newProject.creationDate = LocalDateTime.now().withNano(0);
                     newProject.users = Set.of(user.id);
                     newProject.id = new ObjectId();
@@ -174,6 +179,7 @@ public class HomeEndpoint extends Endpoint<HomeMessage> {
                                 partner = DB.getUser(c.personA);
                             }
                             if (partner.isPresent()) {
+                                /*
                                 DB.addMessageToChat(c, chatMessage);
                                 ChatResponse cr = new ChatResponse();
                                 cr.chat = c;
@@ -185,6 +191,7 @@ public class HomeEndpoint extends Endpoint<HomeMessage> {
                                 String chatResponseToPartner = toJSON(cr);
                                 LoginSessions.getSession(HomeEndpoint.class, partner.get())
                                         .ifPresent(session -> session.getAsyncRemote().sendText(chatResponseToPartner));
+                                        */
                             } else {
                                 //partner doesn't exists
                                 ErrorResponse error = new ErrorResponse();
