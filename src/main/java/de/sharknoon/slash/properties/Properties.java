@@ -6,6 +6,7 @@ public class Properties {
     
     private static DBConfig dbConfig = null;
     private static UserConfig userConfig = null;
+    private static PushConfig pushConfig = null;
     
     public static DBConfig getDBConfig() {
         if (dbConfig == null) {
@@ -19,6 +20,13 @@ public class Properties {
             userConfig = ConfigFactory.create(UserConfig.class);
         }
         return userConfig;
+    }
+    
+    public static PushConfig getPushConfig() {
+        if (pushConfig == null) {
+            pushConfig = ConfigFactory.create(PushConfig.class);
+        }
+        return pushConfig;
     }
     
 }

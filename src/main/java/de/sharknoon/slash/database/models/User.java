@@ -19,5 +19,6 @@ public class User {
     public String salt;
     public LocalDateTime registrationDate;
     public Set<String> sessionIDs;
+    public Set<String> deviceIDs;
     
 }
