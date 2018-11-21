@@ -141,7 +141,17 @@ public class DB {
     }
 
     public static void addDeviceID(User user, String deviceID) {
-        users.updateOne(
+        User u2 = users.find(
+                and(
+                        eq(COLLECTION_ID.value, user.id),
+                        in(USERS_COLLECTION_DEVICE_IDS.value, deviceID)
+                )
+        ).first();
+        //The device id is already added
+        if (u2 != null) {
+            return;
+        }
+        DB.users.updateOne(
                 eq(COLLECTION_ID.value, user.id),
                 pushEach(USERS_COLLECTION_DEVICE_IDS.value, List.of(deviceID), maxDevicesSlice)
         );
