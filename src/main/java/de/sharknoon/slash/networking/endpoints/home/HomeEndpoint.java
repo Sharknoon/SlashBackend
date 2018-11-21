@@ -27,21 +27,21 @@ public class HomeEndpoint extends Endpoint<HomeMessage> {
     public static final String ADD_PROJECT_STATUS = "ADD_PROJECT";
     public static final String GET_PROJECT_STATUS = "GET_PROJECT";
     public static final String ADD_MESSAGE_STATUS = "ADD_MESSAGE";
-    
+
     private static boolean isValidChatMessage(String message) {
         return message.length() < 5000;
     }
-    
+
     //Needs to stay public
     @SuppressWarnings("WeakerAccess")
     public HomeEndpoint() {
         super(HomeMessage.class);
     }
-    
+
     @Override
     protected void onMessage(Session session, HomeMessage message) {
         Optional<User> user = LoginSessions.getUser(message.getSessionid());
-        
+
         if (!user.isPresent()) {//To be replaced with isEmpty, this is because intellij shows a warning because it doesnt know the new isEmtpy()
             send("{\"status\":\"NO_LOGIN_OR_TOO_MUCH_DEVICES\"," +
                     "\"message\":\"You are either not logged in or using more than " +
@@ -51,7 +51,7 @@ public class HomeEndpoint extends Endpoint<HomeMessage> {
             handleLogic(message, user.get());
         }
     }
-    
+
     private void handleLogic(HomeMessage message, User user) {
         switch (message.getStatus()) {
             case GET_HOME_STATUS:
@@ -221,11 +221,11 @@ public class HomeEndpoint extends Endpoint<HomeMessage> {
                 send(error);
         }
     }
-    
+
     private boolean isValidProjectName(String projectName) {
         return projectName.length() > 0 && projectName.length() < 20;
     }
-    
+
     private class HomeResponse {
         @Expose
         String status = "OK_HOME";
@@ -234,7 +234,7 @@ public class HomeEndpoint extends Endpoint<HomeMessage> {
         @Expose
         Set<Chat> chats;
     }
-    
+
     private class ChatResponse {
         @Expose
         String status = "OK_CHAT";
@@ -248,14 +248,14 @@ public class HomeEndpoint extends Endpoint<HomeMessage> {
         @Expose
         Project project;
     }
-    
+
     class UserResponse {
         @Expose
         String status = "OK_USER";
         @Expose
         User user;
     }
-    
+
     private class ErrorResponse {
         @Expose
         String status;
