@@ -10,8 +10,7 @@ import org.springframework.security.crypto.bcrypt.BCrypt;
 
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @ServerEndpoint("/login")
 public class LoginEndpoint extends Endpoint<LoginMessage> {
@@ -21,7 +20,6 @@ public class LoginEndpoint extends Endpoint<LoginMessage> {
     private static final String USER = "user";
 
     //Needs to stay public
-    @SuppressWarnings("WeakerAccess")
     public LoginEndpoint() {
         super(LoginMessage.class);
     }
@@ -81,7 +79,7 @@ public class LoginEndpoint extends Endpoint<LoginMessage> {
         }
 
         Optional<User> user = DB.getUser(message.getUsernameOrEmail());
-        if (!user.isPresent()) {
+        if (user.isEmpty()) {
             return user;
         }
 

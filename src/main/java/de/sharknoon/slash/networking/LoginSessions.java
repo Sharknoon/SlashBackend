@@ -5,7 +5,6 @@ import de.sharknoon.slash.networking.endpoints.Endpoint;
 
 import javax.websocket.Session;
 import java.util.*;
-import java.util.Map.Entry;
 
 /**
  * Here are all LoginSessions of users, who are successfully logged in
@@ -42,9 +41,8 @@ public class LoginSessions {
     }
     
     public static Optional<Session> getSession(Class<? extends Endpoint> endpoint, User user) {
-        return LOGGED_IN_SESSIONS.entrySet()
+        return LOGGED_IN_SESSIONS.values()
                 .stream()
-                .map(Entry::getValue)
                 .filter(ls -> user.equals(ls.user))
                 .map(ls -> ls.session)
                 .filter(session -> session.containsKey(endpoint))

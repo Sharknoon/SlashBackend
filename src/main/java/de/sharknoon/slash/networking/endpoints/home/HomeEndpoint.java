@@ -2,9 +2,7 @@ package de.sharknoon.slash.networking.endpoints.home;
 
 import com.google.gson.annotations.Expose;
 import de.sharknoon.slash.database.DB;
-import de.sharknoon.slash.database.models.Chat;
-import de.sharknoon.slash.database.models.Project;
-import de.sharknoon.slash.database.models.User;
+import de.sharknoon.slash.database.models.*;
 import de.sharknoon.slash.networking.LoginSessions;
 import de.sharknoon.slash.networking.endpoints.Endpoint;
 import de.sharknoon.slash.properties.Properties;
@@ -12,22 +10,19 @@ import org.bson.types.ObjectId;
 
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.*;
 import java.time.LocalDateTime;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @ServerEndpoint("/home")
 public class HomeEndpoint extends Endpoint<HomeMessage> {
-
-    public static final String GET_USER_STATUS = "GET_USER";
-    public static final String GET_HOME_STATUS = "GET_HOME";
-    public static final String GET_CHAT_STATUS = "GET_CHAT";
-    public static final String ADD_PROJECT_STATUS = "ADD_PROJECT";
-    public static final String GET_PROJECT_STATUS = "GET_PROJECT";
-    public static final String ADD_MESSAGE_STATUS = "ADD_MESSAGE";
+    
+    static final String GET_USER_STATUS = "GET_USER";
+    static final String GET_HOME_STATUS = "GET_HOME";
+    static final String GET_CHAT_STATUS = "GET_CHAT";
+    static final String ADD_PROJECT_STATUS = "ADD_PROJECT";
+    static final String GET_PROJECT_STATUS = "GET_PROJECT";
+    static final String ADD_MESSAGE_STATUS = "ADD_MESSAGE";
 
     private static boolean isValidChatMessage(String message) {
         return message.length() < 5000;
@@ -42,8 +37,8 @@ public class HomeEndpoint extends Endpoint<HomeMessage> {
     @Override
     protected void onMessage(Session session, HomeMessage message) {
         Optional<User> user = LoginSessions.getUser(message.getSessionid());
-
-        if (!user.isPresent()) {//To be replaced with isEmpty, this is because intellij shows a warning because it doesnt know the new isEmtpy()
+    
+        if (user.isEmpty()) {//To be replaced with isEmpty, this is because intellij shows a warning because it doesnt know the new isEmpty()
             send("{\"status\":\"NO_LOGIN_OR_TOO_MUCH_DEVICES\"," +
                     "\"message\":\"You are either not logged in or using more than " +
                     Properties.getUserConfig().maxdevices() + " devices\"}");
@@ -85,7 +80,7 @@ public class HomeEndpoint extends Endpoint<HomeMessage> {
                         cm.chat.partnerUsername = partner.get().username;
                         send(cm);
                     } else {
-                        if (!partner.isPresent()) {
+                        if (partner.isEmpty()) {
                             ErrorResponse error = new ErrorResponse();
                             error.status = "NO_USER_FOUND";
                             error.description = "No user with the specified id was found";
@@ -178,6 +173,7 @@ public class HomeEndpoint extends Endpoint<HomeMessage> {
                             } else {
                                 partner = DB.getUser(c.personA);
                             }
+                            //noinspection StatementWithEmptyBody
                             if (partner.isPresent()) {
                                 /*
                                 DB.addMessageToChat(c, chatMessage);
@@ -248,8 +244,8 @@ public class HomeEndpoint extends Endpoint<HomeMessage> {
         @Expose
         Chat chat;
     }
-
-    public class ProjectResponse {
+    
+    class ProjectResponse {
         @Expose
         String status = "OK_PROJECT";
         @Expose

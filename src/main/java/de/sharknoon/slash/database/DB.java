@@ -1,37 +1,24 @@
 package de.sharknoon.slash.database;
 
-import com.mongodb.MongoClientSettings;
-import com.mongodb.MongoCredential;
-import com.mongodb.ServerAddress;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.Collation;
-import com.mongodb.client.model.PushOptions;
-import de.sharknoon.slash.database.models.Chat;
-import de.sharknoon.slash.database.models.Project;
-import de.sharknoon.slash.database.models.User;
+import com.mongodb.*;
+import com.mongodb.client.*;
+import com.mongodb.client.model.*;
+import de.sharknoon.slash.database.models.*;
 import de.sharknoon.slash.networking.endpoints.login.LoginMessage;
 import de.sharknoon.slash.networking.utils.JavaURLCodec;
-import de.sharknoon.slash.properties.DBConfig;
 import de.sharknoon.slash.properties.Properties;
+import de.sharknoon.slash.properties.*;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
 import org.bson.types.ObjectId;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.*;
+import java.util.logging.*;
 
 import static com.mongodb.client.model.CollationStrength.SECONDARY;
 import static com.mongodb.client.model.Filters.*;
 import static com.mongodb.client.model.Sorts.descending;
-import static com.mongodb.client.model.Updates.pull;
-import static com.mongodb.client.model.Updates.pushEach;
+import static com.mongodb.client.model.Updates.*;
 import static de.sharknoon.slash.database.Values.*;
 import static org.bson.codecs.configuration.CodecRegistries.*;
 
@@ -39,7 +26,7 @@ public class DB {
     
     //Collations for indexes
     private static final Collation caseInsensitiveCollation = Collation.builder().locale("en").collationStrength(SECONDARY).build();
-    //Pushoptions
+    //PushOptions
     private static final PushOptions maxDevicesSlice = new PushOptions().slice(-Properties.getUserConfig().maxdevices());
     private static final PushOptions maxStoredMessagesSlice = new PushOptions().slice(-Properties.getUserConfig().amountstoredchatmessages());
     //The database

@@ -4,18 +4,14 @@ import de.sharknoon.slash.database.DB;
 import de.sharknoon.slash.database.models.User;
 import de.sharknoon.slash.networking.endpoints.TestSession;
 import org.bson.types.ObjectId;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 
 import javax.websocket.Session;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.UUID;
+import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class LoginEndpointTest {
     
@@ -31,6 +27,7 @@ class LoginEndpointTest {
         user.registrationDate = LocalDateTime.now().withNano(0);
         user.password = BCrypt.hashpw("123456", user.salt);
         user.email = user.username + "@web.de";
+        user.deviceIDs = new HashSet<>();
         
         DB.register(user);
     }
@@ -49,10 +46,15 @@ class LoginEndpointTest {
         LoginEndpoint le = new LoginEndpoint();
         
         LoginMessage lm = new LoginMessage();
-        
-        //wrong pw
+    
+        //missing device id
         lm.setPassword("");
         lm.setUsernameOrEmail(user.email);
+        le.onMessage(s, lm);
+        assertEquals("{\"status\":\"MISSING_DEVICE_ID\",\"message\":\"The deviceID for this device is missing\"}", sendText);
+    
+        //wrong pw
+        lm.setDeviceID("123456789");
         le.onMessage(s, lm);
         assertEquals("{\"status\":\"WRONG_PASSWORD\",\"message\":\"The entered password is not correct\"}", sendText);
         

@@ -14,19 +14,12 @@ import java.util.function.Consumer;
 public class PushyAPI {
     
     private static final String SECRET_API_KEY = Properties.getPushConfig().APIKey();
-    private static Gson GSON = new Gson();
+    private static final Gson GSON = new Gson();
     
-    public static void sendPushAsync(PushyPushRequest req, Consumer<Throwable> errorHandler) {
-        var json = GSON.toJson(req);
-        
+    static void sendPushAsync(PushyPushRequest req, Consumer<Throwable> errorHandler) {
         var httpClient = HttpClient.newHttpClient();
         
-        var request = HttpRequest
-                .newBuilder()
-                .uri(URI.create("https://api.pushy.me/push?api_key=" + SECRET_API_KEY))
-                .POST(BodyPublishers.ofString(json))
-                .setHeader("Content-Type", "application/json")
-                .build();
+        var request = pushyToHttpRequest(req);
         
         httpClient.sendAsync(request, BodyHandlers.ofString())
                 .thenApply(HttpResponse::body)
@@ -48,16 +41,9 @@ public class PushyAPI {
     }
     
     public static void sendPush(PushyPushRequest req) throws Exception {
-        var json = GSON.toJson(req);
-        
         var httpClient = HttpClient.newHttpClient();
-        
-        var request = HttpRequest
-                .newBuilder()
-                .uri(URI.create("https://api.pushy.me/push?api_key=" + SECRET_API_KEY))
-                .POST(BodyPublishers.ofString(json))
-                .setHeader("Content-Type", "application/json")
-                .build();
+    
+        var request = pushyToHttpRequest(req);
         
         var response = httpClient.send(request, BodyHandlers.ofString());
         
@@ -71,12 +57,23 @@ public class PushyAPI {
         }
     }
     
+    private static HttpRequest pushyToHttpRequest(PushyPushRequest req) {
+        var json = GSON.toJson(req);
+        
+        return HttpRequest
+                .newBuilder()
+                .uri(URI.create("https://api.pushy.me/push?api_key=" + SECRET_API_KEY))
+                .POST(BodyPublishers.ofString(json))
+                .setHeader("Content-Type", "application/json")
+                .build();
+    }
+    
     public static class PushyPushRequest {
-        public Object to;
-        public Object data;
-        
-        
-        public PushyPushRequest(Object data, Object to) {
+        public final Object to;
+        final Object data;//public
+    
+        //publc
+        PushyPushRequest(Object data, Object to) {
             this.to = to;
             this.data = data;
         }

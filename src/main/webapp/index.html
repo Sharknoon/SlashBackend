@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <title>Slash Backend Tool</title>
@@ -36,8 +36,9 @@
     <br>
     <fieldset>
         <legend>3. Receive messages from the server</legend>
-        <textarea rows="10" readonly id="out" title="log"
-                  style="box-sizing: border-box; width: 100%; resize: none; "></textarea>
+        <label for="out">Output</label><textarea id="out" readonly rows="10"
+                                                 style="box-sizing: border-box; width: 100%; resize: none; "
+                                                 title="log"></textarea>
         <br>
         <button type="submit" onclick="clearLog()">Clear</button>
     </fieldset>
