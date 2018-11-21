@@ -1,64 +1,84 @@
 package de.sharknoon.slash.networking.pushy;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.util.EntityUtils;
-import org.apache.http.entity.ByteArrayEntity;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import de.sharknoon.slash.properties.Properties;
 
+import java.net.URI;
+import java.net.http.*;
+import java.net.http.HttpRequest.BodyPublishers;
+import java.net.http.HttpResponse.BodyHandlers;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public class PushyAPI {
-    public static ObjectMapper mapper = new ObjectMapper();
-
-    // Insert your Secret API Key here
-    public static final String SECRET_API_KEY = "SECRET_API_KEY";
-
+    
+    private static final String SECRET_API_KEY = Properties.getPushConfig().APIKey();
+    private static Gson GSON = new Gson();
+    
+    public static void sendPushAsync(PushyPushRequest req, Consumer<Throwable> errorHandler) {
+        var json = GSON.toJson(req);
+        
+        var httpClient = HttpClient.newHttpClient();
+        
+        var request = HttpRequest
+                .newBuilder()
+                .uri(URI.create("https://api.pushy.me/push?api_key=" + SECRET_API_KEY))
+                .POST(BodyPublishers.ofString(json))
+                .setHeader("Content-Type", "application/json")
+                .build();
+        
+        httpClient.sendAsync(request, BodyHandlers.ofString())
+                .thenApply(HttpResponse::body)
+                .thenAccept(responseJSON -> {
+                    
+                    // Convert JSON response into HashMap
+                    Map<String, Object> map = GSON.fromJson(responseJSON, new TypeToken<Map<String, Object>>() {
+                    }.getType());
+                    
+                    // Got an error?
+                    if (map.containsKey("error")) {
+                        errorHandler.accept(new Exception(String.valueOf(map.get("error"))));
+                    }
+                })
+                .exceptionally(throwable -> {
+                    errorHandler.accept(throwable);
+                    return null;
+                });
+    }
+    
     public static void sendPush(PushyPushRequest req) throws Exception {
-        // Get custom HTTP client
-        HttpClient client = new DefaultHttpClient();
-
-        // Create POST request
-        HttpPost request = new HttpPost("https://api.pushy.me/push?api_key=" + SECRET_API_KEY);
-
-        // Set content type to JSON
-        request.addHeader("Content-Type", "application/json");
-
-        // Convert post data to JSON
-        byte[] json = mapper.writeValueAsBytes(req);
-
-        // Send post data as byte array
-        request.setEntity(new ByteArrayEntity(json));
-
-        // Execute the request
-        HttpResponse response = client.execute(request, new BasicHttpContext());
-
-        // Get response JSON as string
-        String responseJSON = EntityUtils.toString(response.getEntity());
-
-        // Convert JSON response into HashMap
-        Map<String, Object> map = mapper.readValue(responseJSON, Map.class);
-
-        // Got an error?
+        var json = GSON.toJson(req);
+        
+        var httpClient = HttpClient.newHttpClient();
+        
+        var request = HttpRequest
+                .newBuilder()
+                .uri(URI.create("https://api.pushy.me/push?api_key=" + SECRET_API_KEY))
+                .POST(BodyPublishers.ofString(json))
+                .setHeader("Content-Type", "application/json")
+                .build();
+        
+        var response = httpClient.send(request, BodyHandlers.ofString());
+        
+        var responseJSON = response.body();
+        
+        Map<String, Object> map = GSON.fromJson(responseJSON, new TypeToken<Map<String, Object>>() {
+        }.getType());
+        
         if (map.containsKey("error")) {
-            // Throw it
-            throw new Exception(map.get("error").toString());
+            throw new Exception(String.valueOf(map.get("error")));
         }
     }
-
+    
     public static class PushyPushRequest {
         public Object to;
         public Object data;
-
-        public Object notification;
-
-        public PushyPushRequest(Object data, Object to, Object notification) {
+        
+        
+        public PushyPushRequest(Object data, Object to) {
             this.to = to;
             this.data = data;
-            this.notification = notification;
         }
     }
 }
