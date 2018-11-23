@@ -16,10 +16,10 @@ public class Pushy {
         sendPush(sharknoon);
     }
     
-    public static void sendPush(User user) {
+    private static void sendPush(User user) {
         // Prepare list of target device tokens
         Set<String> deviceTokens = user.deviceIDs;
-        deviceTokens = new HashSet<>();
+        
         // Convert to String[] array
         String[] to = deviceTokens.toArray(String[]::new);
         

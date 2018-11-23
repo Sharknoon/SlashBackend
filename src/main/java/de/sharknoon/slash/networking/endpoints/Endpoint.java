@@ -23,8 +23,9 @@ public abstract class Endpoint<M> {
     private final Class<M> messageClass;
     //The type of the extending class of this class e.g. LoginEndpoint or RegisterEndpoint
     private final Class<? extends Endpoint> endpointClass;
+    //The last message in case the provided Object doesnt contain specific fields
     
-    protected static String toJSON(Object o) {
+    private static String toJSON(Object o) {
         try {
             return GSON.toJson(o);
         } catch (Exception e) {
@@ -33,12 +34,16 @@ public abstract class Endpoint<M> {
         }
     }
     
-    @SuppressWarnings("WeakerAccess")
     public Endpoint(Class<M> messageClass) {
         this.messageClass = messageClass;
         this.endpointClass = getClass();
     }
     
+    private static void sendTo(Session session, String json) {
+        if (session != null) {
+            session.getAsyncRemote().sendText(json);
+        }
+    }
     private Session session;
     
     @OnOpen
@@ -75,10 +80,31 @@ public abstract class Endpoint<M> {
         );
     }
     
+    protected static void sendTo(Session session, Object o) {
+        sendTo(session, toJSON(o));
+    }
+    
+    protected static Gson getJsonSerializer() {
+        return GSON;
+    }
+    
+    private String lastMessage = "";
+    
+    protected void send(String json) {
+        if (session != null) {
+            session.getAsyncRemote().sendText(json);
+        }
+    }
+    
+    protected void send(Object o) {
+        send(toJSON(o));
+    }
+    
     @OnMessage
     public final void onMessage(Session session, String message) {
         Logger.getGlobal().log(Level.INFO, session.getId() + ": " + message);
         this.session = session;
+        this.lastMessage = message;
         try {
             M messageObject = GSON.fromJson(message, messageClass);
             onMessage(
@@ -92,14 +118,16 @@ public abstract class Endpoint<M> {
         }
     }
     
-    protected void send(String json) {
-        if (session != null) {
-            session.getAsyncRemote().sendText(json);
-        }
+    public Class<M> getMessageClass() {
+        return messageClass;
     }
     
-    protected void send(Object o) {
-        send(toJSON(o));
+    protected String getLastMessage() {
+        return lastMessage;
+    }
+    
+    public Session getSession() {
+        return session;
     }
     
     private static class OpeningMessage {

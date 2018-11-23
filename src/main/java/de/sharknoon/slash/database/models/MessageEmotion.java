@@ -1,6 +1,6 @@
 package de.sharknoon.slash.database.models;
 
-public enum EmotionCategory {
+public enum MessageEmotion {
     SUCCESS,
     OK,
     INFO,

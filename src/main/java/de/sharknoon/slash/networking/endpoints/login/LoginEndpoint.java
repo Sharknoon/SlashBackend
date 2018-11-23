@@ -20,7 +20,6 @@ public class LoginEndpoint extends Endpoint<LoginMessage> {
     private static final String USER = "user";
 
     //Needs to stay public
-    @SuppressWarnings("WeakerAccess")
     public LoginEndpoint() {
         super(LoginMessage.class);
     }
@@ -43,6 +42,8 @@ public class LoginEndpoint extends Endpoint<LoginMessage> {
             session.getUserProperties().put(DEVICE, deviceID);
 
             returnMessage = "{\"status\":\"OK\",\"message\":\"Successfully logged in\",\"sessionid\":\"" + sessionID + "\"}";
+        } else if (message.getDeviceID().isEmpty()) {
+            returnMessage = "{\"status\":\"MISSING_DEVICE_ID\",\"message\":\"The deviceID for this device is missing\"}";
         } else if (!DB.existsEmailOrUsername(message)) {
             returnMessage = "{\"status\":\"USER_DOES_NOT_EXIST\",\"message\":\"The requested user does not exist\"}";
         } else {
@@ -73,8 +74,12 @@ public class LoginEndpoint extends Endpoint<LoginMessage> {
     }
 
     private Optional<User> login(LoginMessage message) {
+        if (message.getDeviceID().isEmpty()) {
+            return Optional.empty();
+        }
+
         Optional<User> user = DB.getUser(message.getUsernameOrEmail());
-        if (!user.isPresent()) {
+        if (user.isEmpty()) {
             return user;
         }
 
