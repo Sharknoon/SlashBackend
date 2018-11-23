@@ -8,17 +8,17 @@ import java.time.LocalDateTime;
 
 public class Message {
     @Expose
-    public MessageType type;
-    @Expose
-    public String subject;
-    @Expose
-    public String content;
+    public ObjectId sender;
     @Expose
     public LocalDateTime creationDate;
     @Expose
-    public ObjectId sender;
+    public MessageType type;
     @Expose
-    public EmotionCategory emotionCategory;
+    public String content;
+    @Expose
+    public String subject;
+    @Expose
+    public MessageEmotion messageEmotion;
     @Expose
     public URL imageUrl;
     

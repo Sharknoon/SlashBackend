@@ -70,69 +70,77 @@ class HomeEndpointTest {
     @Test
     void test_getHomeStatus() {
         HomeEndpoint he = new HomeEndpoint();
-        
-        HomeMessage hm = new HomeMessage();
-        hm.setSessionid(UUID.randomUUID().toString());
-        hm.setStatus(HomeEndpoint.GET_HOME_STATUS);
+    
+        StatusAndSessionIDMessage sasm = new StatusAndSessionIDMessage();
+        sasm.setSessionid(UUID.randomUUID().toString());
+        sasm.setStatus(Status.GET_HOME);
         he.onOpen(s);
-        he.onMessage(s, hm);
+        he.onMessage(s, gson.toJson(sasm));
         
         // Wrong session id
-        Assertions.assertEquals("{\"status\":\"NO_LOGIN_OR_TOO_MUCH_DEVICES\",\"message\":\"You are either not logged in or using more than 5 devices\"}", sendText);
+        Assertions.assertEquals("{\"status\":\"NO_LOGIN_OR_TOO_MUCH_DEVICES\",\"messageType\":\"You are either not logged in or using more than 5 devices\"}", sendText);
         
         // Correct session id
-        hm.setSessionid(user.sessionIDs.iterator().next());
-        he.onMessage(s, hm);
+        sasm.setSessionid(user.sessionIDs.iterator().next());
+        he.onMessage(s, gson.toJson(sasm));
         Assertions.assertEquals("{\"status\":\"OK_HOME\",\"projects\":[],\"chats\":[]}", sendText);
     }
     
     @Test
     void test_getUserStatus() {
         HomeEndpoint he = new HomeEndpoint();
-        
-        HomeMessage hm = new HomeMessage();
-        hm.setSessionid(user.sessionIDs.iterator().next());
-        hm.setStatus(HomeEndpoint.GET_USER_STATUS);
+    
+        GetUserMessage getUserMessage = new GetUserMessage();
+        getUserMessage.setSessionid(user.sessionIDs.iterator().next());
+        getUserMessage.setStatus(Status.GET_USER);
         he.onOpen(s);
-        he.onMessage(s, hm);
+        he.onMessage(s, gson.toJson(getUserMessage));
         // ToDo
     }
     
     @Test
     void test_getChatStatus() {
         HomeEndpoint he = new HomeEndpoint();
-        
-        HomeMessage hm = new HomeMessage();
-        hm.setSessionid(UUID.randomUUID().toString());
-        hm.setStatus(HomeEndpoint.GET_CHAT_STATUS);
+    
+        GetChatMessage getChatMessage = new GetChatMessage();
+        getChatMessage.setSessionid(UUID.randomUUID().toString());
+        getChatMessage.setStatus(Status.GET_CHAT);
         he.onOpen(s);
-        he.onMessage(s, hm);
+        he.onMessage(s, gson.toJson(getChatMessage));
         // ToDo
     }
     
     @Test
     void test_addProjectStatus() {
         HomeEndpoint he = new HomeEndpoint();
-        
-        HomeMessage hm = new HomeMessage();
-        hm.setSessionid(user.sessionIDs.iterator().next());
-        hm.setStatus(HomeEndpoint.ADD_PROJECT_STATUS);
-        hm.setProjectName("");
+    
+        AddProjectMessage addProjectMessage = new AddProjectMessage();
+        addProjectMessage.setSessionid(user.sessionIDs.iterator().next());
+        addProjectMessage.setStatus(Status.ADD_PROJECT);
+        addProjectMessage.setProjectName("");
         he.onOpen(s);
-        he.onMessage(s, hm);
+        he.onMessage(s, gson.toJson(addProjectMessage));
         // Empty project name
         Assertions.assertEquals("{\"status\":\"WRONG_PROJECT_NAME\",\"description\":\"The project name doesn\\u0027t match the specifications\"}", sendText);
         
         String projectName = UUID.randomUUID().toString().substring(0, 15);
-        hm.setProjectName(projectName);
-        he.onMessage(s, hm);
+        addProjectMessage.setProjectName(projectName);
+        he.onMessage(s, gson.toJson(addProjectMessage));
+        //Empty Description
+        Assertions.assertEquals("{\"status\":\"WRONG_PROJECT_DESCRIPTION\",\"description\":\"The project description doesn\\u0027t match the specifications\"}", sendText);
+    
+        String projectDescription = UUID.randomUUID().toString().substring(0, 15);
+        addProjectMessage.setProjectDescription(projectDescription);
+        he.onMessage(s, gson.toJson(addProjectMessage));
         Assertions.assertTrue(sendText.startsWith("{\"status\":\"OK_PROJECT\",\"project\":"));
         final String projectStatus = sendText;
         
         HomeEndpoint.ProjectResponse response = gson.fromJson(sendText, HomeEndpoint.ProjectResponse.class);
-        hm.setProjectID(response.project.id.toString());
-        hm.setStatus(HomeEndpoint.GET_PROJECT_STATUS);
-        he.onMessage(s, hm);
+        GetProjectMessage getProjectMessage = new GetProjectMessage();
+        getProjectMessage.setProjectID(response.project.id.toString());
+        getProjectMessage.setStatus(Status.GET_PROJECT);
+        getProjectMessage.setSessionid(user.sessionIDs.iterator().next());
+        he.onMessage(s, gson.toJson(getProjectMessage));
         
         Assertions.assertEquals(projectStatus, sendText);
         
@@ -142,30 +150,30 @@ class HomeEndpointTest {
     @Test
     void test_getProjectStatus() {
         HomeEndpoint he = new HomeEndpoint();
-        
-        HomeMessage hm = new HomeMessage();
-        hm.setSessionid(user.sessionIDs.iterator().next());
-        hm.setStatus(HomeEndpoint.GET_PROJECT_STATUS);
-        hm.setProjectID(StringUtils.EMPTY);
+    
+        GetProjectMessage getProjectMessage = new GetProjectMessage();
+        getProjectMessage.setSessionid(user.sessionIDs.iterator().next());
+        getProjectMessage.setStatus(Status.GET_PROJECT);
+        getProjectMessage.setProjectID(StringUtils.EMPTY);
         he.onOpen(s);
-        he.onMessage(s, hm);
+        he.onMessage(s, gson.toJson(getProjectMessage));
         
         Assertions.assertEquals("{\"status\":\"WRONG_PROJECT_ID\",\"description\":\"The specified projectID doesn\\u0027t conform to the right syntax\"}", sendText);
-        
-        hm.setProjectID("5be0b0dd0fb4e53cc82294f3");
-        he.onMessage(s, hm);
+    
+        getProjectMessage.setProjectID("5be0b0dd0fb4e53cc82294f3");
+        he.onMessage(s, gson.toJson(getProjectMessage));
         Assertions.assertEquals("{\"status\":\"NO_PROJECT_FOUND\",\"description\":\"No project with the specified id was found\"}", sendText);
     }
     
     @Test
     void test_addMessageStatus() {
         HomeEndpoint he = new HomeEndpoint();
-        
-        HomeMessage hm = new HomeMessage();
-        hm.setSessionid(user.sessionIDs.iterator().next());
-        hm.setStatus(HomeEndpoint.ADD_MESSAGE_STATUS);
+    
+        AddProjectMessage addProjectMessage = new AddProjectMessage();
+        addProjectMessage.setSessionid(user.sessionIDs.iterator().next());
+        addProjectMessage.setStatus(Status.ADD_PROJECT_MESSAGE);
         he.onOpen(s);
-        he.onMessage(s, hm);
+        he.onMessage(s, gson.toJson(addProjectMessage));
         // ToDo
     }
     

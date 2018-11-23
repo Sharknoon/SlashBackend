@@ -13,48 +13,57 @@ import javax.websocket.server.ServerEndpoint;
 import java.net.*;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 @ServerEndpoint("/home")
-public class HomeEndpoint extends Endpoint<HomeMessage> {
+public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
     
     static final String GET_USER_STATUS = "GET_USER";
     static final String GET_HOME_STATUS = "GET_HOME";
     static final String GET_CHAT_STATUS = "GET_CHAT";
     static final String ADD_PROJECT_STATUS = "ADD_PROJECT";
     static final String GET_PROJECT_STATUS = "GET_PROJECT";
-    static final String ADD_MESSAGE_STATUS = "ADD_MESSAGE";
-
-    private static boolean isValidChatMessage(String message) {
-        return message.length() < 5000;
+    static final String ADD_MESSAGE_STATUS = "ADD_CHAT_MESSAGE";
+    
+    private static boolean isNotValidChatMessageContent(String content) {
+        return content.length() <= 0 || content.length() >= 5000;
     }
-
+    
+    private static boolean isValidChatMessageSubject(String subject) {
+        return subject.length() > 0 && subject.length() < 100;
+    }
+    
     //Needs to stay public
     @SuppressWarnings("WeakerAccess")
     public HomeEndpoint() {
-        super(HomeMessage.class);
+        super(StatusAndSessionIDMessage.class);
     }
-
+    
+    private boolean isValidProjectName(String projectName) {
+        return projectName.length() > 0 && projectName.length() < 20;
+    }
+    
     @Override
-    protected void onMessage(Session session, HomeMessage message) {
+    protected void onMessage(Session session, StatusAndSessionIDMessage message) {
         Optional<User> user = LoginSessions.getUser(message.getSessionid());
     
         if (user.isEmpty()) {//To be replaced with isEmpty, this is because intellij shows a warning because it doesnt know the new isEmpty()
             send("{\"status\":\"NO_LOGIN_OR_TOO_MUCH_DEVICES\"," +
-                    "\"message\":\"You are either not logged in or using more than " +
+                    "\"messageType\":\"You are either not logged in or using more than " +
                     Properties.getUserConfig().maxdevices() + " devices\"}");
         } else {
             LoginSessions.addSession(user.get(), message.getSessionid(), HomeEndpoint.class, session);
-            handleLogic(message, user.get());
+            handleLogic(message.getStatus(), user.get());
         }
     }
-
-    private void handleLogic(HomeMessage message, User user) {
-        switch (message.getStatus()) {
-            case GET_HOME_STATUS:
+    
+    private void handleLogic(Status status, User user) {
+        switch (status) {
+            case GET_HOME:
                 HomeResponse home = new HomeResponse();
                 home.projects = DB.getProjectsForUser(user);
                 home.chats = DB.getNLastChatsForUser(user.id, Properties.getUserConfig().amountfavouritechats());
-                //TMP
                 for (Chat chat : home.chats) {
                     if (Objects.equals(chat.personA, user.id)) {//I am user a
                         chat.partnerUsername = DB.getUser(chat.personB).map(u -> u.username).orElse("ERROR");
@@ -64,14 +73,15 @@ public class HomeEndpoint extends Endpoint<HomeMessage> {
                 }
                 send(home);
                 break;
-            case GET_CHAT_STATUS:
-                if (!ObjectId.isValid(message.getPartnerUserID())) {
+            case GET_CHAT:
+                GetChatMessage getChatMessage = getJsonSerializer().fromJson(getLastMessage(), GetChatMessage.class);
+                if (!ObjectId.isValid(getChatMessage.getPartnerUserID())) {
                     ErrorResponse error = new ErrorResponse();
                     error.status = "WRONG_USER_ID";
                     error.description = "The specified userID doesn't conform to the right syntax";
                     send(error);
                 } else {
-                    ObjectId partnerID = new ObjectId(message.getPartnerUserID());
+                    ObjectId partnerID = new ObjectId(getChatMessage.getPartnerUserID());
                     Optional<Chat> chat = DB.getChatByPartnerID(user.id, partnerID);
                     Optional<User> partner = DB.getUser(partnerID);
                     if (chat.isPresent() && partner.isPresent()) {
@@ -90,7 +100,6 @@ public class HomeEndpoint extends Endpoint<HomeMessage> {
                             newChat.creationDate = LocalDateTime.now().withNano(0);
                             newChat.messages = Set.of();
                             newChat.personA = user.id;
-                            //newChat.nameA = user.username;
                             newChat.personB = partner.get().id;
                             newChat.partnerUsername = partner.get().username;
                             newChat.id = new ObjectId();
@@ -102,12 +111,19 @@ public class HomeEndpoint extends Endpoint<HomeMessage> {
                     }
                 }
                 break;
-            case ADD_PROJECT_STATUS:
-                String projectName = message.getProjectName();
+            case ADD_PROJECT:
+                AddProjectMessage addProjectMessage = getJsonSerializer().fromJson(getLastMessage(), AddProjectMessage.class);
+                String projectName = addProjectMessage.getProjectName();
+                String projectDescription = addProjectMessage.getProjectDescription();
                 if (!isValidProjectName(projectName)) {
                     ErrorResponse error = new ErrorResponse();
                     error.status = "WRONG_PROJECT_NAME";
                     error.description = "The project name doesn't match the specifications";
+                    send(error);
+                } else if (!isValidProjectDescription(projectDescription)) {
+                    ErrorResponse error = new ErrorResponse();
+                    error.status = "WRONG_PROJECT_DESCRIPTION";
+                    error.description = "The project description doesn't match the specifications";
                     send(error);
                 } else {
                     Project newProject = new Project();
@@ -120,20 +136,22 @@ public class HomeEndpoint extends Endpoint<HomeMessage> {
                     newProject.users = Set.of(user.id);
                     newProject.id = new ObjectId();
                     newProject.name = projectName;
+                    newProject.description = projectDescription;
                     DB.addProject(newProject);
                     ProjectResponse pm = new ProjectResponse();
                     pm.project = newProject;
                     send(pm);
                 }
                 break;
-            case GET_PROJECT_STATUS:
-                if (!ObjectId.isValid(message.getProjectID())) {
+            case GET_PROJECT:
+                GetProjectMessage getProjectMessage = getJsonSerializer().fromJson(getLastMessage(), GetProjectMessage.class);
+                if (!ObjectId.isValid(getProjectMessage.getProjectID())) {
                     ErrorResponse error = new ErrorResponse();
                     error.status = "WRONG_PROJECT_ID";
                     error.description = "The specified projectID doesn't conform to the right syntax";
                     send(error);
                 } else {
-                    ObjectId projectID = new ObjectId(message.getProjectID());
+                    ObjectId projectID = new ObjectId(getProjectMessage.getProjectID());
                     Optional<Project> project = DB.getProject(projectID);
                     if (project.isPresent()) {
                         ProjectResponse pm = new ProjectResponse();
@@ -147,8 +165,9 @@ public class HomeEndpoint extends Endpoint<HomeMessage> {
                     }
                 }
                 break;
-            case GET_USER_STATUS:
-                Optional<User> userForUsername = DB.getUserForUsername(message.getUsername());
+            case GET_USER:
+                GetUserMessage getUserMessage = getJsonSerializer().fromJson(getLastMessage(), GetUserMessage.class);
+                Optional<User> userForUsername = DB.getUserForUsername(getUserMessage.getUsername());
                 if (userForUsername.isPresent()) {
                     UserResponse um = new UserResponse();
                     um.user = userForUsername.get();
@@ -160,63 +179,102 @@ public class HomeEndpoint extends Endpoint<HomeMessage> {
                     send(error);
                 }
                 break;
-            case ADD_MESSAGE_STATUS:
-                String chatMessage = message.getMessage();
-                if (isValidChatMessage(chatMessage)) {
-                    if (ObjectId.isValid(message.getChatID())) {
-                        Optional<Chat> chat = DB.getChat(new ObjectId(message.getChatID()));
-                        if (chat.isPresent()) {
-                            Chat c = chat.get();
-                            Optional<User> partner;
-                            if (Objects.equals(c.personA, user.id)) {//I am user a
-                                partner = DB.getUser(c.personB);
-                            } else {
-                                partner = DB.getUser(c.personA);
-                            }
-                            //noinspection StatementWithEmptyBody
-                            if (partner.isPresent()) {
-                                /*
-                                DB.addMessageToChat(c, chatMessage);
-                                ChatResponse cr = new ChatResponse();
-                                cr.chat = c;
-                                c.partnerUsername = partner.get().username;
-                                String chatResponseToMe = toJSON(cr);
-                                LoginSessions.getSession(HomeEndpoint.class, user)
-                                        .ifPresent(session -> session.getAsyncRemote().sendText(chatResponseToMe));
-                                c.partnerUsername = user.username;
-                                String chatResponseToPartner = toJSON(cr);
-                                LoginSessions.getSession(HomeEndpoint.class, partner.get())
-                                        .ifPresent(session -> session.getAsyncRemote().sendText(chatResponseToPartner));
-                                        */
-                            } else {
-                                //partner doesn't exists
-                                ErrorResponse error = new ErrorResponse();
-                                error.status = "CHAT_PARTNER_NOT_FOUND";
-                                error.description = "No corresponding chat partner to the chat-ID was found";
-                                send(error);
-                            }
-                        } else {
-                            //chat id doesnt exist
-                            ErrorResponse error = new ErrorResponse();
-                            error.status = "NO_CHAT_FOUND";
-                            error.description = "No corresponding chat to the chat-ID was found";
-                            send(error);
-                        }
-                    } else {
-                        //wrong chat id syntax
-                        ErrorResponse error = new ErrorResponse();
-                        error.status = "WRONG_CHAT_ID";
-                        error.description = "The syntax of the chat-ID was not correct";
-                        send(error);
-                    }
-                } else {
-                    //Chat message malformed
+            case ADD_CHAT_MESSAGE:
+                AddChatMessageMessage addChatMessageMessage = getJsonSerializer().fromJson(getLastMessage(), AddChatMessageMessage.class);
+                String messageContent = addChatMessageMessage.getMessageContent();
+                Optional<Chat> chat;
+                if (isNotValidChatMessageContent(messageContent)) {
+                    //Chat messageType malformed
                     ErrorResponse error = new ErrorResponse();
-                    error.status = "CHAT_MESSAGE_TOO_LONG";
-                    error.description = "The chat message was over 5000 characters long";
+                    error.status = "CHAT_MESSAGE_CONTENT_TOO_LONG";
+                    error.description = "The chat message content was over 5000 characters long";
                     send(error);
+                } else if (!ObjectId.isValid(addChatMessageMessage.getChatID())) {
+                    //wrong chat id syntax
+                    ErrorResponse error = new ErrorResponse();
+                    error.status = "WRONG_CHAT_ID";
+                    error.description = "The syntax of the chat-ID was not correct";
+                    send(error);
+                } else if ((chat = DB.getChat(new ObjectId(addChatMessageMessage.getChatID()))).isEmpty()) {
+                    //chat id doesn't exist
+                    ErrorResponse error = new ErrorResponse();
+                    error.status = "NO_CHAT_FOUND";
+                    error.description = "No corresponding chat to the chat-ID was found";
+                    send(error);
+                } else {
+                    Chat c = chat.get();
+                    Optional<User> partner;
+                    if (Objects.equals(c.personA, user.id)) {//I am user a
+                        partner = DB.getUser(c.personB);
+                    } else {
+                        partner = DB.getUser(c.personA);
+                    }
+                    if (partner.isEmpty()) {
+                        //partner doesn't exists
+                        ErrorResponse error = new ErrorResponse();
+                        error.status = "CHAT_PARTNER_NOT_FOUND";
+                        error.description = "No corresponding chat partner to the chat-ID was found";
+                        send(error);
+                    } else {
+                        Optional<Message> optionalMessage = fillMessage(addChatMessageMessage, user, true);
+                        //errors already send
+                        if (optionalMessage.isEmpty()) {
+                            return;
+                        }
+                        Message message = optionalMessage.get();
+                        DB.addMessageToChat(c, message);
+                        ChatResponse cr = new ChatResponse();
+                        cr.chat = c;
+                        c.partnerUsername = partner.get().username;
+                        LoginSessions.getSession(HomeEndpoint.class, user).ifPresent(session -> send(cr));
+                        c.partnerUsername = user.username;
+                        LoginSessions.getSession(HomeEndpoint.class, partner.get()).ifPresent(session -> send(cr));
+                    }
                 }
                 break;
+            case ADD_PROJECT_MESSAGE:
+                AddProjectMessageMessage addProjectMessageMessage = getJsonSerializer().fromJson(getLastMessage(), AddProjectMessageMessage.class);
+                String messageContent1 = addProjectMessageMessage.getMessageContent();
+                Optional<Project> project;
+                if (isNotValidChatMessageContent(messageContent1)) {
+                    //Chat messageType malformed
+                    ErrorResponse error = new ErrorResponse();
+                    error.status = "PROJECT_MESSAGE_CONTENT_TOO_LONG";
+                    error.description = "The project message content was over 5000 characters long";
+                    send(error);
+                } else if (!ObjectId.isValid(addProjectMessageMessage.getProjectID())) {
+                    //wrong chat id syntax
+                    ErrorResponse error = new ErrorResponse();
+                    error.status = "WRONG_PROJECT_ID";
+                    error.description = "The syntax of the project-ID was not correct";
+                    send(error);
+                } else if ((project = DB.getProject(new ObjectId(addProjectMessageMessage.getProjectID()))).isEmpty()) {
+                    //chat id doesn't exist
+                    ErrorResponse error = new ErrorResponse();
+                    error.status = "NO_PROJECT_FOUND";
+                    error.description = "No corresponding project to the project-ID was found";
+                    send(error);
+                } else {
+                    Optional<Message> optionalMessage = fillMessage(addProjectMessageMessage, user, false);
+                    //Errors already send
+                    if (optionalMessage.isEmpty()) {
+                        return;
+                    }
+                    Message message = optionalMessage.get();
+                    Project p = project.get();
+                    DB.addMessageToProject(p, message);
+                    //Project specific, send to every user of the project
+                    Set<User> users = p.users.parallelStream()
+                            .map(DB::getUser)
+                            .filter(Optional::isPresent)
+                            .map(Optional::get)
+                            .collect(Collectors.toSet());
+                    ProjectResponse pr = new ProjectResponse();
+                    pr.project = p;
+                    LoginSessions.getSessions(HomeEndpoint.class, users).forEach(session -> sendTo(session, pr));
+                }
+                break;
+            case NONE:
             default:
                 ErrorResponse error = new ErrorResponse();
                 error.status = "WRONG_STATUS";
@@ -224,45 +282,88 @@ public class HomeEndpoint extends Endpoint<HomeMessage> {
                 send(error);
         }
     }
-
-    private boolean isValidProjectName(String projectName) {
-        return projectName.length() > 0 && projectName.length() < 20;
+    
+    private boolean isValidProjectDescription(String projectDescription) {
+        return projectDescription.length() > 0 && projectDescription.length() < 200;
     }
-
+    
+    private Optional<Message> fillMessage(AddMessageMessage messageFromClient, User sender, boolean isChat) {
+        String communicationType = isChat ? "CHAT" : "PROJECT";
+        Message newMessage = new Message();
+        newMessage.type = messageFromClient.getMessageType();
+        newMessage.creationDate = LocalDateTime.now().withNano(0);
+        switch (messageFromClient.getMessageType()) {
+            case EMOTION:
+                if (!isValidChatMessageSubject(messageFromClient.getMessageSubject())) {
+                    //The chat subject isn't valid
+                    ErrorResponse error = new ErrorResponse();
+                    error.status = communicationType + "_MESSAGE_SUBJECT_TOO_LONG";
+                    error.description = "The " + communicationType.toLowerCase() + " message subject was too long";
+                    send(error);
+                    return Optional.empty();
+                }
+                newMessage.subject = messageFromClient.getMessageSubject();
+                newMessage.messageEmotion = messageFromClient.getMessageEmotion();
+                //no break!
+            case TEXT:
+                newMessage.content = messageFromClient.getMessageContent();
+                newMessage.creationDate = LocalDateTime.now().withNano(0);
+                newMessage.sender = sender.id;
+                return Optional.of(newMessage);
+            case IMAGE:
+                //TODO
+                try {
+                    newMessage.imageUrl = new URL("https://jokideo.com/wp-content/uploads/meme/2015/01/Do-you-want-to-build-a-snowman---meme.jpg");
+                } catch (MalformedURLException e) {
+                    Logger.getGlobal().severe("Image has no correct URL " + e);
+                }
+                return Optional.of(newMessage);
+            case NONE:
+                //The chat message type is invalid
+                ErrorResponse error = new ErrorResponse();
+                error.status = "CHAT_MESSAGE_TYPE_INVALID";
+                error.description = "The chat message type doesn't match the specification";
+                send(error);
+                break;
+        }
+        return Optional.empty();
+    }
+    
     private class HomeResponse {
         @Expose
-        String status = "OK_HOME";
+        private final String status = "OK_HOME";
         @Expose
         Set<Project> projects;
         @Expose
         Set<Chat> chats;
     }
-
+    
     private class ChatResponse {
         @Expose
-        String status = "OK_CHAT";
+        private final String status = "OK_CHAT";
         @Expose
         Chat chat;
     }
     
     class ProjectResponse {
         @Expose
-        String status = "OK_PROJECT";
+        private final String status = "OK_PROJECT";
         @Expose
         Project project;
     }
-
+    
     class UserResponse {
         @Expose
-        String status = "OK_USER";
+        private final String status = "OK_USER";
         @Expose
         User user;
     }
-
+    
     private class ErrorResponse {
         @Expose
         String status;
         @Expose
         String description;
     }
+    
 }

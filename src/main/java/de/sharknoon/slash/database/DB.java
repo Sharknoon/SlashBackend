@@ -126,7 +126,7 @@ public class DB {
         );
         user.sessionIDs.remove(sessionID);
     }
-
+    
     public static void addDeviceID(User user, String deviceID) {
         User u2 = users.find(
                 and(
@@ -144,7 +144,7 @@ public class DB {
         );
         user.deviceIDs.add(deviceID);
     }
-
+    
     public static void removeDeviceID(User user, String deviceID) {
         users.updateOne(
                 eq(COLLECTION_ID.value, user.id),
@@ -252,12 +252,13 @@ public class DB {
         );
     }
     
-    //Not yet needed
-//    public static boolean existsProjectID(ObjectId id) {
-//        return projects
-//                .find(eq(COLLECTION_ID.value, id))
-//                .first() != null;
-//    }
+    public static void addMessageToProject(Project project, Message message) {
+        projects.updateOne(
+                eq(COLLECTION_ID.value, project.id),
+                pushEach(PROJECTS_COLLECTION_MESSAGES.value, List.of(message), maxStoredMessagesSlice)
+        );
+        project.messages.add(message);
+    }
     
     //
     // CHATS
@@ -271,7 +272,7 @@ public class DB {
                                 eq(CHATS_COLLECTION_PERSON_B.value, id)
                         )
                 )
-                .sort(descending(CHATS_COLLECTION_CREATION_DATE.value))
+                .sort(descending(CHATS_COLLECTION_MESSAGES.value + "." + CHATS_COLLECTION_MESSAGES_CREATION_DATE.value))
                 .limit(n)
                 .into(new HashSet<>());
     }
@@ -311,14 +312,12 @@ public class DB {
         );
     }
     
-    public static void addMessageToChat(Chat chat, String message) {
-        /*
+    public static void addMessageToChat(Chat chat, Message message) {
         chats.updateOne(
                 eq(COLLECTION_ID.value, chat.id),
                 pushEach(CHATS_COLLECTION_MESSAGES.value, List.of(message), maxStoredMessagesSlice)
         );
         chat.messages.add(message);
-        */
     }
     
     //

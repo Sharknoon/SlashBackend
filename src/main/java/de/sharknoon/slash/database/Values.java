@@ -36,7 +36,8 @@ public enum Values {
     CHATS_COLLECTION_PERSON_B("personB"),
     CHATS_COLLECTION_CREATION_DATE("creationDate"),
     CHATS_COLLECTION_MESSAGES("messages"),
-    ;
+    CHATS_COLLECTION_MESSAGES_CREATION_DATE("creationDate"),
+    PROJECTS_COLLECTION_MESSAGES("messages");
     
     public final String value;
     

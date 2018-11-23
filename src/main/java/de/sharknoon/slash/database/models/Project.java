@@ -7,8 +7,7 @@ import org.bson.types.ObjectId;
 
 import java.net.URL;
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.Set;
+import java.util.*;
 public class Project {
     
     @BsonId
@@ -16,6 +15,8 @@ public class Project {
     public ObjectId id = new ObjectId();
     @Expose
     public String name = StringUtils.EMPTY;
+    @Expose
+    public String description = StringUtils.EMPTY;
     @Expose
     public URL image;
     @Expose
