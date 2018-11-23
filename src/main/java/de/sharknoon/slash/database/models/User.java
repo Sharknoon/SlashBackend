@@ -18,7 +18,7 @@ public class User {
     public String email = StringUtils.EMPTY;
     public String password = StringUtils.EMPTY;
     public String salt = StringUtils.EMPTY;
-    public LocalDateTime registrationDate = LocalDateTime.now();
+    public LocalDateTime registrationDate = LocalDateTime.now().withNano(0);
     public Set<String> sessionIDs = Set.of();
     public Set<String> deviceIDs = Set.of();
     

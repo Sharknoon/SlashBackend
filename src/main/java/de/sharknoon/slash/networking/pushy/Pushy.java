@@ -1,43 +1,60 @@
 package de.sharknoon.slash.networking.pushy;
 
-import de.sharknoon.slash.database.DB;
-import de.sharknoon.slash.database.models.User;
+import de.sharknoon.slash.database.models.*;
 
 import java.util.*;
+import java.util.logging.Logger;
 
 public class Pushy {
-    public static void main(String[] args) {
-        Optional<User> user = DB.getUser("Sharknoon");
-        if (user.isEmpty()) {
-            System.err.println("User Sharknoon not found.");
-            return;
-        }
-        User sharknoon = user.get();
-        sendPush(sharknoon);
+    
+    public static void sendPush(PushStatus status, Message message, String from, User... to) {
+        sendPush(status, message, from, Arrays.asList(to));
     }
     
-    private static void sendPush(User user) {
+    public static void sendPush(PushStatus status, Message message, String from, Collection<User> users) {
         // Prepare list of target device tokens
-        Set<String> deviceTokens = user.deviceIDs;
-        
-        // Convert to String[] array
-        String[] to = deviceTokens.toArray(String[]::new);
+        String[] to = users
+                .parallelStream()
+                .map(u -> u.deviceIDs)
+                .flatMap(Collection::stream)
+                .toArray(String[]::new);
         
         // Set payload (any object, it will be serialized to JSON)
-        Map<String, String> payload = new HashMap<>();
+        Map<String, Object> payload = new HashMap<>();
         
-        // Add "message" parameter to payload
-        payload.put("message", "Hello World!");
+        payload.put("status", status.name());
+        payload.put("type", message.type.name());
+        payload.put("from", from);
+        switch (message.type) {
+            case TEXT:
+                payload.put("content", message.content);
+                break;
+            case EMOTION:
+                Map<String, String> emotion = Map.of(
+                        "category", message.messageEmotion.name(),
+                        "subject", message.subject,
+                        "message", message.content
+                );
+                payload.put("content", emotion);
+                break;
+            case IMAGE:
+                payload.put("content", message.imageUrl.toString());
+                break;
+            case NONE:
+                Logger.getGlobal().severe("Message for push notification has a NONE type " + message.toString());
+                return;
+        }
         
         // Prepare the push request
-        PushyAPI.PushyPushRequest push = new PushyAPI.PushyPushRequest(payload, to);
+        PushyPushRequest push = new PushyPushRequest(payload, to);
         
         try {
             // Try sending the push notification
-            PushyAPI.sendPushAsync(push, throwable -> System.err.println(throwable.toString()));
+            PushyAPI.sendPushAsync(push, t -> Logger.getGlobal().severe("Could not send push notification " + t.toString()));
         } catch (Exception exc) {
             // Error, print to console
-            System.err.println(exc.toString());
+            Logger.getGlobal().severe("Could not send push notification " + exc.toString());
         }
     }
+    
 }

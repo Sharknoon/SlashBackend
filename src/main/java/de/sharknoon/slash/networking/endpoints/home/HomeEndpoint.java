@@ -5,7 +5,9 @@ import de.sharknoon.slash.database.DB;
 import de.sharknoon.slash.database.models.*;
 import de.sharknoon.slash.networking.LoginSessions;
 import de.sharknoon.slash.networking.endpoints.Endpoint;
+import de.sharknoon.slash.networking.pushy.*;
 import de.sharknoon.slash.properties.Properties;
+import de.sharknoon.slash.serialisation.Serialisation;
 import org.bson.types.ObjectId;
 
 import javax.websocket.Session;
@@ -18,13 +20,6 @@ import java.util.stream.Collectors;
 
 @ServerEndpoint("/home")
 public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
-    
-    static final String GET_USER_STATUS = "GET_USER";
-    static final String GET_HOME_STATUS = "GET_HOME";
-    static final String GET_CHAT_STATUS = "GET_CHAT";
-    static final String ADD_PROJECT_STATUS = "ADD_PROJECT";
-    static final String GET_PROJECT_STATUS = "GET_PROJECT";
-    static final String ADD_MESSAGE_STATUS = "ADD_CHAT_MESSAGE";
     
     private static boolean isNotValidChatMessageContent(String content) {
         return content.length() <= 0 || content.length() >= 5000;
@@ -74,7 +69,7 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
                 send(home);
                 break;
             case GET_CHAT:
-                GetChatMessage getChatMessage = getJsonSerializer().fromJson(getLastMessage(), GetChatMessage.class);
+                GetChatMessage getChatMessage = Serialisation.getGSON().fromJson(getLastMessage(), GetChatMessage.class);
                 if (!ObjectId.isValid(getChatMessage.getPartnerUserID())) {
                     ErrorResponse error = new ErrorResponse();
                     error.status = "WRONG_USER_ID";
@@ -112,7 +107,7 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
                 }
                 break;
             case ADD_PROJECT:
-                AddProjectMessage addProjectMessage = getJsonSerializer().fromJson(getLastMessage(), AddProjectMessage.class);
+                AddProjectMessage addProjectMessage = Serialisation.getGSON().fromJson(getLastMessage(), AddProjectMessage.class);
                 String projectName = addProjectMessage.getProjectName();
                 String projectDescription = addProjectMessage.getProjectDescription();
                 if (!isValidProjectName(projectName)) {
@@ -144,7 +139,7 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
                 }
                 break;
             case GET_PROJECT:
-                GetProjectMessage getProjectMessage = getJsonSerializer().fromJson(getLastMessage(), GetProjectMessage.class);
+                GetProjectMessage getProjectMessage = Serialisation.getGSON().fromJson(getLastMessage(), GetProjectMessage.class);
                 if (!ObjectId.isValid(getProjectMessage.getProjectID())) {
                     ErrorResponse error = new ErrorResponse();
                     error.status = "WRONG_PROJECT_ID";
@@ -166,7 +161,7 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
                 }
                 break;
             case GET_USER:
-                GetUserMessage getUserMessage = getJsonSerializer().fromJson(getLastMessage(), GetUserMessage.class);
+                GetUserMessage getUserMessage = Serialisation.getGSON().fromJson(getLastMessage(), GetUserMessage.class);
                 Optional<User> userForUsername = DB.getUserForUsername(getUserMessage.getUsername());
                 if (userForUsername.isPresent()) {
                     UserResponse um = new UserResponse();
@@ -180,7 +175,7 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
                 }
                 break;
             case ADD_CHAT_MESSAGE:
-                AddChatMessageMessage addChatMessageMessage = getJsonSerializer().fromJson(getLastMessage(), AddChatMessageMessage.class);
+                AddChatMessageMessage addChatMessageMessage = Serialisation.getGSON().fromJson(getLastMessage(), AddChatMessageMessage.class);
                 String messageContent = addChatMessageMessage.getMessageContent();
                 Optional<Chat> chat;
                 if (isNotValidChatMessageContent(messageContent)) {
@@ -227,13 +222,14 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
                         cr.chat = c;
                         c.partnerUsername = partner.get().username;
                         LoginSessions.getSession(HomeEndpoint.class, user).ifPresent(session -> send(cr));
+                        Pushy.sendPush(PushStatus.NEW_CHAT_MESSAGE, message, user.username, partner.get());
                         c.partnerUsername = user.username;
                         LoginSessions.getSession(HomeEndpoint.class, partner.get()).ifPresent(session -> send(cr));
                     }
                 }
                 break;
             case ADD_PROJECT_MESSAGE:
-                AddProjectMessageMessage addProjectMessageMessage = getJsonSerializer().fromJson(getLastMessage(), AddProjectMessageMessage.class);
+                AddProjectMessageMessage addProjectMessageMessage = Serialisation.getGSON().fromJson(getLastMessage(), AddProjectMessageMessage.class);
                 String messageContent1 = addProjectMessageMessage.getMessageContent();
                 Optional<Project> project;
                 if (isNotValidChatMessageContent(messageContent1)) {
@@ -272,6 +268,9 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
                     ProjectResponse pr = new ProjectResponse();
                     pr.project = p;
                     LoginSessions.getSessions(HomeEndpoint.class, users).forEach(session -> sendTo(session, pr));
+                    //Dont want to send the push notification to myself
+                    users.remove(user);
+                    Pushy.sendPush(PushStatus.NEW_PROJECT_MESSAGE, message, user.username, users);
                 }
                 break;
             case NONE:

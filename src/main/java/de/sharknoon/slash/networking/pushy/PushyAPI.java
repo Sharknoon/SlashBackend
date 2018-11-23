@@ -1,8 +1,8 @@
 package de.sharknoon.slash.networking.pushy;
 
-import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import de.sharknoon.slash.properties.Properties;
+import de.sharknoon.slash.serialisation.Serialisation;
 
 import java.net.URI;
 import java.net.http.*;
@@ -14,7 +14,6 @@ import java.util.function.Consumer;
 public class PushyAPI {
     
     private static final String SECRET_API_KEY = Properties.getPushConfig().APIKey();
-    private static final Gson GSON = new Gson();
     
     static void sendPushAsync(PushyPushRequest req, Consumer<Throwable> errorHandler) {
         var httpClient = HttpClient.newHttpClient();
@@ -26,7 +25,7 @@ public class PushyAPI {
                 .thenAccept(responseJSON -> {
                     
                     // Convert JSON response into HashMap
-                    Map<String, Object> map = GSON.fromJson(responseJSON, new TypeToken<Map<String, Object>>() {
+                    Map<String, Object> map = Serialisation.getGSON().fromJson(responseJSON, new TypeToken<Map<String, Object>>() {
                     }.getType());
                     
                     // Got an error?
@@ -48,8 +47,8 @@ public class PushyAPI {
         var response = httpClient.send(request, BodyHandlers.ofString());
         
         var responseJSON = response.body();
-        
-        Map<String, Object> map = GSON.fromJson(responseJSON, new TypeToken<Map<String, Object>>() {
+    
+        Map<String, Object> map = Serialisation.getGSON().fromJson(responseJSON, new TypeToken<Map<String, Object>>() {
         }.getType());
         
         if (map.containsKey("error")) {
@@ -58,7 +57,7 @@ public class PushyAPI {
     }
     
     private static HttpRequest pushyToHttpRequest(PushyPushRequest req) {
-        var json = GSON.toJson(req);
+        var json = Serialisation.getGSON().toJson(req);
         
         return HttpRequest
                 .newBuilder()
@@ -68,14 +67,4 @@ public class PushyAPI {
                 .build();
     }
     
-    public static class PushyPushRequest {
-        public final Object to;
-        final Object data;//public
-    
-        //publc
-        PushyPushRequest(Object data, Object to) {
-            this.to = to;
-            this.data = data;
-        }
-    }
 }
