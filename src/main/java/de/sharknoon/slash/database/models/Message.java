@@ -19,7 +19,7 @@ public class Message {
     @Expose
     public String subject = StringUtils.EMPTY;
     @Expose
-    public MessageEmotion messageEmotion = MessageEmotion.NONE;
+    public MessageEmotion emotion = MessageEmotion.NONE;
     @Expose
     public URL imageUrl;
     

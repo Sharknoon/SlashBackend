@@ -18,6 +18,11 @@ public class Pushy {
                 .map(u -> u.deviceIDs)
                 .flatMap(Collection::stream)
                 .toArray(String[]::new);
+    
+        //If we dont have any receiver, abort
+        if (to.length <= 0) {
+            return;
+        }
         
         // Set payload (any object, it will be serialized to JSON)
         Map<String, Object> payload = new HashMap<>();
@@ -31,7 +36,7 @@ public class Pushy {
                 break;
             case EMOTION:
                 Map<String, String> emotion = Map.of(
-                        "category", message.messageEmotion.name(),
+                        "category", message.emotion.name(),
                         "subject", message.subject,
                         "message", message.content
                 );

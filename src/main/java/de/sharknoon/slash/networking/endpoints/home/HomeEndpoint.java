@@ -302,7 +302,7 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
                     return Optional.empty();
                 }
                 newMessage.subject = messageFromClient.getMessageSubject();
-                newMessage.messageEmotion = messageFromClient.getMessageEmotion();
+                newMessage.emotion = messageFromClient.getMessageEmotion();
                 //no break!
             case TEXT:
                 newMessage.content = messageFromClient.getMessageContent();

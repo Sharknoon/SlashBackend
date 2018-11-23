@@ -6,7 +6,7 @@ import org.bson.codecs.pojo.annotations.BsonId;
 import org.bson.types.ObjectId;
 
 import java.time.LocalDateTime;
-import java.util.Set;
+import java.util.*;
 
 public class User {
     
@@ -22,4 +22,18 @@ public class User {
     public Set<String> sessionIDs = Set.of();
     public Set<String> deviceIDs = Set.of();
     
+    @Override
+    public int hashCode() {
+        return id != null ? id.hashCode() : 0;
+    }
+    
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        
+        User user = (User) o;
+        
+        return Objects.equals(id, user.id);
+    }
 }
