@@ -5,44 +5,52 @@ import de.sharknoon.slash.database.DB;
 import de.sharknoon.slash.database.models.*;
 import de.sharknoon.slash.networking.LoginSessions;
 import de.sharknoon.slash.networking.endpoints.Endpoint;
-import de.sharknoon.slash.networking.pushy.*;
+import de.sharknoon.slash.networking.pushy.PushStatus;
+import de.sharknoon.slash.networking.pushy.Pushy;
 import de.sharknoon.slash.properties.Properties;
 import de.sharknoon.slash.serialisation.Serialisation;
 import org.bson.types.ObjectId;
 
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
-import java.net.*;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @ServerEndpoint("/home")
 public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
-    
+
     private static boolean isNotValidChatMessageContent(String content) {
         return content.length() <= 0 || content.length() >= 5000;
     }
-    
-    private static boolean isValidChatMessageSubject(String subject) {
-        return subject.length() > 0 && subject.length() < 100;
+
+    private static boolean isNotValidMessageSubject(String subject) {
+        return subject.length() <= 0 || subject.length() >= 100;
     }
-    
+
+    private static boolean isNotValidMessageEmotion(MessageEmotion emotion) {
+        return emotion == MessageEmotion.NONE;
+    }
+
     //Needs to stay public
     @SuppressWarnings("WeakerAccess")
     public HomeEndpoint() {
         super(StatusAndSessionIDMessage.class);
     }
-    
+
     private boolean isValidProjectName(String projectName) {
         return projectName.length() > 0 && projectName.length() < 20;
     }
-    
+
     @Override
     protected void onMessage(Session session, StatusAndSessionIDMessage message) {
         Optional<User> user = LoginSessions.getUser(message.getSessionid());
-    
+
         if (user.isEmpty()) {//To be replaced with isEmpty, this is because intellij shows a warning because it doesnt know the new isEmpty()
             send("{\"status\":\"NO_LOGIN_OR_TOO_MUCH_DEVICES\"," +
                     "\"messageType\":\"You are either not logged in or using more than " +
@@ -52,7 +60,7 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
             handleLogic(message.getStatus(), user.get());
         }
     }
-    
+
     private void handleLogic(Status status, User user) {
         switch (status) {
             case GET_HOME:
@@ -176,15 +184,8 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
                 break;
             case ADD_CHAT_MESSAGE:
                 AddChatMessageMessage addChatMessageMessage = Serialisation.getGSON().fromJson(getLastMessage(), AddChatMessageMessage.class);
-                String messageContent = addChatMessageMessage.getMessageContent();
                 Optional<Chat> chat;
-                if (isNotValidChatMessageContent(messageContent)) {
-                    //Chat messageType malformed
-                    ErrorResponse error = new ErrorResponse();
-                    error.status = "CHAT_MESSAGE_CONTENT_TOO_LONG";
-                    error.description = "The chat message content was over 5000 characters long";
-                    send(error);
-                } else if (!ObjectId.isValid(addChatMessageMessage.getChatID())) {
+                if (!ObjectId.isValid(addChatMessageMessage.getChatID())) {
                     //wrong chat id syntax
                     ErrorResponse error = new ErrorResponse();
                     error.status = "WRONG_CHAT_ID";
@@ -230,15 +231,8 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
                 break;
             case ADD_PROJECT_MESSAGE:
                 AddProjectMessageMessage addProjectMessageMessage = Serialisation.getGSON().fromJson(getLastMessage(), AddProjectMessageMessage.class);
-                String messageContent1 = addProjectMessageMessage.getMessageContent();
                 Optional<Project> project;
-                if (isNotValidChatMessageContent(messageContent1)) {
-                    //Chat messageType malformed
-                    ErrorResponse error = new ErrorResponse();
-                    error.status = "PROJECT_MESSAGE_CONTENT_TOO_LONG";
-                    error.description = "The project message content was over 5000 characters long";
-                    send(error);
-                } else if (!ObjectId.isValid(addProjectMessageMessage.getProjectID())) {
+                if (!ObjectId.isValid(addProjectMessageMessage.getProjectID())) {
                     //wrong chat id syntax
                     ErrorResponse error = new ErrorResponse();
                     error.status = "WRONG_PROJECT_ID";
@@ -281,11 +275,11 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
                 send(error);
         }
     }
-    
+
     private boolean isValidProjectDescription(String projectDescription) {
         return projectDescription.length() > 0 && projectDescription.length() < 200;
     }
-    
+
     private Optional<Message> fillMessage(AddMessageMessage messageFromClient, User sender, boolean isChat) {
         String communicationType = isChat ? "CHAT" : "PROJECT";
         Message newMessage = new Message();
@@ -293,7 +287,7 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
         newMessage.creationDate = LocalDateTime.now().withNano(0);
         switch (messageFromClient.getMessageType()) {
             case EMOTION:
-                if (!isValidChatMessageSubject(messageFromClient.getMessageSubject())) {
+                if (isNotValidMessageSubject(messageFromClient.getMessageSubject())) {
                     //The chat subject isn't valid
                     ErrorResponse error = new ErrorResponse();
                     error.status = communicationType + "_MESSAGE_SUBJECT_TOO_LONG";
@@ -301,10 +295,26 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
                     send(error);
                     return Optional.empty();
                 }
+                if (isNotValidMessageEmotion(messageFromClient.getMessageEmotion())) {
+                    //The chat subject isn't valid
+                    ErrorResponse error = new ErrorResponse();
+                    error.status = communicationType + "_MESSAGE_EMOTION_NOT_SET";
+                    error.description = "The " + communicationType.toLowerCase() + " message emotion was not set";
+                    send(error);
+                    return Optional.empty();
+                }
                 newMessage.subject = messageFromClient.getMessageSubject();
                 newMessage.emotion = messageFromClient.getMessageEmotion();
-                //no break!
+                //no break or return!
             case TEXT:
+                if (isNotValidChatMessageContent(messageFromClient.getMessageContent())) {
+                    //Chat messageType malformed
+                    ErrorResponse error = new ErrorResponse();
+                    error.status = communicationType + "_MESSAGE_CONTENT_TOO_LONG";
+                    error.description = "The " + communicationType.toLowerCase() + " message content was over 5000 characters long";
+                    send(error);
+                    return Optional.empty();
+                }
                 newMessage.content = messageFromClient.getMessageContent();
                 newMessage.creationDate = LocalDateTime.now().withNano(0);
                 newMessage.sender = sender.id;
@@ -320,14 +330,14 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
             case NONE:
                 //The chat message type is invalid
                 ErrorResponse error = new ErrorResponse();
-                error.status = "CHAT_MESSAGE_TYPE_INVALID";
-                error.description = "The chat message type doesn't match the specification";
+                error.status = communicationType + "_MESSAGE_TYPE_INVALID";
+                error.description = "The " + communicationType.toLowerCase() + " message type doesn't match the specification";
                 send(error);
-                break;
+                return Optional.empty();
         }
         return Optional.empty();
     }
-    
+
     private class HomeResponse {
         @Expose
         private final String status = "OK_HOME";
@@ -336,33 +346,33 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
         @Expose
         Set<Chat> chats;
     }
-    
-    private class ChatResponse {
+
+    class ChatResponse {
         @Expose
         private final String status = "OK_CHAT";
         @Expose
         Chat chat;
     }
-    
+
     class ProjectResponse {
         @Expose
         private final String status = "OK_PROJECT";
         @Expose
         Project project;
     }
-    
+
     class UserResponse {
         @Expose
         private final String status = "OK_USER";
         @Expose
         User user;
     }
-    
+
     private class ErrorResponse {
         @Expose
         String status;
         @Expose
         String description;
     }
-    
+
 }
