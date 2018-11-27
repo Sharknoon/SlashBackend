@@ -45,14 +45,14 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
         return emotion == MessageEmotion.NONE;
     }
 
-    private static boolean isValidChatMessage(Message message) {
+    private static boolean isValidChatMessage(final Message message) {
         switch (message.getType()) {
             case TEXT:
-                return message.getContent().length() < 5000;
+                return !isNotValidChatMessageContent(message.getContent());
             case IMAGE:
                 return message.getImageUrl() != null;
             case EMOTION:
-                return !MessageEmotion.NONE.equals(message.getEmotion());
+                return !isNotValidMessageEmotion(message.getEmotion());
             default:
                 return false;
         }
@@ -85,208 +85,25 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
     private void handleLogic(Status status, User user) {
         switch (status) {
             case GET_HOME:
-                HomeResponse home = new HomeResponse();
-                home.projects = DB.getProjectsForUser(user);
-                home.chats = DB.getNLastChatsForUser(user.id, Properties.getUserConfig().amountfavouritechats());
-                for (Chat chat : home.chats) {
-                    if (Objects.equals(chat.personA, user.id)) {//I am user a
-                        chat.partnerUsername = DB.getUser(chat.personB).map(u -> u.username).orElse("ERROR");
-                    } else {
-                        chat.partnerUsername = DB.getUser(chat.personA).map(u -> u.username).orElse("ERROR");
-                    }
-                }
-                send(home);
+                handleGetHomeLogic(user);
                 break;
             case GET_CHAT:
-                GetChatMessage getChatMessage = Serialisation.getGSON().fromJson(getLastMessage(), GetChatMessage.class);
-                if (!ObjectId.isValid(getChatMessage.getPartnerUserID())) {
-                    ErrorResponse error = new ErrorResponse();
-                    error.status = "WRONG_USER_ID";
-                    error.description = "The specified userID doesn't conform to the right syntax";
-                    send(error);
-                } else {
-                    ObjectId partnerID = new ObjectId(getChatMessage.getPartnerUserID());
-                    Optional<Chat> chat = DB.getChatByPartnerID(user.id, partnerID);
-                    Optional<User> partner = DB.getUser(partnerID);
-                    if (chat.isPresent() && partner.isPresent()) {
-                        ChatResponse cm = new ChatResponse();
-                        cm.chat = chat.get();
-                        cm.chat.partnerUsername = partner.get().username;
-                        send(cm);
-                    } else {
-                        if (partner.isEmpty()) {
-                            ErrorResponse error = new ErrorResponse();
-                            error.status = "NO_USER_FOUND";
-                            error.description = "No user with the specified id was found";
-                            send(error);
-                        } else {
-                            Chat newChat = new Chat();
-                            newChat.creationDate = LocalDateTime.now().withNano(0);
-                            newChat.messages = Set.of();
-                            newChat.personA = user.id;
-                            newChat.personB = partner.get().id;
-                            newChat.partnerUsername = partner.get().username;
-                            newChat.id = new ObjectId();
-                            DB.addChat(newChat);
-                            ChatResponse cm = new ChatResponse();
-                            cm.chat = newChat;
-                            send(cm);
-                        }
-                    }
-                }
+                handleGetChatLogic(user);
                 break;
             case ADD_PROJECT:
-                AddProjectMessage addProjectMessage = Serialisation.getGSON().fromJson(getLastMessage(), AddProjectMessage.class);
-                String projectName = addProjectMessage.getProjectName();
-                String projectDescription = addProjectMessage.getProjectDescription();
-                if (!isValidProjectName(projectName)) {
-                    ErrorResponse error = new ErrorResponse();
-                    error.status = "WRONG_PROJECT_NAME";
-                    error.description = "The project name doesn't match the specifications";
-                    send(error);
-                } else if (!isValidProjectDescription(projectDescription)) {
-                    ErrorResponse error = new ErrorResponse();
-                    error.status = "WRONG_PROJECT_DESCRIPTION";
-                    error.description = "The project description doesn't match the specifications";
-                    send(error);
-                } else {
-                    Project newProject = new Project();
-                    try {
-                        newProject.image = new URL("https://www.myfloridacfo.com/division/oit/images/DIS-HomeResponse.png");
-                    } catch (MalformedURLException e) {
-                        e.printStackTrace();
-                    }
-                    newProject.creationDate = LocalDateTime.now().withNano(0);
-                    newProject.users = Set.of(user.id);
-                    newProject.id = new ObjectId();
-                    newProject.name = projectName;
-                    newProject.description = projectDescription;
-                    DB.addProject(newProject);
-                    ProjectResponse pm = new ProjectResponse();
-                    pm.project = newProject;
-                    send(pm);
-                }
+                handleAddProjectLogic(user);
                 break;
             case GET_PROJECT:
-                GetProjectMessage getProjectMessage = Serialisation.getGSON().fromJson(getLastMessage(), GetProjectMessage.class);
-                if (!ObjectId.isValid(getProjectMessage.getProjectID())) {
-                    ErrorResponse error = new ErrorResponse();
-                    error.status = "WRONG_PROJECT_ID";
-                    error.description = "The specified projectID doesn't conform to the right syntax";
-                    send(error);
-                } else {
-                    ObjectId projectID = new ObjectId(getProjectMessage.getProjectID());
-                    Optional<Project> project = DB.getProject(projectID);
-                    if (project.isPresent()) {
-                        ProjectResponse pm = new ProjectResponse();
-                        pm.project = project.get();
-                        send(pm);
-                    } else {
-                        ErrorResponse error = new ErrorResponse();
-                        error.status = "NO_PROJECT_FOUND";
-                        error.description = "No project with the specified id was found";
-                        send(error);
-                    }
-                }
+                handleGetProjectLogic();
                 break;
             case GET_USER:
-                GetUserMessage getUserMessage = Serialisation.getGSON().fromJson(getLastMessage(), GetUserMessage.class);
-                Optional<User> userForUsername = DB.getUserForUsername(getUserMessage.getUsername());
-                if (userForUsername.isPresent()) {
-                    UserResponse um = new UserResponse();
-                    um.user = userForUsername.get();
-                    send(um);
-                } else {
-                    ErrorResponse error = new ErrorResponse();
-                    error.status = "NO_USER_FOUND";
-                    error.description = "No user with the specified username was found";
-                    send(error);
-                }
+                handleGetUserLogic();
                 break;
             case ADD_CHAT_MESSAGE:
-                AddChatMessageMessage addChatMessageMessage = Serialisation.getGSON().fromJson(getLastMessage(), AddChatMessageMessage.class);
-                Optional<Chat> chat;
-                if (!ObjectId.isValid(addChatMessageMessage.getChatID())) {
-                    //wrong chat id syntax
-                    ErrorResponse error = new ErrorResponse();
-                    error.status = "WRONG_CHAT_ID";
-                    error.description = "The syntax of the chat-ID was not correct";
-                    send(error);
-                } else if ((chat = DB.getChat(new ObjectId(addChatMessageMessage.getChatID()))).isEmpty()) {
-                    //chat id doesn't exist
-                    ErrorResponse error = new ErrorResponse();
-                    error.status = "NO_CHAT_FOUND";
-                    error.description = "No corresponding chat to the chat-ID was found";
-                    send(error);
-                } else {
-                    Chat c = chat.get();
-                    Optional<User> partner;
-                    if (Objects.equals(c.personA, user.id)) {//I am user a
-                        partner = DB.getUser(c.personB);
-                    } else {
-                        partner = DB.getUser(c.personA);
-                    }
-                    if (partner.isEmpty()) {
-                        //partner doesn't exists
-                        ErrorResponse error = new ErrorResponse();
-                        error.status = "CHAT_PARTNER_NOT_FOUND";
-                        error.description = "No corresponding chat partner to the chat-ID was found";
-                        send(error);
-                    } else {
-                        Optional<Message> optionalMessage = fillMessage(addChatMessageMessage, user, true);
-                        //errors already send
-                        if (optionalMessage.isEmpty()) {
-                            return;
-                        }
-                        Message message = optionalMessage.get();
-                        DB.addMessageToChat(c, message);
-                        ChatResponse cr = new ChatResponse();
-                        cr.chat = c;
-                        c.partnerUsername = partner.get().username;
-                        LoginSessions.getSession(HomeEndpoint.class, user).ifPresent(session -> send(cr));
-                        Pushy.sendPush(PushStatus.NEW_CHAT_MESSAGE, message, user.username, partner.get());
-                        c.partnerUsername = user.username;
-                        LoginSessions.getSession(HomeEndpoint.class, partner.get()).ifPresent(session -> send(cr));
-                    }
-                }
+                handleAddChatMessageLogic(user);
                 break;
             case ADD_PROJECT_MESSAGE:
-                AddProjectMessageMessage addProjectMessageMessage = Serialisation.getGSON().fromJson(getLastMessage(), AddProjectMessageMessage.class);
-                Optional<Project> project;
-                if (!ObjectId.isValid(addProjectMessageMessage.getProjectID())) {
-                    //wrong chat id syntax
-                    ErrorResponse error = new ErrorResponse();
-                    error.status = "WRONG_PROJECT_ID";
-                    error.description = "The syntax of the project-ID was not correct";
-                    send(error);
-                } else if ((project = DB.getProject(new ObjectId(addProjectMessageMessage.getProjectID()))).isEmpty()) {
-                    //chat id doesn't exist
-                    ErrorResponse error = new ErrorResponse();
-                    error.status = "NO_PROJECT_FOUND";
-                    error.description = "No corresponding project to the project-ID was found";
-                    send(error);
-                } else {
-                    Optional<Message> optionalMessage = fillMessage(addProjectMessageMessage, user, false);
-                    //Errors already send
-                    if (optionalMessage.isEmpty()) {
-                        return;
-                    }
-                    Message message = optionalMessage.get();
-                    Project p = project.get();
-                    DB.addMessageToProject(p, message);
-                    //Project specific, send to every user of the project
-                    Set<User> users = p.users.parallelStream()
-                            .map(DB::getUser)
-                            .filter(Optional::isPresent)
-                            .map(Optional::get)
-                            .collect(Collectors.toSet());
-                    ProjectResponse pr = new ProjectResponse();
-                    pr.project = p;
-                    LoginSessions.getSessions(HomeEndpoint.class, users).forEach(session -> sendTo(session, pr));
-                    //Dont want to send the push notification to myself
-                    users.remove(user);
-                    Pushy.sendPush(PushStatus.NEW_PROJECT_MESSAGE, message, user.username, users);
-                }
+                handleAddProjectMessageLogic(user);
                 break;
             case NONE:
             default:
@@ -295,6 +112,217 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
                 error.description = "The status was wrong, please check the API";
                 send(error);
         }
+    }
+
+    private void handleAddProjectMessageLogic(User user) {
+        AddProjectMessageMessage addProjectMessageMessage = Serialisation.getGSON().fromJson(getLastMessage(), AddProjectMessageMessage.class);
+        Optional<Project> project;
+        if (!ObjectId.isValid(addProjectMessageMessage.getProjectID())) {
+            //wrong chat id syntax
+            ErrorResponse error = new ErrorResponse();
+            error.status = "WRONG_PROJECT_ID";
+            error.description = "The syntax of the project-ID was not correct";
+            send(error);
+        } else if ((project = DB.getProject(new ObjectId(addProjectMessageMessage.getProjectID()))).isEmpty()) {
+            //chat id doesn't exist
+            ErrorResponse error = new ErrorResponse();
+            error.status = "NO_PROJECT_FOUND";
+            error.description = "No corresponding project to the project-ID was found";
+            send(error);
+        } else {
+            Optional<Message> optionalMessage = fillMessage(addProjectMessageMessage, user, false);
+            //Errors already send
+            if (optionalMessage.isEmpty()) {
+                return;
+            }
+            Message message = optionalMessage.get();
+            Project p = project.get();
+            DB.addMessageToProject(p, message);
+            //Project specific, send to every user of the project
+            Set<User> users = p.users.parallelStream()
+                    .map(DB::getUser)
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .collect(Collectors.toSet());
+            ProjectResponse pr = new ProjectResponse();
+            pr.project = p;
+            LoginSessions.getSessions(HomeEndpoint.class, users).forEach(session -> sendTo(session, pr));
+            //Dont want to send the push notification to myself
+            users.remove(user);
+            Pushy.sendPush(PushStatus.NEW_PROJECT_MESSAGE, message, user.username, users);
+        }
+    }
+
+    private void handleAddChatMessageLogic(User user) {
+        AddChatMessageMessage addChatMessageMessage = Serialisation.getGSON().fromJson(getLastMessage(), AddChatMessageMessage.class);
+        Optional<Chat> chat;
+        if (!ObjectId.isValid(addChatMessageMessage.getChatID())) {
+            //wrong chat id syntax
+            ErrorResponse error = new ErrorResponse();
+            error.status = "WRONG_CHAT_ID";
+            error.description = "The syntax of the chat-ID was not correct";
+            send(error);
+        } else if ((chat = DB.getChat(new ObjectId(addChatMessageMessage.getChatID()))).isEmpty()) {
+            //chat id doesn't exist
+            ErrorResponse error = new ErrorResponse();
+            error.status = "NO_CHAT_FOUND";
+            error.description = "No corresponding chat to the chat-ID was found";
+            send(error);
+        } else {
+            Chat c = chat.get();
+            Optional<User> partner;
+            if (Objects.equals(c.personA, user.id)) {//I am user a
+                partner = DB.getUser(c.personB);
+            } else {
+                partner = DB.getUser(c.personA);
+            }
+            if (partner.isEmpty()) {
+                //partner doesn't exists
+                ErrorResponse error = new ErrorResponse();
+                error.status = "CHAT_PARTNER_NOT_FOUND";
+                error.description = "No corresponding chat partner to the chat-ID was found";
+                send(error);
+            } else {
+                Optional<Message> optionalMessage = fillMessage(addChatMessageMessage, user, true);
+                //errors already send
+                if (optionalMessage.isEmpty()) {
+                    return;
+                }
+                Message message = optionalMessage.get();
+                DB.addMessageToChat(c, message);
+                ChatResponse cr = new ChatResponse();
+                cr.chat = c;
+                c.partnerUsername = partner.get().username;
+                LoginSessions.getSession(HomeEndpoint.class, user).ifPresent(session -> send(cr));
+                Pushy.sendPush(PushStatus.NEW_CHAT_MESSAGE, message, user.username, partner.get());
+                c.partnerUsername = user.username;
+                LoginSessions.getSession(HomeEndpoint.class, partner.get()).ifPresent(session -> send(cr));
+            }
+        }
+    }
+
+    private void handleGetUserLogic() {
+        GetUserMessage getUserMessage = Serialisation.getGSON().fromJson(getLastMessage(), GetUserMessage.class);
+        Optional<User> userForUsername = DB.getUserForUsername(getUserMessage.getUsername());
+        if (userForUsername.isPresent()) {
+            UserResponse um = new UserResponse();
+            um.user = userForUsername.get();
+            send(um);
+        } else {
+            ErrorResponse error = new ErrorResponse();
+            error.status = "NO_USER_FOUND";
+            error.description = "No user with the specified username was found";
+            send(error);
+        }
+    }
+
+    private void handleGetProjectLogic() {
+        GetProjectMessage getProjectMessage = Serialisation.getGSON().fromJson(getLastMessage(), GetProjectMessage.class);
+        if (!ObjectId.isValid(getProjectMessage.getProjectID())) {
+            ErrorResponse error = new ErrorResponse();
+            error.status = "WRONG_PROJECT_ID";
+            error.description = "The specified projectID doesn't conform to the right syntax";
+            send(error);
+        } else {
+            ObjectId projectID = new ObjectId(getProjectMessage.getProjectID());
+            Optional<Project> project = DB.getProject(projectID);
+            if (project.isPresent()) {
+                ProjectResponse pm = new ProjectResponse();
+                pm.project = project.get();
+                send(pm);
+            } else {
+                ErrorResponse error = new ErrorResponse();
+                error.status = "NO_PROJECT_FOUND";
+                error.description = "No project with the specified id was found";
+                send(error);
+            }
+        }
+    }
+
+    private void handleAddProjectLogic(User user) {
+        AddProjectMessage addProjectMessage = Serialisation.getGSON().fromJson(getLastMessage(), AddProjectMessage.class);
+        String projectName = addProjectMessage.getProjectName();
+        String projectDescription = addProjectMessage.getProjectDescription();
+        if (!isValidProjectName(projectName)) {
+            ErrorResponse error = new ErrorResponse();
+            error.status = "WRONG_PROJECT_NAME";
+            error.description = "The project name doesn't match the specifications";
+            send(error);
+        } else if (!isValidProjectDescription(projectDescription)) {
+            ErrorResponse error = new ErrorResponse();
+            error.status = "WRONG_PROJECT_DESCRIPTION";
+            error.description = "The project description doesn't match the specifications";
+            send(error);
+        } else {
+            Project newProject = new Project();
+            try {
+                newProject.image = new URL("https://www.myfloridacfo.com/division/oit/images/DIS-HomeResponse.png");
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            }
+            newProject.creationDate = LocalDateTime.now().withNano(0);
+            newProject.users = Set.of(user.id);
+            newProject.id = new ObjectId();
+            newProject.name = projectName;
+            newProject.description = projectDescription;
+            DB.addProject(newProject);
+            ProjectResponse pm = new ProjectResponse();
+            pm.project = newProject;
+            send(pm);
+        }
+    }
+
+    private void handleGetChatLogic(User user) {
+        GetChatMessage getChatMessage = Serialisation.getGSON().fromJson(getLastMessage(), GetChatMessage.class);
+        if (!ObjectId.isValid(getChatMessage.getPartnerUserID())) {
+            ErrorResponse error = new ErrorResponse();
+            error.status = "WRONG_USER_ID";
+            error.description = "The specified userID doesn't conform to the right syntax";
+            send(error);
+        } else {
+            ObjectId partnerID = new ObjectId(getChatMessage.getPartnerUserID());
+            Optional<Chat> chat = DB.getChatByPartnerID(user.id, partnerID);
+            Optional<User> partner = DB.getUser(partnerID);
+            if (chat.isPresent() && partner.isPresent()) {
+                ChatResponse cm = new ChatResponse();
+                cm.chat = chat.get();
+                cm.chat.partnerUsername = partner.get().username;
+                send(cm);
+            } else {
+                if (partner.isEmpty()) {
+                    ErrorResponse error = new ErrorResponse();
+                    error.status = "NO_USER_FOUND";
+                    error.description = "No user with the specified id was found";
+                    send(error);
+                } else {
+                    Chat newChat = new Chat();
+                    newChat.creationDate = LocalDateTime.now().withNano(0);
+                    newChat.messages = Set.of();
+                    newChat.personA = user.id;
+                    newChat.personB = partner.get().id;
+                    newChat.partnerUsername = partner.get().username;
+                    newChat.id = new ObjectId();
+                    DB.addChat(newChat);
+                    ChatResponse cm = new ChatResponse();
+                    cm.chat = newChat;
+                    send(cm);
+                }
+            }
+        }
+    }
+
+    private void handleGetHomeLogic(User user) {
+        HomeResponse home = new HomeResponse();
+        home.projects = DB.getProjectsForUser(user);
+        home.chats = DB.getNLastChatsForUser(user.id, Properties.getUserConfig().amountfavouritechats());
+        for (Chat chat : home.chats) {
+            if (Objects.equals(chat.personA, user.id)) {//I am user a
+                chat.partnerUsername = DB.getUser(chat.personB).map(u -> u.username).orElse("ERROR");
+            } else {
+                chat.partnerUsername = DB.getUser(chat.personA).map(u -> u.username).orElse("ERROR");
+            }
+        }
+        send(home);
     }
 
     private boolean isValidProjectDescription(String projectDescription) {
