@@ -6,6 +6,7 @@ import org.bson.types.ObjectId;
 
 import java.net.URL;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 public class Message {
     @Expose
@@ -64,4 +65,31 @@ public class Message {
         return emotion;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Message message = (Message) o;
+
+        if (type != message.type) return false;
+        if (!Objects.equals(subject, message.subject)) return false;
+        if (!Objects.equals(content, message.content)) return false;
+        if (!Objects.equals(creationDate, message.creationDate)) return false;
+        if (!Objects.equals(sender, message.sender)) return false;
+        if (emotion != message.emotion) return false;
+        return Objects.equals(imageUrl, message.imageUrl);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = type != null ? type.hashCode() : 0;
+        result = 31 * result + (subject != null ? subject.hashCode() : 0);
+        result = 31 * result + (content != null ? content.hashCode() : 0);
+        result = 31 * result + (creationDate != null ? creationDate.hashCode() : 0);
+        result = 31 * result + (sender != null ? sender.hashCode() : 0);
+        result = 31 * result + (emotion != null ? emotion.hashCode() : 0);
+        result = 31 * result + (imageUrl != null ? imageUrl.hashCode() : 0);
+        return result;
+    }
 }
