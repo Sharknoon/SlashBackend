@@ -21,6 +21,7 @@ import javax.websocket.server.ServerEndpoint;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -231,6 +232,7 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
         AddProjectMessage addProjectMessage = Serialisation.getGSON().fromJson(getLastMessage(), AddProjectMessage.class);
         String projectName = addProjectMessage.getProjectName();
         String projectDescription = addProjectMessage.getProjectDescription();
+        List<String> memberIDs = addProjectMessage.getMemberIDs();
         if (!isValidProjectName(projectName)) {
             ErrorResponse error = new ErrorResponse();
             error.status = "WRONG_PROJECT_NAME";
@@ -241,6 +243,7 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
             error.status = "WRONG_PROJECT_DESCRIPTION";
             error.description = "The project description doesn't match the specifications";
             send(error);
+        } else if (memberIDs.isEmpty()) {
         } else {
             Project newProject = new Project();
             try {
@@ -253,11 +256,23 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
             newProject.id = new ObjectId();
             newProject.name = projectName;
             newProject.description = projectDescription;
+            newProject.users = getAllExistingUserIDs(memberIDs);
             DB.addProject(newProject);
             ProjectResponse pm = new ProjectResponse();
             pm.project = newProject;
             send(pm);
         }
+    }
+
+
+    private Set<ObjectId> getAllExistingUserIDs(final List<String> userIDs) {
+        return userIDs.parallelStream()
+                .filter(ObjectId::isValid)
+                .map(DB::getUser)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(u -> u.id)
+                .collect(Collectors.toSet());
     }
 
     private void handleGetChatLogic(User user) {
