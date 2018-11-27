@@ -82,8 +82,8 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
             case GET_PROJECT:
                 handleGetProjectLogic();
                 break;
-            case GET_USER:
-                handleGetUserLogic();
+            case GET_USERS:
+                handleGetUsersLogic();
                 break;
             case ADD_CHAT_MESSAGE:
                 handleAddChatMessageLogic(user);
@@ -190,19 +190,12 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
         }
     }
 
-    private void handleGetUserLogic() {
-        GetUserMessage getUserMessage = Serialisation.getGSON().fromJson(getLastMessage(), GetUserMessage.class);
-        Optional<User> userForUsername = DB.getUserForUsername(getUserMessage.getUsername());
-        if (userForUsername.isPresent()) {
-            UserResponse um = new UserResponse();
-            um.user = userForUsername.get();
-            send(um);
-        } else {
-            ErrorResponse error = new ErrorResponse();
-            error.status = "NO_USER_FOUND";
-            error.description = "No user with the specified username was found";
-            send(error);
-        }
+    private void handleGetUsersLogic() {
+        GetUsersMessage getUsersMessage = Serialisation.getGSON().fromJson(getLastMessage(), GetUsersMessage.class);
+        Set<User> foundUsers = DB.searchUsers(getUsersMessage.getSearch());
+        UsersResponse um = new UsersResponse();
+        um.users = foundUsers;
+        send(um);
     }
 
     private void handleGetProjectLogic() {
@@ -431,11 +424,11 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
         Project project;
     }
 
-    class UserResponse {
+    class UsersResponse {
         @Expose
-        private final String status = "OK_USER";
+        private final String status = "OK_USERS";
         @Expose
-        User user;
+        Set<User> users;
     }
 
     class LogoutResponse {

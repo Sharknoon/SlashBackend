@@ -5,7 +5,7 @@ public enum Status {
     GET_HOME,
     ADD_PROJECT,
     GET_PROJECT,
-    GET_USER,
+    GET_USERS,
     GET_CHAT,
     ADD_CHAT_MESSAGE,
     ADD_PROJECT_MESSAGE,

@@ -10,7 +10,7 @@ import de.sharknoon.slash.database.models.message.MessageType;
 import de.sharknoon.slash.networking.endpoints.TestSession;
 import de.sharknoon.slash.networking.endpoints.home.HomeEndpoint.ChatResponse;
 import de.sharknoon.slash.networking.endpoints.home.HomeEndpoint.ProjectResponse;
-import de.sharknoon.slash.networking.endpoints.home.HomeEndpoint.UserResponse;
+import de.sharknoon.slash.networking.endpoints.home.HomeEndpoint.UsersResponse;
 import de.sharknoon.slash.networking.endpoints.home.messages.*;
 import de.sharknoon.slash.networking.endpoints.login.LoginEndpoint;
 import de.sharknoon.slash.networking.endpoints.login.LoginMessage;
@@ -136,18 +136,18 @@ class HomeEndpointTest {
     void test_getUserStatus() {
         HomeEndpoint he = new HomeEndpoint();
 
-        GetUserMessage getUserMessage = new GetUserMessage();
-        getUserMessage.setSessionid(user1.sessionIDs.iterator().next());
-        getUserMessage.setStatus(Status.GET_USER);
+        GetUsersMessage getUsersMessage = new GetUsersMessage();
+        getUsersMessage.setSessionid(user1.sessionIDs.iterator().next());
+        getUsersMessage.setStatus(Status.GET_USERS);
 
         he.onOpen(s);
-        he.onMessage(s, gson.toJson(getUserMessage));
+        he.onMessage(s, gson.toJson(getUsersMessage));
         Assertions.assertEquals("{\"status\":\"NO_USER_FOUND\",\"description\":\"No user with the specified username was found\"}", sendText);
 
-        getUserMessage.setUsername(user2.username);
-        he.onMessage(s, gson.toJson(getUserMessage));
+        getUsersMessage.setSearch(user2.username);
+        he.onMessage(s, gson.toJson(getUsersMessage));
 
-        UserResponse ur = gson.fromJson(sendText, UserResponse.class);
+        UsersResponse ur = gson.fromJson(sendText, UsersResponse.class);
         Assertions.assertEquals(user2.username.toLowerCase(), ur.user.username);
         Assertions.assertEquals(user2.id, ur.user.id);
     }
