@@ -56,6 +56,7 @@ class HomeEndpointTest {
         user1.password = BCrypt.hashpw("123456", user1.salt);
         user1.email = user1.username + "@web.de";
         user1.deviceIDs = new HashSet<>();
+        USER_IDS_TO_DELETE.add(user1.id);
 
         DB.register(user1);
 
@@ -67,6 +68,7 @@ class HomeEndpointTest {
         user2.password = BCrypt.hashpw("123456", user1.salt);
         user2.email = user1.username + "@gmail.com";
         user2.deviceIDs = new HashSet<>();
+        USER_IDS_TO_DELETE.add(user2.id);
 
         DB.register(user2);
     }
@@ -98,8 +100,6 @@ class HomeEndpointTest {
 
     @AfterAll
     static void tearDown() {
-        DB.unregister(user1);
-        DB.unregister(user2);
         USER_IDS_TO_DELETE.forEach(u ->
                 DB.leakDatabase().getCollection("users").deleteOne(eq("_id", u))
         );
