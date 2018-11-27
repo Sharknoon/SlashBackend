@@ -236,7 +236,6 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
             error.status = "WRONG_PROJECT_DESCRIPTION";
             error.description = "The project description doesn't match the specifications";
             send(error);
-        } else if (memberIDs.isEmpty()) {
         } else {
             Project newProject = new Project();
             try {
