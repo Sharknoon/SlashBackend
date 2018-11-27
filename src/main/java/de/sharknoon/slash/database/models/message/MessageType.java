@@ -1,4 +1,4 @@
-package de.sharknoon.slash.database.models;
+package de.sharknoon.slash.database.models.message;
 
 public enum MessageType {
     TEXT,

@@ -1,4 +1,4 @@
-package de.sharknoon.slash.database.models;
+package de.sharknoon.slash.database.models.message;
 
 import com.google.gson.annotations.Expose;
 import org.apache.commons.lang3.StringUtils;

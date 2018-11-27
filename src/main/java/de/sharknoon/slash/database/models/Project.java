@@ -1,6 +1,7 @@
 package de.sharknoon.slash.database.models;
 
 import com.google.gson.annotations.Expose;
+import de.sharknoon.slash.database.models.message.Message;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.codecs.pojo.annotations.BsonId;
 import org.bson.types.ObjectId;

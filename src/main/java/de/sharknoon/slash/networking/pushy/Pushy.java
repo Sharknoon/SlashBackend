@@ -1,8 +1,12 @@
 package de.sharknoon.slash.networking.pushy;
 
-import de.sharknoon.slash.database.models.*;
+import de.sharknoon.slash.database.models.User;
+import de.sharknoon.slash.database.models.message.Message;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
 public class Pushy {

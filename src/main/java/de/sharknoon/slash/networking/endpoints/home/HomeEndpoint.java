@@ -2,7 +2,11 @@ package de.sharknoon.slash.networking.endpoints.home;
 
 import com.google.gson.annotations.Expose;
 import de.sharknoon.slash.database.DB;
-import de.sharknoon.slash.database.models.*;
+import de.sharknoon.slash.database.models.Chat;
+import de.sharknoon.slash.database.models.Project;
+import de.sharknoon.slash.database.models.User;
+import de.sharknoon.slash.database.models.message.Message;
+import de.sharknoon.slash.database.models.message.MessageEmotion;
 import de.sharknoon.slash.networking.LoginSessions;
 import de.sharknoon.slash.networking.endpoints.Endpoint;
 import de.sharknoon.slash.networking.endpoints.home.messages.*;

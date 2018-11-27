@@ -1,8 +1,8 @@
 package de.sharknoon.slash.networking.endpoints.home.messages;
 
 import com.google.gson.annotations.Expose;
-import de.sharknoon.slash.database.models.MessageEmotion;
-import de.sharknoon.slash.database.models.MessageType;
+import de.sharknoon.slash.database.models.message.MessageEmotion;
+import de.sharknoon.slash.database.models.message.MessageType;
 
 public abstract class AddMessageMessage extends StatusAndSessionIDMessage {
 
