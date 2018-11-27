@@ -44,7 +44,7 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
         return emotion == MessageEmotion.NONE;
     }
 
-    //Needs to stay public
+    //Needs to stay public because of the endpoints
     @SuppressWarnings("WeakerAccess")
     public HomeEndpoint() {
         super(StatusAndSessionIDMessage.class);
@@ -431,7 +431,7 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
         Set<User> users;
     }
 
-    class LogoutResponse {
+    private class LogoutResponse {
         @Expose
         private final String status = "OK_LOGOUT";
     }
