@@ -4,12 +4,14 @@ import com.google.gson.JsonSyntaxException;
 import de.sharknoon.slash.serialisation.Serialisation;
 
 import javax.websocket.*;
-import java.util.*;
-import java.util.logging.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public abstract class Endpoint<M> {
-    
-    //The class of the Messages e.g. RegisterMessage or LoginMessage
+
+    //The class of the messages e.g. RegisterMessage or LoginMessage
     private final Class<M> messageClass;
     //The type of the extending class of this class e.g. LoginEndpoint or RegisterEndpoint
     private final Class<? extends Endpoint> endpointClass;

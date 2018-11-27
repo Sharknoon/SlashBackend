@@ -11,7 +11,7 @@ import de.sharknoon.slash.networking.endpoints.TestSession;
 import de.sharknoon.slash.networking.endpoints.home.HomeEndpoint.ChatResponse;
 import de.sharknoon.slash.networking.endpoints.home.HomeEndpoint.ProjectResponse;
 import de.sharknoon.slash.networking.endpoints.home.HomeEndpoint.UserResponse;
-import de.sharknoon.slash.networking.endpoints.home.Messages.*;
+import de.sharknoon.slash.networking.endpoints.home.messages.*;
 import de.sharknoon.slash.networking.endpoints.login.LoginEndpoint;
 import de.sharknoon.slash.networking.endpoints.login.LoginMessage;
 import de.sharknoon.slash.networking.utils.LocalDateTimeConverter;

@@ -5,7 +5,7 @@ import de.sharknoon.slash.database.DB;
 import de.sharknoon.slash.database.models.*;
 import de.sharknoon.slash.networking.LoginSessions;
 import de.sharknoon.slash.networking.endpoints.Endpoint;
-import de.sharknoon.slash.networking.endpoints.home.Messages.*;
+import de.sharknoon.slash.networking.endpoints.home.messages.*;
 import de.sharknoon.slash.networking.pushy.PushStatus;
 import de.sharknoon.slash.networking.pushy.Pushy;
 import de.sharknoon.slash.properties.Properties;
@@ -26,13 +26,6 @@ import java.util.stream.Collectors;
 @ServerEndpoint("/home")
 public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
 
-    public static final String GET_USER_STATUS = "GET_USER";
-    public static final String GET_HOME_STATUS = "GET_HOME";
-    public static final String GET_CHAT_STATUS = "GET_CHAT";
-    public static final String ADD_PROJECT_STATUS = "ADD_PROJECT";
-    public static final String GET_PROJECT_STATUS = "GET_PROJECT";
-    public static final String ADD_MESSAGE_STATUS = "ADD_CHAT_MESSAGE";
-
 
     private static boolean isNotValidChatMessageContent(String content) {
         return content.length() <= 0 || content.length() >= 5000;
@@ -44,19 +37,6 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
 
     private static boolean isNotValidMessageEmotion(MessageEmotion emotion) {
         return emotion == MessageEmotion.NONE;
-    }
-
-    private static boolean isValidChatMessage(final Message message) {
-        switch (message.getType()) {
-            case TEXT:
-                return !isNotValidChatMessageContent(message.getContent());
-            case IMAGE:
-                return message.getImageUrl() != null;
-            case EMOTION:
-                return !isNotValidMessageEmotion(message.getEmotion());
-            default:
-                return false;
-        }
     }
 
     //Needs to stay public
