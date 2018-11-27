@@ -348,7 +348,7 @@ public class DB {
 
     public static Set<User> searchUsers(String search) {
         return users
-                .find(text(search))
+                .find(regex(USERS_COLLECTION_USERNAME.value, ".*" + search + ".*"))
                 .into(new HashSet<>());
     }
 
