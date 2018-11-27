@@ -8,6 +8,7 @@ import de.sharknoon.slash.networking.endpoints.register.RegisterEndpoint;
 import org.bson.types.ObjectId;
 
 import javax.websocket.Session;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -17,21 +18,39 @@ import java.util.stream.Collectors;
 public class LoginSessions {
     //SessionID->loginSession
     private static final Map<String, LoginSession> LOGGED_IN_SESSIONS = new HashMap<>();
-    
-    public static void addSession(User user, String sessionID, Class<? extends Endpoint> endpoint, Session session) {
+
+    public static void addSession(User user, String sessionID, String deviceID, Class<? extends Endpoint> endpoint, Session session) {
         if (LOGGED_IN_SESSIONS.containsKey(sessionID)) {
             LOGGED_IN_SESSIONS.get(sessionID).setSession(endpoint, session);
         } else {
-            LoginSession ls = new LoginSession(user);
+            LoginSession ls = new LoginSession(deviceID, user);
             ls.setSession(endpoint, session);
             LOGGED_IN_SESSIONS.put(sessionID, ls);
         }
     }
-    
+
     public static void removeSession(String sessionID) {
-        LOGGED_IN_SESSIONS.remove(sessionID);
+        LoginSession remove = LOGGED_IN_SESSIONS.remove(sessionID);
+        if (remove != null) {
+            try {
+                Session homeSession = remove.homeSession;
+                if (homeSession != null) {
+                    homeSession.close();
+                }
+                Session loginSession = remove.loginSession;
+                if (loginSession != null) {
+                    loginSession.close();
+                }
+                Session registerSession = remove.registerSession;
+                if (registerSession != null) {
+                    registerSession.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
-    
+
     /**
      * Checks and returns the user for the specified session ID
      *
@@ -45,7 +64,15 @@ public class LoginSessions {
         }
         return Optional.ofNullable(loginSession.user);
     }
-    
+
+    public static Optional<String> getDeviceID(String sessionID) {
+        LoginSession loginSession = LOGGED_IN_SESSIONS.get(sessionID);
+        if (sessionID == null) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(loginSession.deviceID);
+    }
+
     public static Optional<Session> getSession(Class<? extends Endpoint> endpoint, User user) {
         return LOGGED_IN_SESSIONS.values()
                 .parallelStream()
@@ -54,7 +81,7 @@ public class LoginSessions {
                 .filter(Objects::nonNull)
                 .findAny();
     }
-    
+
     public static Set<Session> getSessions(Class<? extends Endpoint> endpoint, Collection<User> users) {
         Set<ObjectId> ids = users.stream().map(u -> u.id).collect(Collectors.toSet());
         return LOGGED_IN_SESSIONS.values()
@@ -64,17 +91,19 @@ public class LoginSessions {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
     }
-    
+
     private static class LoginSession {
         private Session loginSession = null;
         private Session registerSession = null;
         private Session homeSession = null;
+        private final String deviceID;
         private final User user;
-    
-        LoginSession(User user) {
+
+        LoginSession(String deviceID, User user) {
+            this.deviceID = deviceID;
             this.user = user;
         }
-    
+
         Session getSession(Class<? extends Endpoint> endpoint) {
             if (endpoint == HomeEndpoint.class) {
                 return homeSession;
@@ -85,7 +114,8 @@ public class LoginSessions {
             }
             return null;
         }
-    
+
+
         void setSession(Class<? extends Endpoint> endpoint, Session session) {
             if (endpoint == HomeEndpoint.class) {
                 homeSession = session;
@@ -97,5 +127,5 @@ public class LoginSessions {
         }
 
     }
-    
+
 }

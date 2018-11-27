@@ -10,7 +10,8 @@ import org.springframework.security.crypto.bcrypt.BCrypt;
 
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
-import java.util.*;
+import java.util.Optional;
+import java.util.UUID;
 
 @ServerEndpoint("/login")
 public class LoginEndpoint extends Endpoint<LoginMessage> {
@@ -63,7 +64,7 @@ public class LoginEndpoint extends Endpoint<LoginMessage> {
             }
             user.sessionIDs.add(sessionID);
             DB.addSessionID(user, sessionID);
-            LoginSessions.addSession(user, sessionID, LoginEndpoint.class, session);
+            LoginSessions.addSession(user, sessionID, deviceID, LoginEndpoint.class, session);
 
             while (user.deviceIDs.size() >= Properties.getUserConfig().maxdevices()) {
                 user.deviceIDs.remove(user.deviceIDs.iterator().next());
@@ -96,13 +97,4 @@ public class LoginEndpoint extends Endpoint<LoginMessage> {
         return UUID.randomUUID().toString();
     }
 
-
-    private void logout(Session session) {
-        String sessionID = (String) session.getUserProperties().get(SESSION);
-        String deviceID = (String) session.getUserProperties().get(DEVICE);
-        User user = (User) session.getUserProperties().get(USER);
-        DB.removeSessionID(user, sessionID);
-        DB.removeDeviceID(user, deviceID);
-        LoginSessions.removeSession(sessionID);
-    }
 }

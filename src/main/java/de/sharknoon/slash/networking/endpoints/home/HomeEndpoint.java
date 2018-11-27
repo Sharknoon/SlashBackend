@@ -58,13 +58,13 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
                     "\"messageType\":\"You are either not logged in or using more than " +
                     Properties.getUserConfig().maxdevices() + " devices\"}");
         } else {
-            LoginSessions.addSession(user.get(), message.getSessionid(), HomeEndpoint.class, session);
-            handleLogic(message.getStatus(), user.get());
+            LoginSessions.addSession(user.get(), message.getSessionid(), null, HomeEndpoint.class, session);
+            handleLogic(message, user.get());
         }
     }
 
-    private void handleLogic(Status status, User user) {
-        switch (status) {
+    private void handleLogic(StatusAndSessionIDMessage message, User user) {
+        switch (message.getStatus()) {
             case GET_HOME:
                 handleGetHomeLogic(user);
                 break;
@@ -85,6 +85,9 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
                 break;
             case ADD_PROJECT_MESSAGE:
                 handleAddProjectMessageLogic(user);
+                break;
+            case LOGOUT:
+                handleLogoutLogic(user, message.getSessionid());
                 break;
             case NONE:
             default:
@@ -306,6 +309,24 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
         send(home);
     }
 
+    private void handleLogoutLogic(User user, String sessionID) {
+        Optional<String> optionalDeviceID = LoginSessions.getDeviceID(sessionID);
+        if (optionalDeviceID.isEmpty()) {
+            //to send a internal server error, this should never happen
+            ErrorResponse error = new ErrorResponse();
+            error.status = "DEVICE_ID_NOT_FOUND";
+            error.description = "The device-id of this session could not be not found";
+            send(error);
+            return;
+        }
+        String deviceID = optionalDeviceID.get();
+        DB.removeSessionID(user, sessionID);
+        DB.removeDeviceID(user, deviceID);
+        sendSync(new LogoutResponse());
+        LoginSessions.removeSession(sessionID);
+
+    }
+
     private boolean isValidProjectDescription(String projectDescription) {
         return projectDescription.length() > 0 && projectDescription.length() < 200;
     }
@@ -396,6 +417,11 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
         private final String status = "OK_USER";
         @Expose
         User user;
+    }
+
+    class LogoutResponse {
+        @Expose
+        private final String status = "OK_LOGOUT";
     }
 
     private class ErrorResponse {
