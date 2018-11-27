@@ -1,29 +1,30 @@
-package de.sharknoon.slash.networking.endpoints.home;
+package de.sharknoon.slash.networking.endpoints.home.Messages;
 
 import com.google.gson.annotations.Expose;
+import de.sharknoon.slash.networking.endpoints.home.Status;
 
-class StatusAndSessionIDMessage {
+public class StatusAndSessionIDMessage {
     
     @Expose
     private String sessionid = "";
     @Expose
     private Status status = Status.NONE;
-    
-    String getSessionid() {
+
+    public String getSessionid() {
         return sessionid;
     }
-    
-    void setSessionid(String sessionid) {
+
+    public void setSessionid(String sessionid) {
         if (sessionid != null) {
             this.sessionid = sessionid;
         }
     }
-    
-    Status getStatus() {
+
+    public Status getStatus() {
         return status;
     }
-    
-    void setStatus(Status status) {
+
+    public void setStatus(Status status) {
         if (status != null) {
             this.status = status;
         }

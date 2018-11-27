@@ -1,9 +1,10 @@
-package de.sharknoon.slash.networking.endpoints.home;
+package de.sharknoon.slash.networking.endpoints.home.Messages;
 
 import com.google.gson.annotations.Expose;
-import de.sharknoon.slash.database.models.*;
+import de.sharknoon.slash.database.models.MessageEmotion;
+import de.sharknoon.slash.database.models.MessageType;
 
-class AddMessageMessage extends StatusAndSessionIDMessage {
+public class AddMessageMessage extends StatusAndSessionIDMessage {
     
     @Expose
     private MessageType messageType = MessageType.NONE;
@@ -15,52 +16,52 @@ class AddMessageMessage extends StatusAndSessionIDMessage {
     private MessageEmotion messageEmotion = MessageEmotion.NONE;
     @Expose
     private String messageImage = "";
-    
-    MessageType getMessageType() {
+
+    public MessageType getMessageType() {
         return messageType;
     }
-    
-    void setMessageType(MessageType messageType) {
+
+    public void setMessageType(MessageType messageType) {
         if (messageType != null) {
             this.messageType = messageType;
         }
     }
-    
-    String getMessageContent() {
+
+    public String getMessageContent() {
         return messageContent;
     }
-    
-    void setMessageContent(String messageContent) {
+
+    public void setMessageContent(String messageContent) {
         if (messageContent != null) {
             this.messageContent = messageContent;
         }
     }
-    
-    String getMessageSubject() {
+
+    public String getMessageSubject() {
         return messageSubject;
     }
-    
-    void setMessageSubject(String messageSubject) {
+
+    public void setMessageSubject(String messageSubject) {
         if (messageSubject != null) {
             this.messageSubject = messageSubject;
         }
     }
-    
-    MessageEmotion getMessageEmotion() {
+
+    public MessageEmotion getMessageEmotion() {
         return messageEmotion;
     }
-    
-    void setMessageEmotion(MessageEmotion messageEmotion) {
+
+    public void setMessageEmotion(MessageEmotion messageEmotion) {
         if (messageEmotion != null) {
             this.messageEmotion = messageEmotion;
         }
     }
-    
-    String getMessageImage() {
+
+    public String getMessageImage() {
         return messageImage;
     }
-    
-    void setMessageImage(String messageImage) {
+
+    public void setMessageImage(String messageImage) {
         if (messageImage != null) {
             this.messageImage = messageImage;
         }

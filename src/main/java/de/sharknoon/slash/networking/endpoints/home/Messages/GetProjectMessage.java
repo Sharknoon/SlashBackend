@@ -1,18 +1,17 @@
-package de.sharknoon.slash.networking.endpoints.home;
+package de.sharknoon.slash.networking.endpoints.home.Messages;
 
 import com.google.gson.annotations.Expose;
 
-class AddProjectMessageMessage extends AddMessageMessage {
-    
+public class GetProjectMessage extends StatusAndSessionIDMessage {
     
     @Expose
     private String projectID = "";
-    
-    String getProjectID() {
+
+    public String getProjectID() {
         return projectID;
     }
-    
-    void setProjectID(String projectID) {
+
+    public void setProjectID(String projectID) {
         if (projectID != null) {
             this.projectID = projectID;
         }

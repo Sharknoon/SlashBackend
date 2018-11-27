@@ -1,29 +1,29 @@
-package de.sharknoon.slash.networking.endpoints.home;
+package de.sharknoon.slash.networking.endpoints.home.Messages;
 
 import com.google.gson.annotations.Expose;
 
-class AddProjectMessage extends StatusAndSessionIDMessage {
+public class AddProjectMessage extends StatusAndSessionIDMessage {
     
     @Expose
     private String projectName = "";
     @Expose
     private String projectDescription = "";
-    
-    String getProjectName() {
+
+    public String getProjectName() {
         return projectName;
     }
-    
-    void setProjectName(String projectName) {
+
+    public void setProjectName(String projectName) {
         if (projectName != null) {
             this.projectName = projectName;
         }
     }
-    
-    String getProjectDescription() {
+
+    public String getProjectDescription() {
         return projectDescription;
     }
-    
-    void setProjectDescription(String projectDescription) {
+
+    public void setProjectDescription(String projectDescription) {
         if (projectDescription != null) {
             this.projectDescription = projectDescription;
         }

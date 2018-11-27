@@ -5,6 +5,7 @@ import de.sharknoon.slash.database.DB;
 import de.sharknoon.slash.database.models.*;
 import de.sharknoon.slash.networking.LoginSessions;
 import de.sharknoon.slash.networking.endpoints.Endpoint;
+import de.sharknoon.slash.networking.endpoints.home.Messages.*;
 import de.sharknoon.slash.networking.pushy.PushStatus;
 import de.sharknoon.slash.networking.pushy.Pushy;
 import de.sharknoon.slash.properties.Properties;
