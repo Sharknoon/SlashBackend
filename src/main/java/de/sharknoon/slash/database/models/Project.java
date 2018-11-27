@@ -7,7 +7,7 @@ import org.bson.types.ObjectId;
 
 import java.net.URL;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Set;
 public class Project {
     
     @BsonId
@@ -22,7 +22,7 @@ public class Project {
     @Expose
     public LocalDateTime creationDate = LocalDateTime.now();
     @Expose
-    public Set<ObjectId> users = Collections.emptySet();
+    public Set<ObjectId> users = Set.of();
     @Expose
-    public Set<Message> messages = Collections.emptySet();
+    public Set<Message> messages = Set.of();
 }

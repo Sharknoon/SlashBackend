@@ -99,8 +99,10 @@ public class LoginEndpoint extends Endpoint<LoginMessage> {
 
     private void logout(Session session) {
         String sessionID = (String) session.getUserProperties().get(SESSION);
+        String deviceID = (String) session.getUserProperties().get(DEVICE);
         User user = (User) session.getUserProperties().get(USER);
         DB.removeSessionID(user, sessionID);
+        DB.removeDeviceID(user, deviceID);
         LoginSessions.removeSession(sessionID);
     }
 }

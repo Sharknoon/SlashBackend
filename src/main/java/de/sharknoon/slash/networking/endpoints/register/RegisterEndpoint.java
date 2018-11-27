@@ -37,6 +37,7 @@ public class RegisterEndpoint extends Endpoint<RegisterMessage> {
         user.salt = salt;
         user.registrationDate = registrationDate;
         user.sessionIDs = Set.of();
+        user.deviceIDs = Set.of();
         
         return DB.register(user);
     }

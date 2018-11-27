@@ -1,25 +1,17 @@
 package de.sharknoon.slash.networking.endpoints;
 
-import com.google.gson.*;
-import de.sharknoon.slash.networking.utils.*;
-import org.bson.types.ObjectId;
+import com.google.gson.JsonSyntaxException;
+import de.sharknoon.slash.serialisation.Serialisation;
 
 import javax.websocket.*;
-import java.lang.reflect.Modifier;
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.logging.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public abstract class Endpoint<M> {
-    
-    //Gson to convert JSON
-    private static final Gson GSON = new GsonBuilder()
-            .excludeFieldsWithoutExposeAnnotation()
-            .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeConverter())
-            .registerTypeAdapter(ObjectId.class, new ObjectIdConverter())
-            .excludeFieldsWithModifiers(Modifier.STATIC)
-            .create();
-    //The class of the Messages e.g. RegisterMessage or LoginMessage
+
+    //The class of the messages e.g. RegisterMessage or LoginMessage
     private final Class<M> messageClass;
     //The type of the extending class of this class e.g. LoginEndpoint or RegisterEndpoint
     private final Class<? extends Endpoint> endpointClass;
@@ -27,7 +19,7 @@ public abstract class Endpoint<M> {
     
     private static String toJSON(Object o) {
         try {
-            return GSON.toJson(o);
+            return Serialisation.getGSON().toJson(o);
         } catch (Exception e) {
             return "{\"status\":\"ERROR\"," +
                     "\"message\":\"An unexpected error occurred, please try again later\"}";
@@ -84,10 +76,6 @@ public abstract class Endpoint<M> {
         sendTo(session, toJSON(o));
     }
     
-    protected static Gson getJsonSerializer() {
-        return GSON;
-    }
-    
     private String lastMessage = "";
     
     protected void send(String json) {
@@ -106,7 +94,7 @@ public abstract class Endpoint<M> {
         this.session = session;
         this.lastMessage = message;
         try {
-            M messageObject = GSON.fromJson(message, messageClass);
+            M messageObject = Serialisation.getGSON().fromJson(message, messageClass);
             onMessage(
                     session,
                     messageObject

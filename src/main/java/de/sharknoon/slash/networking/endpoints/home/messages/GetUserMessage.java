@@ -1,9 +1,14 @@
-package de.sharknoon.slash.networking.endpoints.home;
+package de.sharknoon.slash.networking.endpoints.home.messages;
 
 import com.google.gson.annotations.Expose;
+import de.sharknoon.slash.networking.endpoints.home.Status;
 
 public class GetUserMessage extends StatusAndSessionIDMessage {
-    
+
+    public GetUserMessage() {
+        setStatus(Status.GET_USER);
+    }
+
     @Expose
     private String username = "";
     

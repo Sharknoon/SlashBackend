@@ -5,6 +5,7 @@ import de.sharknoon.slash.networking.endpoints.Endpoint;
 import de.sharknoon.slash.networking.endpoints.home.HomeEndpoint;
 import de.sharknoon.slash.networking.endpoints.login.LoginEndpoint;
 import de.sharknoon.slash.networking.endpoints.register.RegisterEndpoint;
+import org.bson.types.ObjectId;
 
 import javax.websocket.Session;
 import java.util.*;
@@ -48,16 +49,17 @@ public class LoginSessions {
     public static Optional<Session> getSession(Class<? extends Endpoint> endpoint, User user) {
         return LOGGED_IN_SESSIONS.values()
                 .parallelStream()
-                .filter(ls -> user.equals(ls.user))
+                .filter(ls -> user.id.equals(ls.user.id))
                 .map(ls -> ls.getSession(endpoint))
                 .filter(Objects::nonNull)
                 .findAny();
     }
     
     public static Set<Session> getSessions(Class<? extends Endpoint> endpoint, Collection<User> users) {
+        Set<ObjectId> ids = users.stream().map(u -> u.id).collect(Collectors.toSet());
         return LOGGED_IN_SESSIONS.values()
                 .parallelStream()
-                .filter(ls -> users.contains(ls.user))
+                .filter(ls -> ids.contains(ls.user.id))
                 .map(ls -> ls.getSession(endpoint))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
