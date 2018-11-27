@@ -4,8 +4,8 @@ import com.google.gson.annotations.Expose;
 import de.sharknoon.slash.database.models.MessageEmotion;
 import de.sharknoon.slash.database.models.MessageType;
 
-public class AddMessageMessage extends StatusAndSessionIDMessage {
-    
+public abstract class AddMessageMessage extends StatusAndSessionIDMessage {
+
     @Expose
     private MessageType messageType = MessageType.NONE;
     @Expose
