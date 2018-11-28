@@ -211,7 +211,7 @@ public class DB {
             users.insertOne(user);
             return true;
         } catch (Exception e) {
-            Logger.getGlobal().log(Level.WARNING, e.getLocalizedMessage());
+            Logger.getGlobal().log(Level.WARNING, "Could not register user", e);
             return false;
         }
     }
@@ -242,7 +242,7 @@ public class DB {
         try {
             projects.insertOne(project);
         } catch (Exception e) {
-            Logger.getGlobal().log(Level.WARNING, e.getLocalizedMessage());
+            Logger.getGlobal().log(Level.WARNING, "Could not add project", e);
         }
     }
     
@@ -301,7 +301,7 @@ public class DB {
         try {
             chats.insertOne(chat);
         } catch (Exception e) {
-            Logger.getGlobal().log(Level.WARNING, e.getLocalizedMessage());
+            Logger.getGlobal().log(Level.WARNING, "Could not add chat", e);
         }
     }
     

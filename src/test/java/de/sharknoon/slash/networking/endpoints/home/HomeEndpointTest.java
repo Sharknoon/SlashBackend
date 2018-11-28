@@ -351,7 +351,6 @@ class HomeEndpointTest {
         
         ObjectId oldProjectID = pr.project.id;
         pr = gson.fromJson(sendText, ProjectResponse.class);
-        System.out.println(sendText);
         Assertions.assertEquals(oldProjectID, pr.project.id);
         Assertions.assertEquals("Test123 Project", pr.project.name);
         Assertions.assertEquals("I am going to be deleted very soon", pr.project.description);

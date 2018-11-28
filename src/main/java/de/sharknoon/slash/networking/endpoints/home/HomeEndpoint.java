@@ -387,7 +387,7 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
                     if (!MimeTypeHelper.hasValidMimeType(imageData)) {
                         // ToDo: Return error
                         ErrorResponse error = new ErrorResponse();
-                        error.status = communicationType + "_NOT_A_VALID_IMAGE";
+                        error.status = "NOT_A_VALID_IMAGE";
                         error.description = "The image has not a valid mime type: " + MimeTypeHelper.getMimeType(imageData) + ". Should be one of: " + MimeTypeHelper.validMimeTypes.keySet().toString();
                         send(error);
                         return Optional.empty();
@@ -395,12 +395,20 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
                     }
                     final String mimeType = MimeTypeHelper.getMimeType(imageData);
                     final String imageName = UUID.randomUUID().toString();
-                    OutputStream outStream = new FileOutputStream("./webapp/WEB-INF/" + imageName);
+                    final String extension = MimeTypeHelper.getExtensionForMimeType(mimeType);
+                    final String imageFullName = imageName + "." + extension;
+                    OutputStream outStream = new FileOutputStream("./webapp/img/" + imageFullName);
                     outStream.write(imageData);
     
-                    final String baseUrl = "http://sharknoon.de/";
-                    final String extension = MimeTypeHelper.getExtensionForMimeType(mimeType);
-                    newMessage.imageUrl = new URL(baseUrl + imageName + extension);
+                    final URL baseURL = getURL();
+                    if (baseURL == null) {
+                        ErrorResponse error = new ErrorResponse();
+                        error.status = "UNABLE_TO_DETECT_URL_OF_SERVER";
+                        error.description = "The url of this server could not be detected. Unable to form a link for this image.";
+                        send(error);
+                        return Optional.empty();
+                    }
+                    newMessage.imageUrl = new URL(baseURL.toString() + imageFullName);
                 } catch (MalformedURLException e) {
                     Logger.getGlobal().severe("Image has no correct URL " + e);
                 } catch (IOException e) {
