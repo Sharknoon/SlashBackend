@@ -10,8 +10,7 @@ import org.springframework.security.crypto.bcrypt.BCrypt;
 
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @ServerEndpoint("/login")
 public class LoginEndpoint extends Endpoint<LoginMessage> {
@@ -78,8 +77,8 @@ public class LoginEndpoint extends Endpoint<LoginMessage> {
         if (message.getDeviceID().isEmpty()) {
             return Optional.empty();
         }
-
-        Optional<User> user = DB.getUser(message.getUsernameOrEmail());
+    
+        Optional<User> user = DB.getUserByUsernameOrEmail(message.getUsernameOrEmail());
         if (user.isEmpty()) {
             return user;
         }

@@ -25,7 +25,7 @@ import static de.sharknoon.slash.database.Values.*;
 import static org.bson.codecs.configuration.CodecRegistries.*;
 
 public class DB {
-
+    
     //Collations for indexes
     private static final Collation caseInsensitiveCollation = Collation.builder().locale("en").collationStrength(SECONDARY).build();
     //PushOptions
@@ -37,17 +37,17 @@ public class DB {
     private static MongoCollection<User> users;
     private static MongoCollection<Project> projects;
     private static MongoCollection<Chat> chats;
-
+    
     static {
         try {
             DBConfig props = Properties.getDBConfig();
-
+    
             String ip = props.databaseip();
             int port = props.databaseport();
             String database = props.database();
             String username = props.dbuser();
             String password = props.dbpassword();
-
+    
             MongoCredential credential = MongoCredential.createCredential(username, database, password.toCharArray());
             CodecRegistry codecRegistry = fromRegistries(
                     fromCodecs(new JavaURLCodec()),
@@ -68,8 +68,8 @@ public class DB {
                             .codecRegistry(codecRegistry)
                             .build()
             );
-
-
+    
+    
             DB.database = mongoClient.getDatabase(database);
             DB.users = DB.database.getCollection(USERS_COLLECTION.value, User.class);
             DB.projects = DB.database.getCollection(PROJECTS_COLLECTION.value, Project.class);
@@ -79,7 +79,7 @@ public class DB {
             System.exit(1);
         }
     }
-
+    
     /**
      * USE WITH CAUTION NO WARRANTY FOR ANY DAMAGE, USE ONLY FOR TESTS
      *
@@ -88,19 +88,19 @@ public class DB {
     public static MongoDatabase leakDatabase() {
         return database;
     }
-
-
+    
+    
     //
     // LOGIN
     //
-
+    
     /**
      * Gets a user
      *
      * @param usernameOrEmail The email or password of the user
      * @return The user if the getUser was successful
      */
-    public static Optional<User> getUser(String usernameOrEmail) {
+    public static Optional<User> getUserByUsernameOrEmail(String usernameOrEmail) {
         User user = users
                 .find(
                         or(
@@ -112,7 +112,7 @@ public class DB {
                 .first();
         return Optional.ofNullable(user);
     }
-
+    
     public static void addSessionID(User user, String sessionID) {
         users.updateOne(
                 eq(COLLECTION_ID.value, user.id),
@@ -120,7 +120,7 @@ public class DB {
         );
         user.sessionIDs.add(sessionID);
     }
-
+    
     public static void removeSessionID(User user, String sessionID) {
         users.updateOne(
                 eq(COLLECTION_ID.value, user.id),
@@ -128,7 +128,7 @@ public class DB {
         );
         user.sessionIDs.remove(sessionID);
     }
-
+    
     public static void addDeviceID(User user, String deviceID) {
         User u2 = users.find(
                 and(
@@ -146,7 +146,7 @@ public class DB {
         );
         user.deviceIDs.add(deviceID);
     }
-
+    
     public static void removeDeviceID(User user, String deviceID) {
         users.updateOne(
                 eq(COLLECTION_ID.value, user.id),
@@ -157,7 +157,7 @@ public class DB {
     //
     // REGISTER
     //
-
+    
     /**
      * @param email The email to check for duplicates
      * @return True if this email already exists
@@ -170,7 +170,7 @@ public class DB {
                 .collation(caseInsensitiveCollation)
                 .first() != null;
     }
-
+    
     /**
      * @param username The username to check for duplicates
      * @return True if this username already exists
@@ -183,7 +183,7 @@ public class DB {
                 .collation(caseInsensitiveCollation)
                 .first() != null;
     }
-
+    
     /**
      * @param login The username and the password to check for duplicates
      * @return True ich this username or email already exists
@@ -199,7 +199,7 @@ public class DB {
                 .collation(caseInsensitiveCollation)
                 .first() != null;
     }
-
+    
     /**
      * Registers a new user
      *
@@ -215,7 +215,7 @@ public class DB {
             return false;
         }
     }
-
+    
     /**
      * Unregisters a user, mainly used in tests for now
      *
@@ -224,11 +224,11 @@ public class DB {
     public static void unregister(User user) {
         users.deleteOne(eq(COLLECTION_ID.value, user.id));
     }
-
+    
     //
     // PROJECTS
     //
-
+    
     public static Set<Project> getProjectsForUser(User u) {
         ObjectId userId = u.id;
         return projects
@@ -237,7 +237,7 @@ public class DB {
                 )
                 .into(new HashSet<>());
     }
-
+    
     public static void addProject(Project project) {
         try {
             projects.insertOne(project);
@@ -245,7 +245,7 @@ public class DB {
             Logger.getGlobal().log(Level.WARNING, e.getLocalizedMessage());
         }
     }
-
+    
     public static Optional<Project> getProject(ObjectId projectID) {
         return Optional.ofNullable(
                 projects
@@ -253,7 +253,7 @@ public class DB {
                         .first()
         );
     }
-
+    
     public static void addMessageToProject(Project project, Message message) {
         projects.updateOne(
                 eq(COLLECTION_ID.value, project.id),
@@ -261,11 +261,11 @@ public class DB {
         );
         project.messages.add(message);
     }
-
+    
     //
     // CHATS
     //
-
+    
     public static Set<Chat> getNLastChatsForUser(ObjectId id, int n) {
         return chats
                 .find(
@@ -278,7 +278,7 @@ public class DB {
                 .limit(n)
                 .into(new HashSet<>());
     }
-
+    
     public static Optional<Chat> getChatByPartnerID(ObjectId userID, ObjectId partnerID) {
         return Optional.ofNullable(
                 chats
@@ -296,7 +296,7 @@ public class DB {
                         ).first()
         );
     }
-
+    
     public static void addChat(Chat chat) {
         try {
             chats.insertOne(chat);
@@ -304,8 +304,8 @@ public class DB {
             Logger.getGlobal().log(Level.WARNING, e.getLocalizedMessage());
         }
     }
-
-
+    
+    
     public static Optional<Chat> getChat(ObjectId objectId) {
         return Optional.ofNullable(
                 chats.find(
@@ -313,7 +313,7 @@ public class DB {
                 ).first()
         );
     }
-
+    
     public static void addMessageToChat(Chat chat, Message message) {
         chats.updateOne(
                 eq(COLLECTION_ID.value, chat.id),
@@ -321,27 +321,34 @@ public class DB {
         );
         chat.messages.add(message);
     }
-
+    
     //
     // USER
     //
-
+    
     public static Optional<User> getUser(ObjectId id) {
         return Optional.ofNullable(
                 users
                         .find(eq(COLLECTION_ID.value, id))
-                        .limit(10)
                         .first()
         );
     }
-
+    
     public static Set<User> searchUsers(String search) {
         if (search == null || search.isEmpty()) {
             return Set.of();
         }
         return users
                 .find(regex(USERS_COLLECTION_USERNAME.value, ".*" + Pattern.quote(search) + ".*", "i"))
+                .limit(10)
                 .into(new HashSet<>());
     }
-
+    
+    public static Optional<User> getUserBySessionID(String sessionID) {
+        return Optional.ofNullable(
+                users
+                        .find(in(USERS_COLLECTION_SESSION_IDS.value, sessionID))
+                        .first()
+        );
+    }
 }
