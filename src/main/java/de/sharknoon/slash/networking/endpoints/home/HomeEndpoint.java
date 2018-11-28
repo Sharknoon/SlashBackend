@@ -12,19 +12,20 @@ import de.sharknoon.slash.networking.endpoints.Endpoint;
 import de.sharknoon.slash.networking.endpoints.home.messages.*;
 import de.sharknoon.slash.networking.pushy.PushStatus;
 import de.sharknoon.slash.networking.pushy.Pushy;
+import de.sharknoon.slash.networking.utils.MimeTypeHelper;
 import de.sharknoon.slash.properties.Properties;
 import de.sharknoon.slash.serialisation.Serialisation;
 import org.bson.types.ObjectId;
 
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -382,11 +383,32 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
                 newMessage.sender = sender.id;
                 return Optional.of(newMessage);
             case IMAGE:
-                //TODO
+                //TODO: Save image on server, generate url, send url
+                Base64.Decoder decoder = Base64.getDecoder();
+                final byte[] imageData = decoder.decode(messageFromClient.getMessageImage());
                 try {
-                    newMessage.imageUrl = new URL("https://jokideo.com/wp-content/uploads/meme/2015/01/Do-you-want-to-build-a-snowman---meme.jpg");
+                    if (!MimeTypeHelper.hasValidMimeType(imageData)) {
+                        // ToDo: Return error
+                        ErrorResponse error = new ErrorResponse();
+                        error.status = communicationType + "_NOT_A_VALID_IMAGE";
+                        error.description = "The image has not a valid mime type: " + MimeTypeHelper.getMimeType(imageData) + ". Should be one of: " + MimeTypeHelper.validMimeTypes.keySet().toString();
+                        send(error);
+                        return Optional.empty();
+
+                    }
+                    final String mimeType = MimeTypeHelper.getMimeType(imageData);
+                    final String imageName = UUID.randomUUID().toString();
+                    OutputStream outStream = new FileOutputStream("./webapp/WEB-INF/" + imageName);
+                    outStream.write(imageData);
+
+                    final String baseUrl = "http://sharknoon.de/";
+                    final String extension = MimeTypeHelper.getExtensionForMimeType(mimeType);
+                    newMessage.imageUrl = new URL(baseUrl + imageName + extension);
                 } catch (MalformedURLException e) {
                     Logger.getGlobal().severe("Image has no correct URL " + e);
+                } catch (IOException e) {
+                    Logger.getGlobal().severe("Could not read or write Image! " + e);
+                    e.printStackTrace();
                 }
                 return Optional.of(newMessage);
             case NONE:
