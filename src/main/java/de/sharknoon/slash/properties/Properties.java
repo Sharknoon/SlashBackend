@@ -7,7 +7,6 @@ public class Properties {
     private static DBConfig dbConfig = null;
     private static UserConfig userConfig = null;
     private static PushConfig pushConfig = null;
-    public static GeneralConfig generalConfig = null;
     
     public static DBConfig getDBConfig() {
         if (dbConfig == null) {
@@ -30,10 +29,4 @@ public class Properties {
         return pushConfig;
     }
 
-    public static GeneralConfig getGeneralConfig() {
-        if (generalConfig == null) {
-            generalConfig = ConfigFactory.create(GeneralConfig.class);
-        }
-        return generalConfig;
-    }
 }

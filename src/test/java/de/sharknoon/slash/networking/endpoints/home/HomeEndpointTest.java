@@ -123,7 +123,7 @@ class HomeEndpointTest {
     }
     
     @Test
-    void test_getUserStatus() {
+    void test_getUsersStatus() {
         HomeEndpoint he = new HomeEndpoint();
         
         GetUsersMessage getUsersMessage = new GetUsersMessage();
@@ -416,6 +416,33 @@ class HomeEndpointTest {
         LoginAnswer la = new Gson().fromJson(sendText, LoginAnswer.class);
         user1.sessionIDs.clear();
         user1.sessionIDs.add(la.sessionid);
+    }
+    
+    @Test
+    void test_getUserStatus() {
+        HomeEndpoint he = new HomeEndpoint();
+        
+        GetUserMessage getUserMessage = new GetUserMessage();
+        getUserMessage.setSessionid(user1.sessionIDs.iterator().next());
+        getUserMessage.setStatus(Status.GET_USER);
+        
+        he.onOpen(s);
+        he.onMessage(s, gson.toJson(getUserMessage));
+        Assertions.assertEquals("{\"status\":\"NO_USER_FOUND\",\"description\":\"No user with the specified id was found\"}", sendText);
+        
+        getUserMessage.setUserID(user1.id.toString());
+        he.onMessage(s, gson.toJson(getUserMessage));
+        
+        UserResponse ur = gson.fromJson(sendText, UserResponse.class);
+        Assertions.assertEquals(ur.user.id, user1.id);
+        Assertions.assertEquals(ur.user.username, user1.username);
+        
+        getUserMessage.setUserID(user2.id.toString());
+        he.onMessage(s, gson.toJson(getUserMessage));
+        
+        ur = gson.fromJson(sendText, UserResponse.class);
+        Assertions.assertEquals(ur.user.id, user2.id);
+        Assertions.assertEquals(ur.user.username, user2.username);
     }
     
     private class LoginAnswer {
