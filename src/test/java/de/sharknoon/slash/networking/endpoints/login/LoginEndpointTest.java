@@ -78,13 +78,13 @@ class LoginEndpointTest {
         lm.setPassword("123456");
         le.onMessage(s, lm);
         assertEquals("{\"status\":\"USER_DOES_NOT_EXIST\",\"message\":\"The requested user does not exist\"}", sendText);
-        
-        //normal getUser
+    
+        //normal getUserID
         lm.setUsernameOrEmail(user.email.toUpperCase());
         le.onMessage(s, lm);
         assertTrue(sendText.startsWith("{\"status\":\"OK\",\"message\":\"Successfully logged in\",\"sessionid\":\""));
-        
-        //duplicate getUser
+    
+        //duplicate getUserID
         le.onMessage(s, lm);
         assertEquals("{\"status\":\"USER_ALREADY_LOGGED_IN\",\"message\":\"The requested user is already logged in\"}", sendText);
     }

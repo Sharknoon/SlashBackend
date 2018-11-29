@@ -98,7 +98,7 @@ public class DB {
      * Gets a user
      *
      * @param usernameOrEmail The email or password of the user
-     * @return The user if the getUser was successful
+     * @return The user if the getUserID was successful
      */
     public static Optional<User> getUserByUsernameOrEmail(String usernameOrEmail) {
         User user = users
@@ -260,6 +260,22 @@ public class DB {
                 pushEach(PROJECTS_COLLECTION_MESSAGES.value, List.of(message), maxStoredMessagesSlice)
         );
         project.messages.add(message);
+    }
+    
+    public static void addUserToProject(Project project, User user) {
+        projects.updateOne(
+                eq(COLLECTION_ID.value, project.id),
+                addToSet(PROJECTS_COLLECTION_USERS.value, user.id)
+        );
+        project.users.add(user.id);
+    }
+    
+    public static void removeUserFromProject(Project project, User user) {
+        projects.updateOne(
+                eq(COLLECTION_ID.value, project.id),
+                pull(PROJECTS_COLLECTION_USERS.value, user.id)
+        );
+        project.users.remove(user.id);
     }
     
     //

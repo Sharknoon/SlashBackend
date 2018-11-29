@@ -96,6 +96,9 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
             case GET_USER:
                 handleGetUserLogic();
                 break;
+            case MODIFY_PROJECT_USERS:
+                handleModifyProjectUsersLogic(user);
+                break;
             case NONE:
             default:
                 ErrorResponse error = new ErrorResponse();
@@ -104,7 +107,6 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
                 send(error);
         }
     }
-    
     
     private void handleAddProjectMessageLogic(User user) {
         AddProjectMessageMessage addProjectMessageMessage = Serialisation.getGSON().fromJson(getLastMessage(), AddProjectMessageMessage.class);
@@ -361,6 +363,35 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
         UserResponse ur = new UserResponse();
         ur.user = optionalUser.get();
         send(ur);
+    }
+    
+    private void handleModifyProjectUsersLogic(User user) {
+        ModifyProjectUsersMessage modifyProjectUsersMessage = Serialisation.getGSON().fromJson(getLastMessage(), ModifyProjectUsersMessage.class);
+        Optional<User> optionalUser;
+        Optional<Project> optionalProject;
+        if (!ObjectId.isValid(modifyProjectUsersMessage.getUserID())
+                || (optionalUser = DB.getUser(new ObjectId(modifyProjectUsersMessage.getUserID()))).isEmpty()) {
+            ErrorResponse error = new ErrorResponse();
+            error.status = "NO_USER_FOUND";
+            error.description = "No user with the specified id was found";
+            send(error);
+            return;
+        }
+        if (!ObjectId.isValid(modifyProjectUsersMessage.getProjectID())
+                || (optionalProject = DB.getProject(new ObjectId(modifyProjectUsersMessage.getProjectID()))).isEmpty()) {
+            ErrorResponse error = new ErrorResponse();
+            error.status = "NO_PROJECT_FOUND";
+            error.description = "No project with the specified id was found";
+            send(error);
+            return;
+        }
+        User userToModify = optionalUser.get();
+        Project projectToModify = optionalProject.get();
+        if (modifyProjectUsersMessage.isAddUser()) {
+            DB.addUserToProject(projectToModify, userToModify);
+        } else {
+            DB.removeUserFromProject(projectToModify, userToModify);
+        }
     }
     
     private boolean isValidProjectDescription(String projectDescription) {

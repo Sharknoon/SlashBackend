@@ -10,5 +10,6 @@ public enum Status {
     ADD_CHAT_MESSAGE,
     ADD_PROJECT_MESSAGE,
     LOGOUT,
-    GET_USER
+    GET_USER,
+    MODIFY_PROJECT_USERS
 }
