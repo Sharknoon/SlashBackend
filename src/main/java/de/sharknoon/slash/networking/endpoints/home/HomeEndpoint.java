@@ -2,12 +2,16 @@ package de.sharknoon.slash.networking.endpoints.home;
 
 import com.google.gson.annotations.Expose;
 import de.sharknoon.slash.database.DB;
-import de.sharknoon.slash.database.models.*;
-import de.sharknoon.slash.database.models.message.*;
+import de.sharknoon.slash.database.models.Chat;
+import de.sharknoon.slash.database.models.Project;
+import de.sharknoon.slash.database.models.User;
+import de.sharknoon.slash.database.models.message.Message;
+import de.sharknoon.slash.database.models.message.MessageEmotion;
 import de.sharknoon.slash.networking.LoginSessions;
 import de.sharknoon.slash.networking.endpoints.Endpoint;
 import de.sharknoon.slash.networking.endpoints.home.messages.*;
-import de.sharknoon.slash.networking.pushy.*;
+import de.sharknoon.slash.networking.pushy.PushStatus;
+import de.sharknoon.slash.networking.pushy.Pushy;
 import de.sharknoon.slash.networking.utils.MimeTypeHelper;
 import de.sharknoon.slash.properties.Properties;
 import de.sharknoon.slash.serialisation.Serialisation;
@@ -15,8 +19,11 @@ import org.bson.types.ObjectId;
 
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
-import java.io.*;
-import java.net.*;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.logging.Logger;
@@ -382,9 +389,11 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
             case IMAGE:
                 //TODO: Save image on server, generate url, send url
                 Base64.Decoder decoder = Base64.getDecoder();
-                final byte[] imageData = decoder.decode(messageFromClient.getMessageImage());
+                final String[] messageImageSplit = messageFromClient.getMessageImage().split("base64,");
+                final String imageContent = messageImageSplit[1];
+                final byte[] imageData = decoder.decode(imageContent);
                 try {
-                    if (!MimeTypeHelper.hasValidMimeType(imageData)) {
+                    if (!MimeTypeHelper.hasValidMimeType(messageImageSplit[0])) {
                         // ToDo: Return error
                         ErrorResponse error = new ErrorResponse();
                         error.status = "NOT_A_VALID_IMAGE";
