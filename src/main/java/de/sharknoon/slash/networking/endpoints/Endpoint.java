@@ -5,9 +5,11 @@ import de.sharknoon.slash.serialisation.Serialisation;
 
 import javax.websocket.*;
 import java.io.IOException;
-import java.net.*;
-import java.util.*;
-import java.util.logging.*;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public abstract class Endpoint<M> {
     
@@ -41,18 +43,6 @@ public abstract class Endpoint<M> {
         if (session != null) {
             session.getAsyncRemote().sendText(json);
         }
-    }
-    
-    protected URL getURL() {
-        if (url != null) {
-            return url;
-        }
-        try {
-            url = session.getRequestURI().toURL();
-        } catch (MalformedURLException e) {
-            Logger.getGlobal().log(Level.SEVERE, "Could not Convert this URL", e);
-        }
-        return url;
     }
     
     @OnOpen
