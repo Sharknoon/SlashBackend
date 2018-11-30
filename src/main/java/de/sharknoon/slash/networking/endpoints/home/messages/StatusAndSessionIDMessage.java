@@ -3,15 +3,17 @@ package de.sharknoon.slash.networking.endpoints.home.messages;
 import com.google.gson.annotations.Expose;
 import de.sharknoon.slash.networking.endpoints.home.Status;
 
+import java.util.Objects;
+
 public class StatusAndSessionIDMessage {
-    
+
     @Expose
     private String sessionid = "";
     @Expose
     private Status status = Status.NONE;
 
     public String getSessionid() {
-        return sessionid;
+        return Objects.requireNonNullElse(sessionid, "");
     }
 
     public void setSessionid(String sessionid) {
@@ -21,7 +23,7 @@ public class StatusAndSessionIDMessage {
     }
 
     public Status getStatus() {
-        return status;
+        return Objects.requireNonNullElse(status, Status.NONE);
     }
 
     public void setStatus(Status status) {

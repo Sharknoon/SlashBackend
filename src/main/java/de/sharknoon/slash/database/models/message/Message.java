@@ -11,14 +11,16 @@ import java.util.Objects;
 public class Message {
     @Expose
     public MessageType type = MessageType.NONE;
+    //No default value because GSON doesnt serialize null values
     @Expose
-    public String subject;  //No default value because GSON doesnt serialize null values
+    public String subject;
     @Expose
     public String content = StringUtils.EMPTY;
     @Expose
     public LocalDateTime creationDate = LocalDateTime.now();
     @Expose
     public ObjectId sender = new ObjectId();
+    //No default value because GSON doesnt serialize null values
     @Expose
     public MessageEmotion emotion;
     //No default value because GSON doesnt serialize null values

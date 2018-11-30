@@ -3,6 +3,8 @@ package de.sharknoon.slash.networking.endpoints.home.messages;
 import com.google.gson.annotations.Expose;
 import de.sharknoon.slash.networking.endpoints.home.Status;
 
+import java.util.Objects;
+
 public class GetUsersMessage extends StatusAndSessionIDMessage {
 
     @Expose
@@ -13,7 +15,7 @@ public class GetUsersMessage extends StatusAndSessionIDMessage {
     }
 
     public String getSearch() {
-        return search;
+        return Objects.requireNonNullElse(search, "");
     }
 
     public void setSearch(String search) {

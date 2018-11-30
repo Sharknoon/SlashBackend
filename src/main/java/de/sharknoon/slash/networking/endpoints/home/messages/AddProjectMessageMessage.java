@@ -3,17 +3,19 @@ package de.sharknoon.slash.networking.endpoints.home.messages;
 import com.google.gson.annotations.Expose;
 import de.sharknoon.slash.networking.endpoints.home.Status;
 
+import java.util.Objects;
+
 public class AddProjectMessageMessage extends AddMessageMessage {
 
     public AddProjectMessageMessage() {
         setStatus(Status.ADD_PROJECT_MESSAGE);
     }
-    
+
     @Expose
     private String projectID = "";
 
     public String getProjectID() {
-        return projectID;
+        return Objects.requireNonNullElse(projectID, "");
     }
 
     public void setProjectID(String projectID) {
@@ -21,5 +23,5 @@ public class AddProjectMessageMessage extends AddMessageMessage {
             this.projectID = projectID;
         }
     }
-    
+
 }

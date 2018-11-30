@@ -5,6 +5,7 @@ import de.sharknoon.slash.networking.endpoints.home.Status;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class AddProjectMessage extends StatusAndSessionIDMessage {
 
@@ -13,7 +14,7 @@ public class AddProjectMessage extends StatusAndSessionIDMessage {
     @Expose
     private String projectDescription = "";
     @Expose
-    private List<String> memberIDs = new ArrayList<>();
+    private List<String> projectMembers = new ArrayList<>();
 
     public AddProjectMessage() {
         setStatus(Status.ADD_PROJECT);
@@ -21,7 +22,7 @@ public class AddProjectMessage extends StatusAndSessionIDMessage {
 
 
     public String getProjectName() {
-        return projectName;
+        return Objects.requireNonNullElse(projectName, "");
     }
 
     public void setProjectName(String projectName) {
@@ -31,7 +32,7 @@ public class AddProjectMessage extends StatusAndSessionIDMessage {
     }
 
     public String getProjectDescription() {
-        return projectDescription;
+        return Objects.requireNonNullElse(projectDescription, "");
     }
 
     public void setProjectDescription(String projectDescription) {
@@ -40,11 +41,13 @@ public class AddProjectMessage extends StatusAndSessionIDMessage {
         }
     }
 
-    public List<String> getMemberIDs() {
-        return new ArrayList<>(memberIDs);
+    public List<String> getProjectMembers() {
+        return Objects.requireNonNullElse(projectMembers, List.of());
     }
 
-    public void setMemberIDs(List<String> memberIDs) {
-        this.memberIDs = new ArrayList<>(memberIDs);
+    public void setProjectMembers(List<String> projectMembers) {
+        if (projectMembers != null) {
+            this.projectMembers = new ArrayList<>(projectMembers);
+        }
     }
 }

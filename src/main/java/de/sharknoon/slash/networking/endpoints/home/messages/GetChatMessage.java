@@ -3,6 +3,8 @@ package de.sharknoon.slash.networking.endpoints.home.messages;
 import com.google.gson.annotations.Expose;
 import de.sharknoon.slash.networking.endpoints.home.Status;
 
+import java.util.Objects;
+
 public class GetChatMessage extends StatusAndSessionIDMessage {
 
     public GetChatMessage() {
@@ -13,7 +15,7 @@ public class GetChatMessage extends StatusAndSessionIDMessage {
     private String partnerUserID = "";
 
     public String getPartnerUserID() {
-        return partnerUserID;
+        return Objects.requireNonNullElse(partnerUserID, "");
     }
 
     public void setPartnerUserID(String partnerUserID) {
