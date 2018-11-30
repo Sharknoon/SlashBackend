@@ -10,7 +10,8 @@ import org.springframework.security.crypto.bcrypt.BCrypt;
 
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
-import java.util.*;
+import java.util.Optional;
+import java.util.UUID;
 
 @ServerEndpoint("/login")
 public class LoginEndpoint extends Endpoint<LoginMessage> {
@@ -44,7 +45,7 @@ public class LoginEndpoint extends Endpoint<LoginMessage> {
             returnMessage = "{\"status\":\"OK\",\"message\":\"Successfully logged in\",\"sessionid\":\"" + sessionID + "\"}";
         } else if (message.getDeviceID().isEmpty()) {
             returnMessage = "{\"status\":\"MISSING_DEVICE_ID\",\"message\":\"The deviceID for this device is missing\"}";
-        } else if (!DB.existsEmailOrUsername(message)) {
+        } else if (!DB.existsEmailOrUsername(message.getUsernameOrEmail())) {
             returnMessage = "{\"status\":\"USER_DOES_NOT_EXIST\",\"message\":\"The requested user does not exist\"}";
         } else {
             returnMessage = "{\"status\":\"WRONG_PASSWORD\",\"message\":\"The entered password is not correct\"}";

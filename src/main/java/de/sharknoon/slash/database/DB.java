@@ -1,20 +1,31 @@
 package de.sharknoon.slash.database;
 
-import com.mongodb.*;
-import com.mongodb.client.*;
-import com.mongodb.client.model.*;
-import de.sharknoon.slash.database.models.*;
+import com.mongodb.MongoClientSettings;
+import com.mongodb.MongoCredential;
+import com.mongodb.ServerAddress;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Collation;
+import com.mongodb.client.model.PushOptions;
+import de.sharknoon.slash.database.models.Chat;
+import de.sharknoon.slash.database.models.Project;
+import de.sharknoon.slash.database.models.User;
 import de.sharknoon.slash.database.models.message.Message;
-import de.sharknoon.slash.networking.endpoints.login.LoginMessage;
 import de.sharknoon.slash.networking.utils.JavaURLCodec;
+import de.sharknoon.slash.properties.DBConfig;
 import de.sharknoon.slash.properties.Properties;
-import de.sharknoon.slash.properties.*;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
 import org.bson.types.ObjectId;
 
-import java.util.*;
-import java.util.logging.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import static com.mongodb.client.model.CollationStrength.SECONDARY;
@@ -185,15 +196,15 @@ public class DB {
     }
     
     /**
-     * @param login The username and the password to check for duplicates
+     * @param usernameOrEmail The username/email to check for duplicates
      * @return True ich this username or email already exists
      */
-    public static synchronized boolean existsEmailOrUsername(LoginMessage login) {
+    public static synchronized boolean existsEmailOrUsername(String usernameOrEmail) {
         return users
                 .find(
                         or(
-                                eq(USERS_COLLECTION_USERNAME.value, login.getUsernameOrEmail()),
-                                eq(USERS_COLLECTION_EMAIL.value, login.getUsernameOrEmail())
+                                eq(USERS_COLLECTION_USERNAME.value, usernameOrEmail),
+                                eq(USERS_COLLECTION_EMAIL.value, usernameOrEmail)
                         )
                 )
                 .collation(caseInsensitiveCollation)
