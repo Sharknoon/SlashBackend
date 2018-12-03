@@ -1,4 +1,4 @@
-package de.sharknoon.slash.networking;
+package de.sharknoon.slash.networking.sessions;
 
 import de.sharknoon.slash.database.models.User;
 import de.sharknoon.slash.networking.endpoints.Endpoint;

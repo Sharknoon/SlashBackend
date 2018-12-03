@@ -3,8 +3,8 @@ package de.sharknoon.slash.networking.endpoints.login;
 
 import de.sharknoon.slash.database.DB;
 import de.sharknoon.slash.database.models.User;
-import de.sharknoon.slash.networking.LoginSessions;
 import de.sharknoon.slash.networking.endpoints.Endpoint;
+import de.sharknoon.slash.networking.sessions.LoginSessions;
 import de.sharknoon.slash.properties.Properties;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 

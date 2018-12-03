@@ -1,6 +1,5 @@
-package de.sharknoon.slash.networking.utils;
+package de.sharknoon.slash.utils;
 
-import java.io.IOException;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -18,7 +17,7 @@ public final class MimeTypeHelper {
         return validMimeTypes.keySet().stream().anyMatch(str::contains);
     }
 
-    public static String getMimeType(String data) throws IOException {
+    public static String getMimeType(String data) {
         return validMimeTypes.keySet().stream().filter(data::contains).findAny().orElse("");
     }
 

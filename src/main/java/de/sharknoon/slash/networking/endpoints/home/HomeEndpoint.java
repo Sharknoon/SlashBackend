@@ -7,14 +7,14 @@ import de.sharknoon.slash.database.models.Project;
 import de.sharknoon.slash.database.models.User;
 import de.sharknoon.slash.database.models.message.Message;
 import de.sharknoon.slash.database.models.message.MessageEmotion;
-import de.sharknoon.slash.networking.LoginSessions;
 import de.sharknoon.slash.networking.endpoints.Endpoint;
 import de.sharknoon.slash.networking.endpoints.home.messages.*;
 import de.sharknoon.slash.networking.pushy.PushStatus;
 import de.sharknoon.slash.networking.pushy.Pushy;
-import de.sharknoon.slash.networking.utils.MimeTypeHelper;
+import de.sharknoon.slash.networking.sessions.LoginSessions;
 import de.sharknoon.slash.properties.Properties;
 import de.sharknoon.slash.serialisation.Serialisation;
+import de.sharknoon.slash.utils.MimeTypeHelper;
 import org.bson.types.ObjectId;
 
 import javax.websocket.Session;

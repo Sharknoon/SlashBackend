@@ -5,13 +5,15 @@ import de.sharknoon.slash.properties.Properties;
 import de.sharknoon.slash.serialisation.Serialisation;
 
 import java.net.URI;
-import java.net.http.*;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
+import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.Map;
 import java.util.function.Consumer;
 
-public class PushyAPI {
+class PushyAPI {
     
     private static final String SECRET_API_KEY = Properties.getPushConfig().APIKey();
     
@@ -38,8 +40,8 @@ public class PushyAPI {
                     return null;
                 });
     }
-    
-    public static void sendPush(PushyPushRequest req) throws Exception {
+
+    static void sendPush(PushyPushRequest req) throws Exception {
         var httpClient = HttpClient.newHttpClient();
     
         var request = pushyToHttpRequest(req);

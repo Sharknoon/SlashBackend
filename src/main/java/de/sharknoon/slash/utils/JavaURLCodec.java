@@ -1,4 +1,4 @@
-package de.sharknoon.slash.networking.utils;
+package de.sharknoon.slash.utils;
 
 import org.bson.BsonInvalidOperationException;
 import org.bson.BsonReader;

@@ -1,4 +1,4 @@
-package de.sharknoon.slash.networking.utils;
+package de.sharknoon.slash.utils;
 
 import com.google.gson.*;
 import org.bson.types.ObjectId;
