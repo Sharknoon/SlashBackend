@@ -13,21 +13,15 @@ import java.util.Set;
 
 public class GetUsersMessageHandler extends HomeEndpointMessageHandler {
     public GetUsersMessageHandler(HomeEndpoint homeEndpoint, HomeEndpointMessageHandler successor) {
-        super(homeEndpoint, successor);
+        super(Status.GET_USERS, homeEndpoint, successor);
     }
 
     @Override
-    public void handleMessage(StatusAndSessionIDMessage message, User user) {
-        if (Status.GET_USERS != message.getStatus()) {
-            if (successor != null) {
-                successor.handleMessage(message, user);
-            }
-        } else {
-            GetUsersMessage getUsersMessage = Serialisation.getGSON().fromJson(homeEndpoint.getLastMessage(), GetUsersMessage.class);
-            Set<User> foundUsers = DB.searchUsers(getUsersMessage.getSearch());
-            UsersResponse um = new UsersResponse();
-            um.users = foundUsers;
-            homeEndpoint.send(um);
-        }
+    public void messageLogic(StatusAndSessionIDMessage message, User user) {
+        GetUsersMessage getUsersMessage = Serialisation.getGSON().fromJson(homeEndpoint.getLastMessage(), GetUsersMessage.class);
+        Set<User> foundUsers = DB.searchUsers(getUsersMessage.getSearch());
+        UsersResponse um = new UsersResponse();
+        um.users = foundUsers;
+        homeEndpoint.send(um);
     }
 }

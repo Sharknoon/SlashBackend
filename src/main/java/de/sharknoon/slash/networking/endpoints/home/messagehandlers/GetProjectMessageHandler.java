@@ -16,35 +16,29 @@ import java.util.Optional;
 
 public class GetProjectMessageHandler extends HomeEndpointMessageHandler {
     public GetProjectMessageHandler(HomeEndpoint homeEndpoint, HomeEndpointMessageHandler successor) {
-        super(homeEndpoint, successor);
+        super(Status.GET_PROJECT, homeEndpoint, successor);
     }
 
     @Override
-    public void handleMessage(StatusAndSessionIDMessage message, User user) {
-        if (Status.GET_PROJECT != message.getStatus()) {
-            if (successor != null) {
-                successor.handleMessage(message, user);
-            }
+    public void messageLogic(StatusAndSessionIDMessage message, User user) {
+        GetProjectMessage getProjectMessage = Serialisation.getGSON().fromJson(homeEndpoint.getLastMessage(), GetProjectMessage.class);
+        if (!ObjectId.isValid(getProjectMessage.getProjectID())) {
+            ErrorResponse error = new ErrorResponse();
+            error.status = "WRONG_PROJECT_ID";
+            error.description = "The specified projectID doesn't conform to the right syntax";
+            homeEndpoint.send(error);
         } else {
-            GetProjectMessage getProjectMessage = Serialisation.getGSON().fromJson(homeEndpoint.getLastMessage(), GetProjectMessage.class);
-            if (!ObjectId.isValid(getProjectMessage.getProjectID())) {
-                ErrorResponse error = new ErrorResponse();
-                error.status = "WRONG_PROJECT_ID";
-                error.description = "The specified projectID doesn't conform to the right syntax";
-                homeEndpoint.send(error);
+            ObjectId projectID = new ObjectId(getProjectMessage.getProjectID());
+            Optional<Project> project = DB.getProject(projectID);
+            if (project.isPresent()) {
+                ProjectResponse pm = new ProjectResponse();
+                pm.project = project.get();
+                homeEndpoint.send(pm);
             } else {
-                ObjectId projectID = new ObjectId(getProjectMessage.getProjectID());
-                Optional<Project> project = DB.getProject(projectID);
-                if (project.isPresent()) {
-                    ProjectResponse pm = new ProjectResponse();
-                    pm.project = project.get();
-                    homeEndpoint.send(pm);
-                } else {
-                    ErrorResponse error = new ErrorResponse();
-                    error.status = "NO_PROJECT_FOUND";
-                    error.description = "No project with the specified id was found";
-                    homeEndpoint.send(error);
-                }
+                ErrorResponse error = new ErrorResponse();
+                error.status = "NO_PROJECT_FOUND";
+                error.description = "No project with the specified id was found";
+                homeEndpoint.send(error);
             }
         }
     }

@@ -16,28 +16,22 @@ import java.util.Set;
 public class GetHomeMessageHandler extends HomeEndpointMessageHandler {
 
     public GetHomeMessageHandler(HomeEndpoint homeEndpoint, HomeEndpointMessageHandler successor) {
-        super(homeEndpoint, successor);
+        super(Status.GET_HOME, homeEndpoint, successor);
     }
 
     @Override
-    public void handleMessage(StatusAndSessionIDMessage message, User user) {
-        if (Status.GET_HOME != message.getStatus()) {
-            if (successor != null) {
-                successor.handleMessage(message, user);
+    public void messageLogic(StatusAndSessionIDMessage message, User user) {
+        HomeResponse home = new HomeResponse();
+        home.projects = DB.getProjectsForUser(user);
+        home.chats = DB.getNLastChatsForUser(user.id, Properties.getUserConfig().amountfavouritechats());
+        for (Chat chat : home.chats) {
+            if (Objects.equals(chat.personA, user.id)) {//I am user a
+                chat.partnerUsername = DB.getUser(chat.personB).map(u -> u.username).orElse("ERROR");
+            } else {
+                chat.partnerUsername = DB.getUser(chat.personA).map(u -> u.username).orElse("ERROR");
             }
-        } else {
-            HomeResponse home = new HomeResponse();
-            home.projects = DB.getProjectsForUser(user);
-            home.chats = DB.getNLastChatsForUser(user.id, Properties.getUserConfig().amountfavouritechats());
-            for (Chat chat : home.chats) {
-                if (Objects.equals(chat.personA, user.id)) {//I am user a
-                    chat.partnerUsername = DB.getUser(chat.personB).map(u -> u.username).orElse("ERROR");
-                } else {
-                    chat.partnerUsername = DB.getUser(chat.personA).map(u -> u.username).orElse("ERROR");
-                }
-            }
-            homeEndpoint.send(home);
         }
+        homeEndpoint.send(home);
     }
 
     private class HomeResponse {

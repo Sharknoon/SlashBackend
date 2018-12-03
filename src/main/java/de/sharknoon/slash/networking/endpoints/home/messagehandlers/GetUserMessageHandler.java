@@ -15,35 +15,29 @@ import java.util.Optional;
 
 public class GetUserMessageHandler extends HomeEndpointMessageHandler {
     public GetUserMessageHandler(HomeEndpoint homeEndpoint, HomeEndpointMessageHandler successor) {
-        super(homeEndpoint, successor);
+        super(Status.GET_USER, homeEndpoint, successor);
     }
 
     @Override
-    public void handleMessage(StatusAndSessionIDMessage message, User user) {
-        if (Status.GET_USER != message.getStatus()) {
-            if (successor != null) {
-                successor.handleMessage(message, user);
-            }
-        } else {
-            GetUserMessage getUserMessage = Serialisation.getGSON().fromJson(homeEndpoint.getLastMessage(), GetUserMessage.class);
-            String userID = getUserMessage.getUserID();
-            Optional<User> optionalUser;
-            if (!ObjectId.isValid(userID)) {
-                ErrorResponse error = new ErrorResponse();
-                error.status = "NO_USER_FOUND";
-                error.description = "No user with the specified id was found";
-                homeEndpoint.send(error);
-                return;
-            } else if ((optionalUser = DB.getUser(new ObjectId(userID))).isEmpty()) {
-                ErrorResponse error = new ErrorResponse();
-                error.status = "NO_USER_FOUND";
-                error.description = "No user with the specified id was found";
-                homeEndpoint.send(error);
-                return;
-            }
-            UserResponse ur = new UserResponse();
-            ur.user = optionalUser.get();
-            homeEndpoint.send(ur);
+    public void messageLogic(StatusAndSessionIDMessage message, User user) {
+        GetUserMessage getUserMessage = Serialisation.getGSON().fromJson(homeEndpoint.getLastMessage(), GetUserMessage.class);
+        String userID = getUserMessage.getUserID();
+        Optional<User> optionalUser;
+        if (!ObjectId.isValid(userID)) {
+            ErrorResponse error = new ErrorResponse();
+            error.status = "NO_USER_FOUND";
+            error.description = "No user with the specified id was found";
+            homeEndpoint.send(error);
+            return;
+        } else if ((optionalUser = DB.getUser(new ObjectId(userID))).isEmpty()) {
+            ErrorResponse error = new ErrorResponse();
+            error.status = "NO_USER_FOUND";
+            error.description = "No user with the specified id was found";
+            homeEndpoint.send(error);
+            return;
         }
+        UserResponse ur = new UserResponse();
+        ur.user = optionalUser.get();
+        homeEndpoint.send(ur);
     }
 }

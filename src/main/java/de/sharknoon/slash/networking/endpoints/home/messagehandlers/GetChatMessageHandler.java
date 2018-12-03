@@ -18,50 +18,44 @@ import java.util.Set;
 
 public class GetChatMessageHandler extends HomeEndpointMessageHandler {
     public GetChatMessageHandler(HomeEndpoint homeEndpoint, HomeEndpointMessageHandler successor) {
-        super(homeEndpoint, successor);
+        super(Status.GET_CHAT, homeEndpoint, successor);
     }
 
     @Override
-    public void handleMessage(StatusAndSessionIDMessage message, User user) {
-        if (Status.GET_CHAT != message.getStatus()) {
-            if (successor != null) {
-                successor.handleMessage(message, user);
-            }
+    public void messageLogic(StatusAndSessionIDMessage message, User user) {
+        GetChatMessage getChatMessage = Serialisation.getGSON().fromJson(homeEndpoint.getLastMessage(), GetChatMessage.class);
+        if (!ObjectId.isValid(getChatMessage.getPartnerUserID())) {
+            ErrorResponse error = new ErrorResponse();
+            error.status = "WRONG_USER_ID";
+            error.description = "The specified userID doesn't conform to the right syntax";
+            homeEndpoint.send(error);
         } else {
-            GetChatMessage getChatMessage = Serialisation.getGSON().fromJson(homeEndpoint.getLastMessage(), GetChatMessage.class);
-            if (!ObjectId.isValid(getChatMessage.getPartnerUserID())) {
-                ErrorResponse error = new ErrorResponse();
-                error.status = "WRONG_USER_ID";
-                error.description = "The specified userID doesn't conform to the right syntax";
-                homeEndpoint.send(error);
+            ObjectId partnerID = new ObjectId(getChatMessage.getPartnerUserID());
+            Optional<Chat> chat = DB.getChatByPartnerID(user.id, partnerID);
+            Optional<User> partner = DB.getUser(partnerID);
+            if (chat.isPresent() && partner.isPresent()) {
+                ChatResponse cm = new ChatResponse();
+                cm.chat = chat.get();
+                cm.chat.partnerUsername = partner.get().username;
+                homeEndpoint.send(cm);
             } else {
-                ObjectId partnerID = new ObjectId(getChatMessage.getPartnerUserID());
-                Optional<Chat> chat = DB.getChatByPartnerID(user.id, partnerID);
-                Optional<User> partner = DB.getUser(partnerID);
-                if (chat.isPresent() && partner.isPresent()) {
-                    ChatResponse cm = new ChatResponse();
-                    cm.chat = chat.get();
-                    cm.chat.partnerUsername = partner.get().username;
-                    homeEndpoint.send(cm);
+                if (partner.isEmpty()) {
+                    ErrorResponse error = new ErrorResponse();
+                    error.status = "NO_USER_FOUND";
+                    error.description = "No user with the specified id was found";
+                    homeEndpoint.send(error);
                 } else {
-                    if (partner.isEmpty()) {
-                        ErrorResponse error = new ErrorResponse();
-                        error.status = "NO_USER_FOUND";
-                        error.description = "No user with the specified id was found";
-                        homeEndpoint.send(error);
-                    } else {
-                        Chat newChat = new Chat();
-                        newChat.creationDate = LocalDateTime.now().withNano(0);
-                        newChat.messages = Set.of();
-                        newChat.personA = user.id;
-                        newChat.personB = partner.get().id;
-                        newChat.partnerUsername = partner.get().username;
-                        newChat.id = new ObjectId();
-                        DB.addChat(newChat);
-                        ChatResponse cm = new ChatResponse();
-                        cm.chat = newChat;
-                        homeEndpoint.send(cm);
-                    }
+                    Chat newChat = new Chat();
+                    newChat.creationDate = LocalDateTime.now().withNano(0);
+                    newChat.messages = Set.of();
+                    newChat.personA = user.id;
+                    newChat.personB = partner.get().id;
+                    newChat.partnerUsername = partner.get().username;
+                    newChat.id = new ObjectId();
+                    DB.addChat(newChat);
+                    ChatResponse cm = new ChatResponse();
+                    cm.chat = newChat;
+                    homeEndpoint.send(cm);
                 }
             }
         }

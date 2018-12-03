@@ -19,48 +19,42 @@ import java.util.List;
 
 public class AddProjectMessageHandler extends HomeEndpointMessageHandler {
     public AddProjectMessageHandler(HomeEndpoint homeEndpoint, HomeEndpointMessageHandler successor) {
-        super(homeEndpoint, successor);
+        super(Status.ADD_PROJECT, homeEndpoint, successor);
     }
 
     @Override
-    public void handleMessage(StatusAndSessionIDMessage message, User user) {
-        if (Status.ADD_PROJECT != message.getStatus()) {
-            if (successor != null) {
-                successor.handleMessage(message, user);
-            }
+    public void messageLogic(StatusAndSessionIDMessage message, User user) {
+        AddProjectMessage addProjectMessage = Serialisation.getGSON().fromJson(homeEndpoint.getLastMessage(), AddProjectMessage.class);
+        String projectName = addProjectMessage.getProjectName();
+        String projectDescription = addProjectMessage.getProjectDescription();
+        List<String> memberIDs = addProjectMessage.getProjectMembers();
+        if (!isValidProjectName(projectName)) {
+            ErrorResponse error = new ErrorResponse();
+            error.status = "WRONG_PROJECT_NAME";
+            error.description = "The project name doesn't match the specifications";
+            homeEndpoint.send(error);
+        } else if (!isValidProjectDescription(projectDescription)) {
+            ErrorResponse error = new ErrorResponse();
+            error.status = "WRONG_PROJECT_DESCRIPTION";
+            error.description = "The project description doesn't match the specifications";
+            homeEndpoint.send(error);
         } else {
-            AddProjectMessage addProjectMessage = Serialisation.getGSON().fromJson(homeEndpoint.getLastMessage(), AddProjectMessage.class);
-            String projectName = addProjectMessage.getProjectName();
-            String projectDescription = addProjectMessage.getProjectDescription();
-            List<String> memberIDs = addProjectMessage.getProjectMembers();
-            if (!isValidProjectName(projectName)) {
-                ErrorResponse error = new ErrorResponse();
-                error.status = "WRONG_PROJECT_NAME";
-                error.description = "The project name doesn't match the specifications";
-                homeEndpoint.send(error);
-            } else if (!isValidProjectDescription(projectDescription)) {
-                ErrorResponse error = new ErrorResponse();
-                error.status = "WRONG_PROJECT_DESCRIPTION";
-                error.description = "The project description doesn't match the specifications";
-                homeEndpoint.send(error);
-            } else {
-                Project newProject = new Project();
-                try {
-                    newProject.image = new URL("https://www.myfloridacfo.com/division/oit/images/DIS-HomeResponse.png");
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                }
-                newProject.creationDate = LocalDateTime.now().withNano(0);
-                newProject.users = homeEndpoint.getAllExistingUserIDs(memberIDs);
-                newProject.users.add(user.id);
-                newProject.id = new ObjectId();
-                newProject.name = projectName;
-                newProject.description = projectDescription;
-                DB.addProject(newProject);
-                ProjectResponse pm = new ProjectResponse();
-                pm.project = newProject;
-                homeEndpoint.send(pm);
+            Project newProject = new Project();
+            try {
+                newProject.image = new URL("https://www.myfloridacfo.com/division/oit/images/DIS-HomeResponse.png");
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
             }
+            newProject.creationDate = LocalDateTime.now().withNano(0);
+            newProject.users = homeEndpoint.getAllExistingUserIDs(memberIDs);
+            newProject.users.add(user.id);
+            newProject.id = new ObjectId();
+            newProject.name = projectName;
+            newProject.description = projectDescription;
+            DB.addProject(newProject);
+            ProjectResponse pm = new ProjectResponse();
+            pm.project = newProject;
+            homeEndpoint.send(pm);
         }
     }
 

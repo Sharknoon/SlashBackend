@@ -55,7 +55,8 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
         firstHandler.appendSuccessorToLast(new ModifyProjectUsersMessageHandler(this, null));
         firstHandler.appendSuccessorToLast(new AddProjectMessageMessageHandler(this, null));
         firstHandler.appendSuccessorToLast(new AddChatMessageMessageHandler(this, null));
-        firstHandler.appendSuccessorToLast(new NoStatusMessageHandler(this, null));
+        firstHandler.appendSuccessorToLast(new NoneStatusMessageHandler(this, null));
+        firstHandler.appendSuccessorToLast(new NullStatusMessageHandler(this, null));
     }
 
     @Override

@@ -13,41 +13,35 @@ import org.bson.types.ObjectId;
 
 import java.util.Optional;
 
-public class ModifyProjectUsersMessageHandler extends HomeEndpointMessageHandler {
+public final class ModifyProjectUsersMessageHandler extends HomeEndpointMessageHandler {
     public ModifyProjectUsersMessageHandler(HomeEndpoint homeEndpoint, HomeEndpointMessageHandler successor) {
-        super(homeEndpoint, successor);
+        super(Status.MODIFY_PROJECT_USERS, homeEndpoint, successor);
     }
 
     @Override
-    public void handleMessage(StatusAndSessionIDMessage message, User user) {
-        if (Status.MODIFY_PROJECT_USERS != message.getStatus()) {
-            if (successor != null) {
-                successor.handleMessage(message, user);
-            }
+    protected void messageLogic(StatusAndSessionIDMessage message, User user) {
+        ModifyProjectUsersMessage modifyProjectUsersMessage = Serialisation.getGSON().fromJson(homeEndpoint.getLastMessage(), ModifyProjectUsersMessage.class);
+        Optional<User> optionalUser;
+        Optional<Project> optionalProject;
+        if (!ObjectId.isValid(modifyProjectUsersMessage.getUserID())
+                || (optionalUser = DB.getUser(new ObjectId(modifyProjectUsersMessage.getUserID()))).isEmpty()) {
+            ErrorResponse error = new ErrorResponse();
+            error.status = "NO_USER_FOUND";
+            error.description = "No user with the specified id was found";
+            homeEndpoint.send(error);
+        } else if (!ObjectId.isValid(modifyProjectUsersMessage.getProjectID())
+                || (optionalProject = DB.getProject(new ObjectId(modifyProjectUsersMessage.getProjectID()))).isEmpty()) {
+            ErrorResponse error = new ErrorResponse();
+            error.status = "NO_PROJECT_FOUND";
+            error.description = "No project with the specified id was found";
+            homeEndpoint.send(error);
         } else {
-            ModifyProjectUsersMessage modifyProjectUsersMessage = Serialisation.getGSON().fromJson(homeEndpoint.getLastMessage(), ModifyProjectUsersMessage.class);
-            Optional<User> optionalUser;
-            Optional<Project> optionalProject;
-            if (!ObjectId.isValid(modifyProjectUsersMessage.getUserID())
-                    || (optionalUser = DB.getUser(new ObjectId(modifyProjectUsersMessage.getUserID()))).isEmpty()) {
-                ErrorResponse error = new ErrorResponse();
-                error.status = "NO_USER_FOUND";
-                error.description = "No user with the specified id was found";
-                homeEndpoint.send(error);
-            } else if (!ObjectId.isValid(modifyProjectUsersMessage.getProjectID())
-                    || (optionalProject = DB.getProject(new ObjectId(modifyProjectUsersMessage.getProjectID()))).isEmpty()) {
-                ErrorResponse error = new ErrorResponse();
-                error.status = "NO_PROJECT_FOUND";
-                error.description = "No project with the specified id was found";
-                homeEndpoint.send(error);
+            User userToModify = optionalUser.get();
+            Project projectToModify = optionalProject.get();
+            if (modifyProjectUsersMessage.isAddUser()) {
+                DB.addUserToProject(projectToModify, userToModify);
             } else {
-                User userToModify = optionalUser.get();
-                Project projectToModify = optionalProject.get();
-                if (modifyProjectUsersMessage.isAddUser()) {
-                    DB.addUserToProject(projectToModify, userToModify);
-                } else {
-                    DB.removeUserFromProject(projectToModify, userToModify);
-                }
+                DB.removeUserFromProject(projectToModify, userToModify);
             }
         }
     }
