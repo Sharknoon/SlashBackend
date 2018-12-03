@@ -2,15 +2,11 @@ package de.sharknoon.slash.networking.endpoints.home;
 
 import com.google.gson.annotations.Expose;
 import de.sharknoon.slash.database.DB;
-import de.sharknoon.slash.database.models.Chat;
-import de.sharknoon.slash.database.models.Project;
-import de.sharknoon.slash.database.models.User;
-import de.sharknoon.slash.database.models.message.Message;
-import de.sharknoon.slash.database.models.message.MessageEmotion;
+import de.sharknoon.slash.database.models.*;
+import de.sharknoon.slash.database.models.message.*;
 import de.sharknoon.slash.networking.endpoints.Endpoint;
 import de.sharknoon.slash.networking.endpoints.home.messages.*;
-import de.sharknoon.slash.networking.pushy.PushStatus;
-import de.sharknoon.slash.networking.pushy.Pushy;
+import de.sharknoon.slash.networking.pushy.*;
 import de.sharknoon.slash.networking.sessions.LoginSessions;
 import de.sharknoon.slash.properties.Properties;
 import de.sharknoon.slash.serialisation.Serialisation;
@@ -20,11 +16,8 @@ import org.bson.types.ObjectId;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.net.*;
+import java.nio.file.*;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.logging.Logger;
@@ -418,7 +411,7 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
     }
 
     private boolean isValidProjectDescription(String projectDescription) {
-        return projectDescription.length() > 0 && projectDescription.length() < 200;
+        return projectDescription.length() < 200;
     }
 
     private Optional<Message> fillMessage(AddMessageMessage messageFromClient, User sender, boolean isChat) {
