@@ -78,8 +78,8 @@ public abstract class Endpoint<M> {
                 ErrorMessage.getErrorMessage(errorMessage)
         );
     }
-    
-    protected static void sendTo(Session session, Object o) {
+
+    public static void sendTo(Session session, Object o) {
         sendTo(session, toJSON(o));
     }
     
@@ -103,8 +103,8 @@ public abstract class Endpoint<M> {
             }
         }
     }
-    
-    protected void sendSync(Object o) {
+
+    public void sendSync(Object o) {
         sendSync(toJSON(o));
     }
     
@@ -125,8 +125,8 @@ public abstract class Endpoint<M> {
             onError(session, "Internal server error occurred");
         }
     }
-    
-    protected String getLastMessage() {
+
+    public String getLastMessage() {
         return lastMessage;
     }
     
