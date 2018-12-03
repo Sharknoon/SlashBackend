@@ -25,37 +25,37 @@ import java.util.stream.Collectors;
 
 @ServerEndpoint("/home")
 public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
-
-
+    
+    
     private static boolean isNotValidChatMessageContent(String content) {
         return content.length() <= 0 || content.length() >= 5000;
     }
-
+    
     private static boolean isNotValidMessageSubject(String subject) {
         return subject.length() <= 0 || subject.length() >= 100;
     }
-
+    
     private static boolean isNotValidMessageEmotion(MessageEmotion emotion) {
         return emotion == MessageEmotion.NONE || emotion == null;
     }
-
+    
     //Needs to stay public because of the endpoints
     @SuppressWarnings("WeakerAccess")
     public HomeEndpoint() {
         super(StatusAndSessionIDMessage.class);
     }
-
+    
     private boolean isValidProjectName(String projectName) {
         return projectName.length() > 0 && projectName.length() < 20;
     }
-
+    
     @Override
     protected void onMessage(Session session, StatusAndSessionIDMessage message) {
         Optional<User> user = LoginSessions.getUser(message.getSessionid());
-
+        
         if (user.isEmpty()) {//User not already logged in since the last server restart
             user = DB.getUserBySessionID(message.getSessionid());
-
+            
             if (user.isEmpty()) {//User was never logged in
                 send("{\"status\":\"NO_LOGIN_OR_TOO_MUCH_DEVICES\"," +
                         "\"messageType\":\"You are either not logged in or using more than " +
@@ -66,7 +66,7 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
         LoginSessions.addSession(user.get(), message.getSessionid(), null, HomeEndpoint.class, session);
         handleLogic(message, user.get());
     }
-
+    
     private void handleLogic(StatusAndSessionIDMessage message, User user) {
         switch (message.getStatus()) {
             case GET_HOME:
@@ -107,7 +107,7 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
                 send(error);
         }
     }
-
+    
     private void handleAddProjectMessageLogic(User user) {
         AddProjectMessageMessage addProjectMessageMessage = Serialisation.getGSON().fromJson(getLastMessage(), AddProjectMessageMessage.class);
         Optional<Project> project;
@@ -152,7 +152,7 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
             Pushy.sendPush(PushStatus.NEW_PROJECT_MESSAGE, message, user.username, users);
         }
     }
-
+    
     private void handleAddChatMessageLogic(User user) {
         AddChatMessageMessage addChatMessageMessage = Serialisation.getGSON().fromJson(getLastMessage(), AddChatMessageMessage.class);
         Optional<Chat> chat;
@@ -202,7 +202,7 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
             }
         }
     }
-
+    
     private void handleGetUsersLogic() {
         GetUsersMessage getUsersMessage = Serialisation.getGSON().fromJson(getLastMessage(), GetUsersMessage.class);
         Set<User> foundUsers = DB.searchUsers(getUsersMessage.getSearch());
@@ -210,7 +210,7 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
         um.users = foundUsers;
         send(um);
     }
-
+    
     private void handleGetProjectLogic() {
         GetProjectMessage getProjectMessage = Serialisation.getGSON().fromJson(getLastMessage(), GetProjectMessage.class);
         if (!ObjectId.isValid(getProjectMessage.getProjectID())) {
@@ -240,7 +240,7 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
             }
         }
     }
-
+    
     private void handleAddProjectLogic(User user) {
         AddProjectMessage addProjectMessage = Serialisation.getGSON().fromJson(getLastMessage(), AddProjectMessage.class);
         String projectName = addProjectMessage.getProjectName();
@@ -266,7 +266,12 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
             newProject.creationDate = LocalDateTime.now().withNano(0);
             newProject.users = getAllExistingUserIDs(memberIDs);
             newProject.users.add(user.id);
-            newProject.usernames = Set.of(user);
+            newProject.usernames = newProject.users
+                    .stream()
+                    .map(DB::getUser)
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .collect(Collectors.toSet());
             newProject.id = new ObjectId();
             newProject.name = projectName;
             newProject.description = projectDescription;
@@ -274,10 +279,13 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
             ProjectResponse pm = new ProjectResponse();
             pm.project = newProject;
             send(pm);
+    
+            LoginSessions.getSessionsWithUser(HomeEndpoint.class, newProject.usernames)
+                    .forEach(e -> handleGetHomeLogicFor(e.getValue(), e.getKey()));
         }
     }
-
-
+    
+    
     private Set<ObjectId> getAllExistingUserIDs(final List<String> userIDs) {
         return userIDs.parallelStream()
                 .filter(ObjectId::isValid)
@@ -287,7 +295,7 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
                 .map(u -> u.id)
                 .collect(Collectors.toSet());
     }
-
+    
     private void handleGetChatLogic(User user) {
         GetChatMessage getChatMessage = Serialisation.getGSON().fromJson(getLastMessage(), GetChatMessage.class);
         if (!ObjectId.isValid(getChatMessage.getPartnerUserID())) {
@@ -322,11 +330,15 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
                     ChatResponse cm = new ChatResponse();
                     cm.chat = newChat;
                     send(cm);
+    
+                    Set<User> chatMembers = Set.of(user, partner.get());
+                    LoginSessions.getSessionsWithUser(HomeEndpoint.class, chatMembers)
+                            .forEach(e -> handleGetHomeLogicFor(e.getValue(), e.getKey()));
                 }
             }
         }
     }
-
+    
     private void handleGetHomeLogic(User user) {
         HomeResponse home = new HomeResponse();
         home.projects = DB.getProjectsForUser(user);
@@ -340,7 +352,21 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
         }
         send(home);
     }
-
+    
+    private void handleGetHomeLogicFor(User user, Session session) {
+        HomeResponse home = new HomeResponse();
+        home.projects = DB.getProjectsForUser(user);
+        home.chats = DB.getNLastChatsForUser(user.id, Properties.getUserConfig().amountfavouritechats());
+        for (Chat chat : home.chats) {
+            if (Objects.equals(chat.personA, user.id)) {//I am user a
+                chat.partnerUsername = DB.getUser(chat.personB).map(u -> u.username).orElse("ERROR");
+            } else {
+                chat.partnerUsername = DB.getUser(chat.personA).map(u -> u.username).orElse("ERROR");
+            }
+        }
+        sendTo(session, home);
+    }
+    
     private void handleLogoutLogic(User user, String sessionID) {
         Optional<String> optionalDeviceID = LoginSessions.getDeviceID(sessionID);
         if (optionalDeviceID.isEmpty()) {
@@ -356,9 +382,8 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
         DB.removeDeviceID(user, deviceID);
         sendSync(new LogoutResponse());
         LoginSessions.removeSession(sessionID);
-
     }
-
+    
     private void handleGetUserLogic() {
         GetUserMessage getUserMessage = Serialisation.getGSON().fromJson(getLastMessage(), GetUserMessage.class);
         String userID = getUserMessage.getUserID();
@@ -380,7 +405,7 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
         ur.user = optionalUser.get();
         send(ur);
     }
-
+    
     private void handleModifyProjectUsersLogic(User user) {
         ModifyProjectUsersMessage modifyProjectUsersMessage = Serialisation.getGSON().fromJson(getLastMessage(), ModifyProjectUsersMessage.class);
         Optional<User> optionalUser;
@@ -408,12 +433,14 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
         } else {
             DB.removeUserFromProject(projectToModify, userToModify);
         }
+        LoginSessions.getSessionsWithUser(HomeEndpoint.class, Set.of(userToModify))
+                .forEach(e -> handleGetHomeLogicFor(e.getValue(), e.getKey()));
     }
-
+    
     private boolean isValidProjectDescription(String projectDescription) {
         return projectDescription.length() < 200;
     }
-
+    
     private Optional<Message> fillMessage(AddMessageMessage messageFromClient, User sender, boolean isChat) {
         String communicationType = isChat ? "CHAT" : "PROJECT";
         Message newMessage = new Message();
@@ -468,7 +495,7 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
                         error.description = "The image has not a valid mime type: " + imageMime + ". Should be one of: " + MimeTypeHelper.validMimeTypes.keySet().toString();
                         send(error);
                         return Optional.empty();
-
+    
                     }
                     final String imageName = UUID.randomUUID().toString();
                     final String extension = MimeTypeHelper.getExtension(imageMime);
@@ -477,7 +504,7 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
                     Files.createDirectories(imageDirectory);
                     final Path imagePath = imageDirectory.resolve(imageFullName);
                     Files.write(imagePath, imageData);
-
+    
                     String baseURL = "";
                     newMessage.imageUrl = new URL(baseURL + "img/" + imageFullName);
                 } catch (MalformedURLException e) {
@@ -497,7 +524,7 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
         }
         return Optional.empty();
     }
-
+    
     private class HomeResponse {
         @Expose
         private final String status = "OK_HOME";
@@ -506,40 +533,40 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
         @Expose
         Set<Chat> chats;
     }
-
+    
     class ChatResponse {
         @Expose
         private final String status = "OK_CHAT";
         @Expose
         Chat chat;
     }
-
+    
     class ProjectResponse {
         @Expose
         private final String status = "OK_PROJECT";
         @Expose
         Project project;
     }
-
+    
     class UsersResponse {
         @Expose
         private final String status = "OK_USERS";
         @Expose
         Set<User> users;
     }
-
+    
     private class LogoutResponse {
         @Expose
         private final String status = "OK_LOGOUT";
     }
-
+    
     class UserResponse {
         @Expose
         private final String status = "OK_USER";
         @Expose
         User user;
     }
-
+    
     private class ErrorResponse {
         @Expose
         String status;

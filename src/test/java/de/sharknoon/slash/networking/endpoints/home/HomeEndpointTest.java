@@ -1,28 +1,17 @@
 package de.sharknoon.slash.networking.endpoints.home;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.google.gson.*;
 import de.sharknoon.slash.database.DB;
 import de.sharknoon.slash.database.models.User;
-import de.sharknoon.slash.database.models.message.Message;
-import de.sharknoon.slash.database.models.message.MessageEmotion;
-import de.sharknoon.slash.database.models.message.MessageType;
+import de.sharknoon.slash.database.models.message.*;
 import de.sharknoon.slash.networking.endpoints.TestSession;
-import de.sharknoon.slash.networking.endpoints.home.HomeEndpoint.ChatResponse;
-import de.sharknoon.slash.networking.endpoints.home.HomeEndpoint.ProjectResponse;
-import de.sharknoon.slash.networking.endpoints.home.HomeEndpoint.UserResponse;
-import de.sharknoon.slash.networking.endpoints.home.HomeEndpoint.UsersResponse;
+import de.sharknoon.slash.networking.endpoints.home.HomeEndpoint.*;
 import de.sharknoon.slash.networking.endpoints.home.messages.*;
-import de.sharknoon.slash.networking.endpoints.login.LoginEndpoint;
-import de.sharknoon.slash.networking.endpoints.login.LoginMessage;
-import de.sharknoon.slash.utils.LocalDateTimeConverter;
-import de.sharknoon.slash.utils.ObjectIdConverter;
+import de.sharknoon.slash.networking.endpoints.login.*;
+import de.sharknoon.slash.utils.*;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 
 import javax.websocket.Session;
@@ -208,10 +197,6 @@ class HomeEndpointTest {
         
         String projectName = UUID.randomUUID().toString().substring(0, 15);
         addProjectMessage.setProjectName(projectName);
-        he.onMessage(s, gson.toJson(addProjectMessage));
-        //Empty Description
-        Assertions.assertEquals("{\"status\":\"WRONG_PROJECT_DESCRIPTION\",\"description\":\"The project description doesn\\u0027t match the specifications\"}", sendText);
-        
         String projectDescription = UUID.randomUUID().toString().substring(0, 15);
         addProjectMessage.setProjectDescription(projectDescription);
         he.onMessage(s, gson.toJson(addProjectMessage));

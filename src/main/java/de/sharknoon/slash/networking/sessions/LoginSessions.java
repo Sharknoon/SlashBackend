@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 public class LoginSessions {
     //SessionID->loginSession
     private static final Map<String, LoginSession> LOGGED_IN_SESSIONS = new HashMap<>();
-
+    
     public static void addSession(User user, String sessionID, String deviceID, Class<? extends Endpoint> endpoint, Session session) {
         if (LOGGED_IN_SESSIONS.containsKey(sessionID)) {
             LOGGED_IN_SESSIONS.get(sessionID).setSession(endpoint, session);
@@ -25,7 +25,7 @@ public class LoginSessions {
             LOGGED_IN_SESSIONS.put(sessionID, ls);
         }
     }
-
+    
     public static void removeSession(String sessionID) {
         LoginSession remove = LOGGED_IN_SESSIONS.remove(sessionID);
         if (remove != null) {
@@ -47,7 +47,7 @@ public class LoginSessions {
             }
         }
     }
-
+    
     /**
      * Checks and returns the user for the specified session ID
      *
@@ -61,7 +61,7 @@ public class LoginSessions {
         }
         return Optional.ofNullable(loginSession.getUser());
     }
-
+    
     public static Optional<String> getDeviceID(String sessionID) {
         LoginSession loginSession = LOGGED_IN_SESSIONS.get(sessionID);
         if (sessionID == null) {
@@ -69,7 +69,7 @@ public class LoginSessions {
         }
         return Optional.ofNullable(loginSession.getDeviceID());
     }
-
+    
     public static Optional<Session> getSession(Class<? extends Endpoint> endpoint, User user) {
         return LOGGED_IN_SESSIONS.values()
                 .parallelStream()
@@ -79,7 +79,7 @@ public class LoginSessions {
                 .filter(Objects::nonNull)
                 .findAny();
     }
-
+    
     public static Set<Session> getSessions(Class<? extends Endpoint> endpoint, Collection<User> users) {
         Set<ObjectId> ids = users.stream().map(u -> u.id).collect(Collectors.toSet());
         return LOGGED_IN_SESSIONS.values()
@@ -89,6 +89,15 @@ public class LoginSessions {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
     }
-
-
+    
+    public static Set<Map.Entry<Session, User>> getSessionsWithUser(Class<? extends Endpoint> endpoint, Collection<User> users) {
+        Set<ObjectId> ids = users.stream().map(u -> u.id).collect(Collectors.toSet());
+        return LOGGED_IN_SESSIONS.values()
+                .parallelStream()
+                .filter(ls -> ids.contains(ls.getUser().id))
+                .map(ls -> Map.entry(ls.getSession(endpoint), ls.getUser()))
+                .filter(e -> e.getKey() != null)
+                .collect(Collectors.toSet());
+    }
+    
 }
