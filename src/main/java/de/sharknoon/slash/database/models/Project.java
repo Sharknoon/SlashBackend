@@ -4,6 +4,7 @@ import com.google.gson.annotations.Expose;
 import de.sharknoon.slash.database.models.message.Message;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.codecs.pojo.annotations.BsonId;
+import org.bson.codecs.pojo.annotations.BsonIgnore;
 import org.bson.types.ObjectId;
 
 import java.net.URL;
@@ -22,8 +23,10 @@ public class Project {
     public URL image;
     @Expose
     public LocalDateTime creationDate = LocalDateTime.now();
-    @Expose
     public Set<ObjectId> users = Set.of();
+    @BsonIgnore
+    @Expose
+    public Set<User> usernames = Set.of();
     @Expose
     public Set<Message> messages = Set.of();
 }

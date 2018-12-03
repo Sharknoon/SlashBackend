@@ -490,13 +490,13 @@ class HomeEndpointTest {
         getProjectMessage.setProjectID(pr.project.id.toString());
         he.onMessage(s, gson.toJson(getProjectMessage));
         ProjectResponse pr2 = gson.fromJson(sendText, ProjectResponse.class);
-        Assertions.assertTrue(pr2.project.users.stream().anyMatch(o -> o.equals(user2.id)));
+        Assertions.assertTrue(pr2.project.usernames.stream().map(u -> u.id).anyMatch(o -> o.equals(user2.id)));
         
         modifyProjectUsersMessage.setAddUser(false);
         he.onMessage(s, gson.toJson(modifyProjectUsersMessage));
         he.onMessage(s, gson.toJson(getProjectMessage));
         pr2 = gson.fromJson(sendText, ProjectResponse.class);
-        Assertions.assertFalse(pr2.project.users.stream().anyMatch(o -> o.equals(user2.id)));
+        Assertions.assertFalse(pr2.project.usernames.stream().anyMatch(o -> o.id.equals(user2.id)));
         
         DB.leakDatabase().getCollection("projects").deleteOne(eq("_id", pr.project.id));
     }

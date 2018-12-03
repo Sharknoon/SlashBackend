@@ -146,6 +146,12 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
                     .map(Optional::get)
                     .collect(Collectors.toSet());
             ProjectResponse pr = new ProjectResponse();
+            p.usernames = p.users
+                    .stream()
+                    .map(DB::getUser)
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .collect(Collectors.toSet());
             pr.project = p;
             LoginSessions.getSessions(HomeEndpoint.class, users).forEach(session -> sendTo(session, pr));
             //Dont want to send the push notification to myself
@@ -224,7 +230,14 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
             Optional<Project> project = DB.getProject(projectID);
             if (project.isPresent()) {
                 ProjectResponse pm = new ProjectResponse();
-                pm.project = project.get();
+                Project p = project.get();
+                p.usernames = p.users
+                        .stream()
+                        .map(DB::getUser)
+                        .filter(Optional::isPresent)
+                        .map(Optional::get)
+                        .collect(Collectors.toSet());
+                pm.project = p;
                 send(pm);
             } else {
                 ErrorResponse error = new ErrorResponse();
@@ -260,6 +273,7 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
             newProject.creationDate = LocalDateTime.now().withNano(0);
             newProject.users = getAllExistingUserIDs(memberIDs);
             newProject.users.add(user.id);
+            newProject.usernames = Set.of(user);
             newProject.id = new ObjectId();
             newProject.name = projectName;
             newProject.description = projectDescription;
