@@ -89,8 +89,8 @@ public abstract class Endpoint<M> {
             session.getAsyncRemote().sendText(json);
         }
     }
-    
-    protected void send(Object o) {
+
+    public void send(Object o) {
         send(toJSON(o));
     }
     

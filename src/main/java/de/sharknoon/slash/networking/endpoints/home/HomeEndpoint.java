@@ -9,6 +9,8 @@ import de.sharknoon.slash.database.models.message.Message;
 import de.sharknoon.slash.database.models.message.MessageEmotion;
 import de.sharknoon.slash.networking.LoginSessions;
 import de.sharknoon.slash.networking.endpoints.Endpoint;
+import de.sharknoon.slash.networking.endpoints.home.messagehandlers.GetHomeMessageHandler;
+import de.sharknoon.slash.networking.endpoints.home.messagehandlers.HomeEndpointMessageHandler;
 import de.sharknoon.slash.networking.endpoints.home.messages.*;
 import de.sharknoon.slash.networking.pushy.PushStatus;
 import de.sharknoon.slash.networking.pushy.Pushy;
@@ -32,7 +34,8 @@ import java.util.stream.Collectors;
 
 @ServerEndpoint("/home")
 public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
-    
+
+    private HomeEndpointMessageHandler firstHandler = new GetHomeMessageHandler(this, null);
     
     private static boolean isNotValidChatMessageContent(String content) {
         return content.length() <= 0 || content.length() >= 5000;
@@ -77,7 +80,7 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
     private void handleLogic(StatusAndSessionIDMessage message, User user) {
         switch (message.getStatus()) {
             case GET_HOME:
-                handleGetHomeLogic(user);
+                firstHandler.handleMessage(message, user);
                 break;
             case GET_CHAT:
                 handleGetChatLogic(user);
@@ -317,21 +320,7 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
             }
         }
     }
-    
-    private void handleGetHomeLogic(User user) {
-        HomeResponse home = new HomeResponse();
-        home.projects = DB.getProjectsForUser(user);
-        home.chats = DB.getNLastChatsForUser(user.id, Properties.getUserConfig().amountfavouritechats());
-        for (Chat chat : home.chats) {
-            if (Objects.equals(chat.personA, user.id)) {//I am user a
-                chat.partnerUsername = DB.getUser(chat.personB).map(u -> u.username).orElse("ERROR");
-            } else {
-                chat.partnerUsername = DB.getUser(chat.personA).map(u -> u.username).orElse("ERROR");
-            }
-        }
-        send(home);
-    }
-    
+
     private void handleLogoutLogic(User user, String sessionID) {
         Optional<String> optionalDeviceID = LoginSessions.getDeviceID(sessionID);
         if (optionalDeviceID.isEmpty()) {
@@ -347,7 +336,6 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
         DB.removeDeviceID(user, deviceID);
         sendSync(new LogoutResponse());
         LoginSessions.removeSession(sessionID);
-        
     }
     
     private void handleGetUserLogic() {
@@ -488,16 +476,7 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
         }
         return Optional.empty();
     }
-    
-    private class HomeResponse {
-        @Expose
-        private final String status = "OK_HOME";
-        @Expose
-        Set<Project> projects;
-        @Expose
-        Set<Chat> chats;
-    }
-    
+
     class ChatResponse {
         @Expose
         private final String status = "OK_CHAT";
