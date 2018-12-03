@@ -2,9 +2,6 @@ package de.sharknoon.slash.networking;
 
 import de.sharknoon.slash.database.models.User;
 import de.sharknoon.slash.networking.endpoints.Endpoint;
-import de.sharknoon.slash.networking.endpoints.home.HomeEndpoint;
-import de.sharknoon.slash.networking.endpoints.login.LoginEndpoint;
-import de.sharknoon.slash.networking.endpoints.register.RegisterEndpoint;
 import org.bson.types.ObjectId;
 
 import javax.websocket.Session;
@@ -33,15 +30,15 @@ public class LoginSessions {
         LoginSession remove = LOGGED_IN_SESSIONS.remove(sessionID);
         if (remove != null) {
             try {
-                Session homeSession = remove.homeSession;
+                Session homeSession = remove.getHomeSession();
                 if (homeSession != null) {
                     homeSession.close();
                 }
-                Session loginSession = remove.loginSession;
+                Session loginSession = remove.getLoginSession();
                 if (loginSession != null) {
                     loginSession.close();
                 }
-                Session registerSession = remove.registerSession;
+                Session registerSession = remove.getRegisterSession();
                 if (registerSession != null) {
                     registerSession.close();
                 }
@@ -62,7 +59,7 @@ public class LoginSessions {
         if (loginSession == null) {
             return Optional.empty();
         }
-        return Optional.ofNullable(loginSession.user);
+        return Optional.ofNullable(loginSession.getUser());
     }
 
     public static Optional<String> getDeviceID(String sessionID) {
@@ -70,14 +67,15 @@ public class LoginSessions {
         if (sessionID == null) {
             return Optional.empty();
         }
-        return Optional.ofNullable(loginSession.deviceID);
+        return Optional.ofNullable(loginSession.getDeviceID());
     }
 
     public static Optional<Session> getSession(Class<? extends Endpoint> endpoint, User user) {
         return LOGGED_IN_SESSIONS.values()
                 .parallelStream()
-                .filter(ls -> user.id.equals(ls.user.id))
+                .filter(ls -> user.id.equals(ls.getUser().id))
                 .map(ls -> ls.getSession(endpoint))
+                .peek(s -> System.out.println(Objects.hashCode(s)))
                 .filter(Objects::nonNull)
                 .findAny();
     }
@@ -86,46 +84,11 @@ public class LoginSessions {
         Set<ObjectId> ids = users.stream().map(u -> u.id).collect(Collectors.toSet());
         return LOGGED_IN_SESSIONS.values()
                 .parallelStream()
-                .filter(ls -> ids.contains(ls.user.id))
+                .filter(ls -> ids.contains(ls.getUser().id))
                 .map(ls -> ls.getSession(endpoint))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
     }
 
-    private static class LoginSession {
-        private Session loginSession = null;
-        private Session registerSession = null;
-        private Session homeSession = null;
-        private final String deviceID;
-        private final User user;
-
-        LoginSession(String deviceID, User user) {
-            this.deviceID = deviceID;
-            this.user = user;
-        }
-
-        Session getSession(Class<? extends Endpoint> endpoint) {
-            if (endpoint == HomeEndpoint.class) {
-                return homeSession;
-            } else if (endpoint == LoginEndpoint.class) {
-                return loginSession;
-            } else if (endpoint == RegisterEndpoint.class) {
-                return registerSession;
-            }
-            return null;
-        }
-
-
-        void setSession(Class<? extends Endpoint> endpoint, Session session) {
-            if (endpoint == HomeEndpoint.class) {
-                homeSession = session;
-            } else if (endpoint == LoginEndpoint.class) {
-                loginSession = session;
-            } else if (endpoint == RegisterEndpoint.class) {
-                registerSession = session;
-            }
-        }
-
-    }
 
 }
