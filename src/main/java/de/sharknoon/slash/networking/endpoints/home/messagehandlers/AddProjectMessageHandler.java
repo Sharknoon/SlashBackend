@@ -1,28 +1,21 @@
 package de.sharknoon.slash.networking.endpoints.home.messagehandlers;
 
 import de.sharknoon.slash.database.DB;
-import de.sharknoon.slash.database.models.Chat;
 import de.sharknoon.slash.database.models.Project;
 import de.sharknoon.slash.database.models.User;
-import de.sharknoon.slash.networking.endpoints.Endpoint;
 import de.sharknoon.slash.networking.endpoints.home.HomeEndpoint;
 import de.sharknoon.slash.networking.endpoints.home.Status;
 import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.ErrorResponse;
-import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.HomeResponse;
 import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.ProjectResponse;
 import de.sharknoon.slash.networking.endpoints.home.messages.AddProjectMessage;
 import de.sharknoon.slash.networking.endpoints.home.messages.StatusAndSessionIDMessage;
-import de.sharknoon.slash.networking.sessions.LoginSessions;
-import de.sharknoon.slash.properties.Properties;
 import de.sharknoon.slash.serialisation.Serialisation;
 import org.bson.types.ObjectId;
 
-import javax.websocket.Session;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 
 public class AddProjectMessageHandler extends HomeEndpointMessageHandler {
     public AddProjectMessageHandler(HomeEndpoint homeEndpoint, HomeEndpointMessageHandler successor) {
@@ -62,23 +55,6 @@ public class AddProjectMessageHandler extends HomeEndpointMessageHandler {
             ProjectResponse pm = new ProjectResponse();
             pm.project = newProject;
             homeEndpoint.send(pm);
-
-            LoginSessions.getSessionsWithUser(HomeEndpoint.class, newProject.usernames)
-                    .forEach(e -> {
-                        User u = e.getValue();
-                        Session s = e.getKey();
-                        HomeResponse home = new HomeResponse();
-                        home.projects = DB.getProjectsForUser(u);
-                        home.chats = DB.getNLastChatsForUser(u.id, Properties.getUserConfig().amountfavouritechats());
-                        for (Chat chat : home.chats) {
-                            if (Objects.equals(chat.personA, u.id)) {//I am user a
-                                chat.partnerUsername = DB.getUser(chat.personB).map(usr -> usr.username).orElse("ERROR");
-                            } else {
-                                chat.partnerUsername = DB.getUser(chat.personA).map(usr -> usr.username).orElse("ERROR");
-                            }
-                        }
-                        Endpoint.sendTo(s, home);
-                    });
         }
     }
 

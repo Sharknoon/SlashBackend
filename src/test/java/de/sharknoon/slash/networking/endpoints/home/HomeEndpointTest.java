@@ -208,10 +208,6 @@ class HomeEndpointTest {
         
         String projectName = UUID.randomUUID().toString().substring(0, 15);
         addProjectMessage.setProjectName(projectName);
-        he.onMessage(s, gson.toJson(addProjectMessage));
-        //Empty Description
-        Assertions.assertEquals("{\"status\":\"WRONG_PROJECT_DESCRIPTION\",\"description\":\"The project description doesn\\u0027t match the specifications\"}", sendText);
-        
         String projectDescription = UUID.randomUUID().toString().substring(0, 15);
         addProjectMessage.setProjectDescription(projectDescription);
         he.onMessage(s, gson.toJson(addProjectMessage));
