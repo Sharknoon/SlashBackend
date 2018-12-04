@@ -1,17 +1,28 @@
 package de.sharknoon.slash.networking.endpoints.home;
 
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import de.sharknoon.slash.database.DB;
 import de.sharknoon.slash.database.models.User;
-import de.sharknoon.slash.database.models.message.*;
+import de.sharknoon.slash.database.models.message.Message;
+import de.sharknoon.slash.database.models.message.MessageEmotion;
+import de.sharknoon.slash.database.models.message.MessageType;
 import de.sharknoon.slash.networking.endpoints.TestSession;
-import de.sharknoon.slash.networking.endpoints.home.HomeEndpoint.*;
+import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.ChatResponse;
+import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.ProjectResponse;
+import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.UserResponse;
+import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.UsersResponse;
 import de.sharknoon.slash.networking.endpoints.home.messages.*;
-import de.sharknoon.slash.networking.endpoints.login.*;
-import de.sharknoon.slash.utils.*;
+import de.sharknoon.slash.networking.endpoints.login.LoginEndpoint;
+import de.sharknoon.slash.networking.endpoints.login.LoginMessage;
+import de.sharknoon.slash.utils.LocalDateTimeConverter;
+import de.sharknoon.slash.networking.utils.ObjectIdConverter;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 
 import javax.websocket.Session;
@@ -172,8 +183,8 @@ class HomeEndpointTest {
         
         getChatMessage.setPartnerUserID(user2.id.toString());
         he.onMessage(s, gson.toJson(getChatMessage));
-        
-        HomeEndpoint.ChatResponse cr = gson.fromJson(sendText, HomeEndpoint.ChatResponse.class);
+
+        ChatResponse cr = gson.fromJson(sendText, ChatResponse.class);
         CHAT_IDS_TO_DELETE.add(cr.chat.id);
         Assertions.assertEquals(user1.id, cr.chat.personA);
         Assertions.assertEquals(user2.id, cr.chat.personB);
@@ -197,13 +208,17 @@ class HomeEndpointTest {
         
         String projectName = UUID.randomUUID().toString().substring(0, 15);
         addProjectMessage.setProjectName(projectName);
+        he.onMessage(s, gson.toJson(addProjectMessage));
+        //Empty Description
+        Assertions.assertEquals("{\"status\":\"WRONG_PROJECT_DESCRIPTION\",\"description\":\"The project description doesn\\u0027t match the specifications\"}", sendText);
+        
         String projectDescription = UUID.randomUUID().toString().substring(0, 15);
         addProjectMessage.setProjectDescription(projectDescription);
         he.onMessage(s, gson.toJson(addProjectMessage));
         Assertions.assertTrue(sendText.startsWith("{\"status\":\"OK_PROJECT\",\"project\":"));
         final String projectStatus = sendText;
-        
-        HomeEndpoint.ProjectResponse response = gson.fromJson(sendText, HomeEndpoint.ProjectResponse.class);
+
+        ProjectResponse response = gson.fromJson(sendText, ProjectResponse.class);
         PROJECT_IDS_TO_DELETE.add(response.project.id);
         GetProjectMessage getProjectMessage = new GetProjectMessage();
         getProjectMessage.setProjectID(response.project.id.toString());
@@ -256,7 +271,7 @@ class HomeEndpointTest {
         getChatMessage.setSessionid(user1.sessionIDs.iterator().next());
         getChatMessage.setStatus(Status.GET_CHAT);
         he.onMessage(s, gson.toJson(getChatMessage));
-        HomeEndpoint.ChatResponse cr = gson.fromJson(sendText, HomeEndpoint.ChatResponse.class);
+        ChatResponse cr = gson.fromJson(sendText, ChatResponse.class);
         CHAT_IDS_TO_DELETE.add(cr.chat.id);
         
         addChatMessageMessage.setChatID(cr.chat.id.toString());
@@ -331,7 +346,7 @@ class HomeEndpointTest {
         addProjectMessage.setSessionid(user1.sessionIDs.iterator().next());
         addProjectMessage.setStatus(Status.ADD_PROJECT);
         he.onMessage(s, gson.toJson(addProjectMessage));
-        HomeEndpoint.ProjectResponse pr = gson.fromJson(sendText, HomeEndpoint.ProjectResponse.class);
+        ProjectResponse pr = gson.fromJson(sendText, ProjectResponse.class);
         PROJECT_IDS_TO_DELETE.add(pr.project.id);
         
         addProjectMessageMessage.setProjectID(pr.project.id.toString());
@@ -462,7 +477,7 @@ class HomeEndpointTest {
         addProjectMessage.setProjectDescription("I am going to be deleted very soon");
         addProjectMessage.setSessionid(user1.sessionIDs.iterator().next());
         he.onMessage(s, gson.toJson(addProjectMessage));
-        HomeEndpoint.ProjectResponse pr = gson.fromJson(sendText, HomeEndpoint.ProjectResponse.class);
+        ProjectResponse pr = gson.fromJson(sendText, ProjectResponse.class);
         PROJECT_IDS_TO_DELETE.add(pr.project.id);
         
         sendText = "";

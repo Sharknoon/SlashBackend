@@ -5,13 +5,14 @@ import de.sharknoon.slash.serialisation.Serialisation;
 
 import javax.websocket.*;
 import java.io.IOException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public abstract class Endpoint<M> {
-
+    
     //The class of the messages e.g. RegisterMessage or LoginMessage
     private final Class<M> messageClass;
     //The type of the extending class of this class e.g. LoginEndpoint or RegisterEndpoint
@@ -25,7 +26,7 @@ public abstract class Endpoint<M> {
         this.messageClass = messageClass;
         this.endpointClass = getClass();
     }
-
+    
     private static String toJSON(Object o) {
         try {
             return Serialisation.getGSON().toJson(o);
@@ -34,14 +35,14 @@ public abstract class Endpoint<M> {
                     "\"message\":\"An unexpected error occurred, please try again later\"}";
         }
     }
-
-
+    
+    
     private static void sendTo(Session session, String json) {
         if (session != null) {
             session.getAsyncRemote().sendText(json);
         }
     }
-
+    
     @OnOpen
     public void onOpen(Session session) {
         Logger.getGlobal().info(session.getId() + " connected");
@@ -50,44 +51,44 @@ public abstract class Endpoint<M> {
                 OpeningMessage.getOpeningMessage(endpointClass)
         );
     }
-
+    
     //To be implemented
     protected abstract void onMessage(Session session, M message);
-
+    
     @OnClose
     public void onClose(Session session, CloseReason closeReason) {
         Logger.getGlobal().info(session.getId() + " disconnected");
     }
-
+    
     @OnError
     public void onError(Session session, Throwable throwable) {
         Logger.getGlobal().log(Level.SEVERE, session.getId() + " has an Error", throwable);
-
+        
         session.getAsyncRemote().sendText(
                 ErrorMessage.getErrorMessage(throwable)
         );
     }
-
+    
     private void onError(Session session, String errorMessage) {
         Logger.getGlobal().severe(session.getId() + " has an Error: " + errorMessage);
-
+        
         session.getAsyncRemote().sendText(
                 ErrorMessage.getErrorMessage(errorMessage)
         );
     }
 
-    protected static void sendTo(Session session, Object o) {
+    public static void sendTo(Session session, Object o) {
         sendTo(session, toJSON(o));
     }
-
-
+    
+    
     protected void send(String json) {
         if (session != null) {
             sendTo(session, json);
         }
     }
 
-    protected void send(Object o) {
+    public void send(Object o) {
         send(toJSON(o));
     }
 
@@ -102,10 +103,10 @@ public abstract class Endpoint<M> {
         }
     }
 
-    protected void sendSync(Object o) {
+    public void sendSync(Object o) {
         sendSync(toJSON(o));
     }
-
+    
     @OnMessage
     public final void onMessage(Session session, String message) {
         Logger.getGlobal().info(session.getId() + ": " + message);
@@ -124,7 +125,7 @@ public abstract class Endpoint<M> {
         }
     }
 
-    protected String getLastMessage() {
+    public String getLastMessage() {
         return lastMessage;
     }
 
