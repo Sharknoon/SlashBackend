@@ -5,11 +5,9 @@ import de.sharknoon.slash.serialisation.Serialisation;
 
 import javax.websocket.*;
 import java.io.IOException;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.nio.file.*;
+import java.util.*;
+import java.util.logging.*;
 
 public abstract class Endpoint<M> {
     
@@ -21,7 +19,22 @@ public abstract class Endpoint<M> {
     private String lastMessage = "";
     //The current Session for easy send(...) calls
     private Session session;
-
+    
+    static {
+        FileHandler fh;
+        try {
+            // This block configure the logger with handler and formatter
+            Path logFilePath = Paths.get(System.getProperty("user.home"), ".slash", "slash-errors.log");
+            Files.createDirectories(logFilePath.getParent());
+            Files.deleteIfExists(logFilePath);
+            fh = new FileHandler(logFilePath.toString());
+            Logger.getGlobal().addHandler(fh);
+            fh.setFormatter(new SimpleFormatter());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
     public Endpoint(Class<M> messageClass) {
         this.messageClass = messageClass;
         this.endpointClass = getClass();
@@ -57,12 +70,12 @@ public abstract class Endpoint<M> {
     
     @OnClose
     public void onClose(Session session, CloseReason closeReason) {
-        Logger.getGlobal().info(session.getId() + " disconnected");
+        Logger.getGlobal().info(session.toString() + "disconnected because " + closeReason.toString());
     }
     
     @OnError
     public void onError(Session session, Throwable throwable) {
-        Logger.getGlobal().log(Level.SEVERE, session.getId() + " has an Error", throwable);
+        Logger.getGlobal().log(Level.SEVERE, "Session: " + session.toString() + " Error: " + throwable.getClass().getSimpleName(), throwable);
         
         session.getAsyncRemote().sendText(
                 ErrorMessage.getErrorMessage(throwable)
@@ -70,13 +83,13 @@ public abstract class Endpoint<M> {
     }
     
     private void onError(Session session, String errorMessage) {
-        Logger.getGlobal().severe(session.getId() + " has an Error: " + errorMessage);
+        Logger.getGlobal().severe("Session: " + session.toString() + " Error: " + errorMessage);
         
         session.getAsyncRemote().sendText(
                 ErrorMessage.getErrorMessage(errorMessage)
         );
     }
-
+    
     public static void sendTo(Session session, Object o) {
         sendTo(session, toJSON(o));
     }
@@ -87,11 +100,11 @@ public abstract class Endpoint<M> {
             sendTo(session, json);
         }
     }
-
+    
     public void send(Object o) {
         send(toJSON(o));
     }
-
+    
     @SuppressWarnings("WeakerAccess")
     protected void sendSync(String json) {
         if (session != null) {
@@ -102,7 +115,7 @@ public abstract class Endpoint<M> {
             }
         }
     }
-
+    
     public void sendSync(Object o) {
         sendSync(toJSON(o));
     }
@@ -124,16 +137,16 @@ public abstract class Endpoint<M> {
             onError(session, "Internal server error occurred");
         }
     }
-
+    
     public String getLastMessage() {
         return lastMessage;
     }
-
+    
     private static class OpeningMessage {
-
+        
         private static final String JSON = "{\"status\":\"CONNECTED\",\"message\":\"Connected to $\"}";
         private static final Map<Class<?>, String> JSONS = new HashMap<>();
-
+        
         static String getOpeningMessage(Class<?> messageClass) {
             if (JSONS.containsKey(messageClass)) {
                 return JSONS.get(messageClass);
@@ -144,12 +157,12 @@ public abstract class Endpoint<M> {
             return className;
         }
     }
-
+    
     private static class ErrorMessage {
         private static final String JSON = "{\"status\":\"ERROR\",\"message\":\"$\"}";
         private static final Map<Throwable, String> JSONS_THROWABLES = new HashMap<>();
         private static final Map<String, String> JSON_STRINGS = new HashMap<>();
-
+        
         static String getErrorMessage(String message) {
             if (JSON_STRINGS.containsKey(message)) {
                 return JSON_STRINGS.get(message);
@@ -158,7 +171,7 @@ public abstract class Endpoint<M> {
             JSON_STRINGS.put(message, errorMessage);
             return errorMessage;
         }
-
+        
         static String getErrorMessage(Throwable t) {
             if (JSONS_THROWABLES.containsKey(t)) {
                 return JSONS_THROWABLES.get(t);
@@ -169,5 +182,5 @@ public abstract class Endpoint<M> {
             return errorMessage;
         }
     }
-
+    
 }

@@ -2,13 +2,11 @@ package de.sharknoon.slash.networking.endpoints.home;
 
 import de.sharknoon.slash.database.DB;
 import de.sharknoon.slash.database.models.User;
-import de.sharknoon.slash.database.models.message.Message;
-import de.sharknoon.slash.database.models.message.MessageEmotion;
+import de.sharknoon.slash.database.models.message.*;
 import de.sharknoon.slash.networking.endpoints.Endpoint;
 import de.sharknoon.slash.networking.endpoints.home.messagehandlers.*;
 import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.ErrorResponse;
-import de.sharknoon.slash.networking.endpoints.home.messages.AddMessageMessage;
-import de.sharknoon.slash.networking.endpoints.home.messages.StatusAndSessionIDMessage;
+import de.sharknoon.slash.networking.endpoints.home.messages.*;
 import de.sharknoon.slash.networking.sessions.LoginSessions;
 import de.sharknoon.slash.properties.Properties;
 import de.sharknoon.slash.utils.MimeTypeHelper;
@@ -17,11 +15,8 @@ import org.bson.types.ObjectId;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.net.*;
+import java.nio.file.*;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.logging.Logger;
@@ -85,7 +80,8 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
     public Set<ObjectId> getAllExistingUserIDs(final List<String> userIDs) {
         return userIDs.parallelStream()
                 .filter(ObjectId::isValid)
-                .map(DB::getUserByUsernameOrEmail)
+                .map(ObjectId::new)
+                .map(DB::getUser)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .map(u -> u.id)
@@ -159,9 +155,9 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
                     String baseURL = "";
                     newMessage.imageUrl = new URL(baseURL + "img/" + imageFullName);
                 } catch (MalformedURLException e) {
-                    Logger.getGlobal().severe("Image has no correct URL " + e);
+                    Logger.getGlobal().warning("Image has no correct URL " + e);
                 } catch (IOException e) {
-                    Logger.getGlobal().severe("Could not read or write Image! " + e);
+                    Logger.getGlobal().warning("Could not read or write Image! " + e);
                     e.printStackTrace();
                 }
                 return Optional.of(newMessage);

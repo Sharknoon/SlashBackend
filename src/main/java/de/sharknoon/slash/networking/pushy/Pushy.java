@@ -3,10 +3,7 @@ package de.sharknoon.slash.networking.pushy;
 import de.sharknoon.slash.database.models.User;
 import de.sharknoon.slash.database.models.message.Message;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Logger;
 
 public class Pushy {
@@ -50,7 +47,7 @@ public class Pushy {
                 payload.put("content", message.imageUrl.toString());
                 break;
             case NONE:
-                Logger.getGlobal().severe("Message for push notification has a NONE type " + message.toString());
+                Logger.getGlobal().warning("Message for push notification has a NONE type " + message.toString());
                 return;
         }
         
