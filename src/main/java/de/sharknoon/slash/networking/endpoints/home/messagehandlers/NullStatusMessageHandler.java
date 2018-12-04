@@ -6,6 +6,11 @@ import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.Err
 import de.sharknoon.slash.networking.endpoints.home.messages.StatusAndSessionIDMessage;
 
 public class NullStatusMessageHandler extends HomeEndpointMessageHandler {
+
+    public NullStatusMessageHandler(HomeEndpoint homeEndpoint) {
+        super(null, homeEndpoint);
+    }
+
     public NullStatusMessageHandler(HomeEndpoint homeEndpoint, HomeEndpointMessageHandler successor) {
         super(null, homeEndpoint, successor);
     }

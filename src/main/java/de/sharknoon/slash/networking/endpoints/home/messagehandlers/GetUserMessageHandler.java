@@ -14,6 +14,11 @@ import org.bson.types.ObjectId;
 import java.util.Optional;
 
 public class GetUserMessageHandler extends HomeEndpointMessageHandler {
+
+    public GetUserMessageHandler(HomeEndpoint homeEndpoint) {
+        super(Status.GET_USER, homeEndpoint);
+    }
+
     public GetUserMessageHandler(HomeEndpoint homeEndpoint, HomeEndpointMessageHandler successor) {
         super(Status.GET_USER, homeEndpoint, successor);
     }

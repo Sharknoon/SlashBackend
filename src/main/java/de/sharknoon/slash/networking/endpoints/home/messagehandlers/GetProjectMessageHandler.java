@@ -15,6 +15,11 @@ import org.bson.types.ObjectId;
 import java.util.Optional;
 
 public class GetProjectMessageHandler extends HomeEndpointMessageHandler {
+
+    public GetProjectMessageHandler(HomeEndpoint homeEndpoint) {
+        super(Status.GET_PROJECT, homeEndpoint);
+    }
+
     public GetProjectMessageHandler(HomeEndpoint homeEndpoint, HomeEndpointMessageHandler successor) {
         super(Status.GET_PROJECT, homeEndpoint, successor);
     }

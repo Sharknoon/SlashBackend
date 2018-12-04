@@ -21,6 +21,11 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class AddChatMessageMessageHandler extends HomeEndpointMessageHandler {
+
+    public AddChatMessageMessageHandler(HomeEndpoint homeEndpoint) {
+        super(Status.ADD_CHAT_MESSAGE, homeEndpoint);
+    }
+
     public AddChatMessageMessageHandler(HomeEndpoint homeEndpoint, HomeEndpointMessageHandler successor) {
         super(Status.ADD_CHAT_MESSAGE, homeEndpoint, successor);
     }

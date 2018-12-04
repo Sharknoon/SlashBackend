@@ -22,6 +22,11 @@ import java.util.Optional;
 import java.util.Set;
 
 public class AddProjectMessageMessageHandler extends HomeEndpointMessageHandler {
+
+    public AddProjectMessageMessageHandler(HomeEndpoint homeEndpoint) {
+        super(Status.ADD_PROJECT_MESSAGE, homeEndpoint);
+    }
+
     public AddProjectMessageMessageHandler(HomeEndpoint homeEndpoint, HomeEndpointMessageHandler successor) {
         super(Status.ADD_PROJECT_MESSAGE, homeEndpoint, successor);
     }

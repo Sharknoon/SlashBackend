@@ -13,6 +13,9 @@ import java.util.Objects;
 
 public class GetHomeMessageHandler extends HomeEndpointMessageHandler {
 
+    public GetHomeMessageHandler(HomeEndpoint homeEndpoint) {
+        super(Status.GET_HOME, homeEndpoint);
+    }
     public GetHomeMessageHandler(HomeEndpoint homeEndpoint, HomeEndpointMessageHandler successor) {
         super(Status.GET_HOME, homeEndpoint, successor);
     }

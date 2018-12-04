@@ -12,6 +12,11 @@ import de.sharknoon.slash.networking.sessions.LoginSessions;
 import java.util.Optional;
 
 public class LogoutMessageHandler extends HomeEndpointMessageHandler {
+
+    public LogoutMessageHandler(HomeEndpoint homeEndpoint) {
+        super(Status.LOGOUT, homeEndpoint);
+    }
+
     public LogoutMessageHandler(HomeEndpoint homeEndpoint, HomeEndpointMessageHandler successor) {
         super(Status.LOGOUT, homeEndpoint, successor);
     }

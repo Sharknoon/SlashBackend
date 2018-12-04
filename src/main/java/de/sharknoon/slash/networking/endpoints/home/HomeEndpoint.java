@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 @ServerEndpoint("/home")
 public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
 
-    private HomeEndpointMessageHandler firstHandler = new GetHomeMessageHandler(this, null);
+    private HomeEndpointMessageHandler firstHandler = new GetHomeMessageHandler(this);
     
     private static boolean isNotValidChatMessageContent(String content) {
         return content.length() <= 0 || content.length() >= 5000;
@@ -47,17 +47,17 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
     //Needs to stay public because of the endpoints
     public HomeEndpoint() {
         super(StatusAndSessionIDMessage.class);
-        firstHandler.appendSuccessorToLast(new GetUserMessageHandler(this, null));
-        firstHandler.appendSuccessorToLast(new LogoutMessageHandler(this, null));
-        firstHandler.appendSuccessorToLast(new GetChatMessageHandler(this, null));
-        firstHandler.appendSuccessorToLast(new AddProjectMessageHandler(this, null));
-        firstHandler.appendSuccessorToLast(new GetProjectMessageHandler(this, null));
-        firstHandler.appendSuccessorToLast(new GetUsersMessageHandler(this, null));
-        firstHandler.appendSuccessorToLast(new ModifyProjectUsersMessageHandler(this, null));
-        firstHandler.appendSuccessorToLast(new AddProjectMessageMessageHandler(this, null));
-        firstHandler.appendSuccessorToLast(new AddChatMessageMessageHandler(this, null));
-        firstHandler.appendSuccessorToLast(new NoneStatusMessageHandler(this, null));
-        firstHandler.appendSuccessorToLast(new NullStatusMessageHandler(this, null));
+        firstHandler.appendSuccessorToLast(new GetUserMessageHandler(this));
+        firstHandler.appendSuccessorToLast(new LogoutMessageHandler(this));
+        firstHandler.appendSuccessorToLast(new GetChatMessageHandler(this));
+        firstHandler.appendSuccessorToLast(new AddProjectMessageHandler(this));
+        firstHandler.appendSuccessorToLast(new GetProjectMessageHandler(this));
+        firstHandler.appendSuccessorToLast(new GetUsersMessageHandler(this));
+        firstHandler.appendSuccessorToLast(new ModifyProjectUsersMessageHandler(this));
+        firstHandler.appendSuccessorToLast(new AddProjectMessageMessageHandler(this));
+        firstHandler.appendSuccessorToLast(new AddChatMessageMessageHandler(this));
+        firstHandler.appendSuccessorToLast(new NoneStatusMessageHandler(this));
+        firstHandler.appendSuccessorToLast(new NullStatusMessageHandler(this));
     }
     
     @Override

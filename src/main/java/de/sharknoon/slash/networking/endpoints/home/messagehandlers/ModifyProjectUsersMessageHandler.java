@@ -14,6 +14,11 @@ import org.bson.types.ObjectId;
 import java.util.Optional;
 
 public final class ModifyProjectUsersMessageHandler extends HomeEndpointMessageHandler {
+
+    public ModifyProjectUsersMessageHandler(HomeEndpoint homeEndpoint) {
+        super(Status.MODIFY_PROJECT_USERS, homeEndpoint);
+    }
+
     public ModifyProjectUsersMessageHandler(HomeEndpoint homeEndpoint, HomeEndpointMessageHandler successor) {
         super(Status.MODIFY_PROJECT_USERS, homeEndpoint, successor);
     }

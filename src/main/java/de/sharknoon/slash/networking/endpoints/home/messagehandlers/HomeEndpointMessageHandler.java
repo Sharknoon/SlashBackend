@@ -11,6 +11,10 @@ public abstract class HomeEndpointMessageHandler {
     protected final HomeEndpoint homeEndpoint;
     protected HomeEndpointMessageHandler successor;
 
+
+    public HomeEndpointMessageHandler(final Status messageStatus, final HomeEndpoint homeEndpoint) {
+        this(messageStatus, homeEndpoint, null);
+    }
     public HomeEndpointMessageHandler(final Status messageStatus,
                                       final HomeEndpoint homeEndpoint,
                                       final HomeEndpointMessageHandler successor) {
@@ -18,6 +22,7 @@ public abstract class HomeEndpointMessageHandler {
         this.homeEndpoint = homeEndpoint;
         this.successor = successor;
     }
+
 
     public final void appendSuccessorToLast(final HomeEndpointMessageHandler newLastSuccessor) {
         if (successor == null) {

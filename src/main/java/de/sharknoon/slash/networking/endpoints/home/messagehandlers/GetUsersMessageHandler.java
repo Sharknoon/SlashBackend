@@ -12,6 +12,11 @@ import de.sharknoon.slash.serialisation.Serialisation;
 import java.util.Set;
 
 public class GetUsersMessageHandler extends HomeEndpointMessageHandler {
+
+    public GetUsersMessageHandler(HomeEndpoint homeEndpoint) {
+        super(Status.GET_USERS, homeEndpoint);
+    }
+
     public GetUsersMessageHandler(HomeEndpoint homeEndpoint, HomeEndpointMessageHandler successor) {
         super(Status.GET_USERS, homeEndpoint, successor);
     }

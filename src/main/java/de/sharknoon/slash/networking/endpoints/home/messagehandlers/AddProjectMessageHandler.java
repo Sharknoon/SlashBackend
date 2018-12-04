@@ -18,6 +18,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class AddProjectMessageHandler extends HomeEndpointMessageHandler {
+
+    public AddProjectMessageHandler(HomeEndpoint homeEndpoint) {
+        super(Status.ADD_PROJECT, homeEndpoint);
+    }
+
     public AddProjectMessageHandler(HomeEndpoint homeEndpoint, HomeEndpointMessageHandler successor) {
         super(Status.ADD_PROJECT, homeEndpoint, successor);
     }

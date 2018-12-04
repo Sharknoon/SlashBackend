@@ -17,6 +17,11 @@ import java.util.Optional;
 import java.util.Set;
 
 public class GetChatMessageHandler extends HomeEndpointMessageHandler {
+
+    public GetChatMessageHandler(HomeEndpoint homeEndpoint) {
+        super(Status.GET_CHAT, homeEndpoint);
+    }
+
     public GetChatMessageHandler(HomeEndpoint homeEndpoint, HomeEndpointMessageHandler successor) {
         super(Status.GET_CHAT, homeEndpoint, successor);
     }

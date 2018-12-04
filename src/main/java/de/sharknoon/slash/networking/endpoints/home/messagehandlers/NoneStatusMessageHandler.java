@@ -7,6 +7,11 @@ import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.Err
 import de.sharknoon.slash.networking.endpoints.home.messages.StatusAndSessionIDMessage;
 
 public class NoneStatusMessageHandler extends HomeEndpointMessageHandler {
+
+    public NoneStatusMessageHandler(HomeEndpoint homeEndpoint) {
+        super(Status.NONE, homeEndpoint);
+    }
+
     public NoneStatusMessageHandler(HomeEndpoint homeEndpoint, HomeEndpointMessageHandler successor) {
         super(Status.NONE, homeEndpoint, successor);
     }
