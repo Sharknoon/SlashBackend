@@ -6,6 +6,7 @@ public enum Values {
     USERS_COLLECTION("users"),
     PROJECTS_COLLECTION("projects"),
     CHATS_COLLECTION("chats"),
+    FILES_BUCKET("files"),
     
     //All collections
     COLLECTION_ID("_id"),
