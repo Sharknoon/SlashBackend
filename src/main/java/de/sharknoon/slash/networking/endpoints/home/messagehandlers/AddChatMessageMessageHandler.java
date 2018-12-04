@@ -4,7 +4,7 @@ import de.sharknoon.slash.database.DB;
 import de.sharknoon.slash.database.models.Chat;
 import de.sharknoon.slash.database.models.User;
 import de.sharknoon.slash.database.models.message.Message;
-import de.sharknoon.slash.networking.LoginSessions;
+import de.sharknoon.slash.networking.endpoints.Endpoint;
 import de.sharknoon.slash.networking.endpoints.home.HomeEndpoint;
 import de.sharknoon.slash.networking.endpoints.home.Status;
 import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.ChatResponse;
@@ -13,6 +13,7 @@ import de.sharknoon.slash.networking.endpoints.home.messages.AddChatMessageMessa
 import de.sharknoon.slash.networking.endpoints.home.messages.StatusAndSessionIDMessage;
 import de.sharknoon.slash.networking.pushy.PushStatus;
 import de.sharknoon.slash.networking.pushy.Pushy;
+import de.sharknoon.slash.networking.sessions.LoginSessions;
 import de.sharknoon.slash.serialisation.Serialisation;
 import org.bson.types.ObjectId;
 
@@ -65,10 +66,12 @@ public class AddChatMessageMessageHandler extends HomeEndpointMessageHandler {
                 ChatResponse cr = new ChatResponse();
                 cr.chat = c;
                 c.partnerUsername = partner.get().username;
-                LoginSessions.getSession(HomeEndpoint.class, user).ifPresent(session -> homeEndpoint.send(cr));
+                homeEndpoint.send(cr);
                 Pushy.sendPush(PushStatus.NEW_CHAT_MESSAGE, message1, user.username, partner.get());
                 c.partnerUsername = user.username;
-                LoginSessions.getSession(HomeEndpoint.class, partner.get()).ifPresent(session -> homeEndpoint.send(cr));
+                LoginSessions
+                        .getSession(HomeEndpoint.class, partner.get())
+                        .ifPresent(session -> Endpoint.sendTo(session, cr));
             }
         }
     }

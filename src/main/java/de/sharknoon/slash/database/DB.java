@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static com.mongodb.client.model.CollationStrength.SECONDARY;
 import static com.mongodb.client.model.Filters.*;
@@ -242,14 +243,17 @@ public class DB {
     
     public static Set<Project> getProjectsForUser(User u) {
         ObjectId userId = u.id;
-        return projects
+        HashSet<Project> projects = DB.projects
                 .find(
                         in(PROJECTS_COLLECTION_USERS.value, userId)
                 )
                 .into(new HashSet<>());
+        projects.forEach(DB::completeProject);
+        return projects;
     }
     
     public static void addProject(Project project) {
+        completeProject(project);
         try {
             projects.insertOne(project);
         } catch (Exception e) {
@@ -258,11 +262,13 @@ public class DB {
     }
     
     public static Optional<Project> getProject(ObjectId projectID) {
-        return Optional.ofNullable(
+        Optional<Project> project = Optional.ofNullable(
                 projects
                         .find(eq(COLLECTION_ID.value, projectID))
                         .first()
         );
+        project.ifPresent(DB::completeProject);
+        return project;
     }
     
     public static void addMessageToProject(Project project, Message message) {
@@ -377,5 +383,14 @@ public class DB {
                         .find(in(USERS_COLLECTION_SESSION_IDS.value, sessionID))
                         .first()
         );
+    }
+
+    private static void completeProject(Project p) {
+        p.usernames = p.users
+                .parallelStream()
+                .map(DB::getUser)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toSet());
     }
 }
