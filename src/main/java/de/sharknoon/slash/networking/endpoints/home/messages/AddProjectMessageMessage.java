@@ -1,6 +1,7 @@
 package de.sharknoon.slash.networking.endpoints.home.messages;
 
 import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
 import de.sharknoon.slash.networking.endpoints.home.Status;
 
 import java.util.Objects;
@@ -12,6 +13,7 @@ public class AddProjectMessageMessage extends AddMessageMessage {
     }
 
     @Expose
+    @SerializedName(value = "projectID", alternate = {"projectid", "projectId"})
     private String projectID = "";
 
     public String getProjectID() {

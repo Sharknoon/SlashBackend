@@ -414,7 +414,7 @@ public class DB {
 
     public static void addFile(File f) {
         try {
-            GridFSUploadStream uploadStream = files.openUploadStream(new BsonObjectId(f.id), f.id.toHexString());
+            GridFSUploadStream uploadStream = files.openUploadStream(new BsonObjectId(f.id), f.name);
             uploadStream.write(f.data);
             uploadStream.close();
         } catch (Exception ignored) {
@@ -424,6 +424,10 @@ public class DB {
     //
     // MISC
     //
+
+    private static void completeChat(Chat c) {
+
+    }
 
     private static void completeProject(Project p) {
         p.usernames = p.users
