@@ -9,7 +9,8 @@ public class File {
     @BsonId
     @Expose
     public ObjectId id = new ObjectId();
-
+    @Expose
+    public String name = id.toHexString();
     @Expose
     public byte[] data = new byte[0];
 
