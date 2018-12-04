@@ -28,6 +28,7 @@ public abstract class Endpoint<M> {
             Files.createDirectories(logFilePath.getParent());
             Files.deleteIfExists(logFilePath);
             fh = new FileHandler(logFilePath.toString());
+            fh.setLevel(Level.WARNING);
             Logger.getGlobal().addHandler(fh);
             fh.setFormatter(new SimpleFormatter());
         } catch (Exception e) {
