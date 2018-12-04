@@ -2,6 +2,7 @@ package de.sharknoon.slash.networking.sessions;
 
 import de.sharknoon.slash.database.models.User;
 import de.sharknoon.slash.networking.endpoints.Endpoint;
+import de.sharknoon.slash.networking.endpoints.file.FileEndpoint;
 import de.sharknoon.slash.networking.endpoints.home.HomeEndpoint;
 import de.sharknoon.slash.networking.endpoints.login.LoginEndpoint;
 import de.sharknoon.slash.networking.endpoints.register.RegisterEndpoint;
@@ -14,6 +15,7 @@ class LoginSession {
     private Session loginSession = null;
     private Session registerSession = null;
     private Session homeSession = null;
+    private Session fileSession = null;
 
     LoginSession(String deviceID, User user) {
         this.deviceID = deviceID;
@@ -27,6 +29,8 @@ class LoginSession {
             return loginSession;
         } else if (endpoint == RegisterEndpoint.class) {
             return registerSession;
+        } else if (endpoint == FileEndpoint.class) {
+            return fileSession;
         }
         return null;
     }
@@ -39,6 +43,8 @@ class LoginSession {
             loginSession = session;
         } else if (endpoint == RegisterEndpoint.class) {
             registerSession = session;
+        } else if (endpoint == FileEndpoint.class) {
+            fileSession = session;
         }
     }
 
@@ -60,5 +66,9 @@ class LoginSession {
 
     Session getHomeSession() {
         return homeSession;
+    }
+
+    Session getFileSession() {
+        return fileSession;
     }
 }

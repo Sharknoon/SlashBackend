@@ -42,6 +42,10 @@ public class LoginSessions {
                 if (registerSession != null) {
                     registerSession.close();
                 }
+                Session fileSession = remove.getFileSession();
+                if (fileSession != null) {
+                    fileSession.close();
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
