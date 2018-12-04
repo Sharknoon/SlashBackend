@@ -62,6 +62,7 @@ public class AddProjectMessageMessageHandler extends HomeEndpointMessageHandler 
             LoginSessions.getSessions(HomeEndpoint.class, p.usernames).forEach(session -> Endpoint.sendTo(session, pr));
             //Dont want to send the push notification to myself
             Set<User> usersWithoutSender = new HashSet<>(p.usernames);
+            usersWithoutSender.remove(user);
             Pushy.sendPush(PushStatus.NEW_PROJECT_MESSAGE, message1, user.username, usersWithoutSender);
         }
     }
