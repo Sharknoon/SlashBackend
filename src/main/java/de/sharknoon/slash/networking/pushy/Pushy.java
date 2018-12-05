@@ -5,23 +5,24 @@ import de.sharknoon.slash.database.models.message.Message;
 
 import java.util.*;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class Pushy {
     
-    public static void sendPush(PushStatus status, Message message, String from, User... to) {
-        sendPush(status, message, from, Arrays.asList(to));
+    public static void sendPush(PushStatus status, String chatOrProjectID, Message message, String from, User... to) {
+        sendPush(status, chatOrProjectID, message, from, Arrays.asList(to));
     }
     
-    public static void sendPush(PushStatus status, Message message, String from, Collection<User> users) {
+    public static void sendPush(PushStatus status, String chatOrProjectID, Message message, String from, Collection<User> users) {
         // Prepare list of target device tokens
-        String[] to = users
+        List<String> to = users
                 .parallelStream()
                 .map(u -> u.deviceIDs)
                 .flatMap(Collection::stream)
-                .toArray(String[]::new);
-    
+                .collect(Collectors.toList());
+        
         //If we dont have any receiver, abort
-        if (to.length <= 0) {
+        if (to.isEmpty()) {
             return;
         }
         
@@ -29,6 +30,7 @@ public class Pushy {
         Map<String, Object> payload = new HashMap<>();
         
         payload.put("status", status.name());
+        payload.put("id", chatOrProjectID);
         payload.put("type", message.type.name());
         payload.put("from", from);
         switch (message.type) {

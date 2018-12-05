@@ -2,22 +2,27 @@ package de.sharknoon.slash.networking.pushy;
 
 import com.google.gson.annotations.Expose;
 
+import java.util.*;
+
 class PushyPushRequest {
     @Expose
-    private final Object to;
+    private final List<String> to;
     @Expose
-    private final Object data;
+    private final Map<String, Object> data;
+    //One Week of time-to-live in seconds
+    @Expose
+    private final int time_to_live = 60 * 60 * 24 * 7;
     
-    PushyPushRequest(Object data, Object to) {
+    PushyPushRequest(Map<String, Object> data, List<String> to) {
         this.to = to;
         this.data = data;
     }
     
-    Object getTo() {
+    List<String> getTo() {
         return to;
     }
     
-    Object getData() {
+    Map<String, Object> getData() {
         return data;
     }
 }

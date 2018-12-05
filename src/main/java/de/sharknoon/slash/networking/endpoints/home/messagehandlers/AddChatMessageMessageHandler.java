@@ -1,35 +1,29 @@
 package de.sharknoon.slash.networking.endpoints.home.messagehandlers;
 
 import de.sharknoon.slash.database.DB;
-import de.sharknoon.slash.database.models.Chat;
-import de.sharknoon.slash.database.models.User;
+import de.sharknoon.slash.database.models.*;
 import de.sharknoon.slash.database.models.message.Message;
 import de.sharknoon.slash.networking.endpoints.Endpoint;
-import de.sharknoon.slash.networking.endpoints.home.HomeEndpoint;
-import de.sharknoon.slash.networking.endpoints.home.Status;
-import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.ChatResponse;
-import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.ErrorResponse;
-import de.sharknoon.slash.networking.endpoints.home.messages.AddChatMessageMessage;
-import de.sharknoon.slash.networking.endpoints.home.messages.StatusAndSessionIDMessage;
-import de.sharknoon.slash.networking.pushy.PushStatus;
-import de.sharknoon.slash.networking.pushy.Pushy;
+import de.sharknoon.slash.networking.endpoints.home.*;
+import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.*;
+import de.sharknoon.slash.networking.endpoints.home.messages.*;
+import de.sharknoon.slash.networking.pushy.*;
 import de.sharknoon.slash.networking.sessions.LoginSessions;
 import de.sharknoon.slash.serialisation.Serialisation;
 import org.bson.types.ObjectId;
 
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 public class AddChatMessageMessageHandler extends HomeEndpointMessageHandler {
-
+    
     public AddChatMessageMessageHandler(HomeEndpoint homeEndpoint) {
         super(Status.ADD_CHAT_MESSAGE, homeEndpoint);
     }
-
+    
     public AddChatMessageMessageHandler(HomeEndpoint homeEndpoint, HomeEndpointMessageHandler successor) {
         super(Status.ADD_CHAT_MESSAGE, homeEndpoint, successor);
     }
-
+    
     @Override
     public void messageLogic(StatusAndSessionIDMessage message, User user) {
         AddChatMessageMessage addChatMessageMessage = Serialisation.getGSON().fromJson(homeEndpoint.getLastMessage(), AddChatMessageMessage.class);
@@ -66,13 +60,13 @@ public class AddChatMessageMessageHandler extends HomeEndpointMessageHandler {
                 if (optionalMessage.isEmpty()) {
                     return;
                 }
-                Message message1 = optionalMessage.get();
-                DB.addMessageToChat(c, message1);
+                Message m = optionalMessage.get();
+                DB.addMessageToChat(c, m);
                 ChatResponse cr = new ChatResponse();
                 cr.chat = c;
                 c.partnerUsername = partner.get().username;
                 homeEndpoint.send(cr);
-                Pushy.sendPush(PushStatus.NEW_CHAT_MESSAGE, message1, user.username, partner.get());
+                Pushy.sendPush(PushStatus.NEW_CHAT_MESSAGE, c.id.toHexString(), m, user.username, partner.get());
                 c.partnerUsername = user.username;
                 LoginSessions
                         .getSession(HomeEndpoint.class, partner.get())

@@ -13,4 +13,15 @@
     <description>The one and only glory backend for Slash</description>
     <display-name>Slash Backend</display-name>
 
+    <context-param>
+        <param-name>org.apache.tomcat.websocket.textBufferSize</param-name>
+        <!-- 32KB -->
+        <param-value>32768</param-value>
+    </context-param>
+    <context-param>
+        <param-name>org.apache.tomcat.websocket.binaryBufferSize</param-name>
+        <!-- 4MB -->
+        <param-value>4194304</param-value>
+    </context-param>
+
 </web-app>
