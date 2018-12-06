@@ -9,22 +9,17 @@ import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.Err
 import de.sharknoon.slash.networking.endpoints.home.messages.*;
 import de.sharknoon.slash.networking.sessions.LoginSessions;
 import de.sharknoon.slash.properties.Properties;
-import de.sharknoon.slash.utils.MimeTypeHelper;
 import org.bson.types.ObjectId;
 
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
-import java.io.IOException;
-import java.net.*;
-import java.nio.file.*;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @ServerEndpoint("/home")
 public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
-
+    
     private HomeEndpointMessageHandler firstHandler = new GetHomeMessageHandler(this);
     
     private static boolean isNotValidChatMessageContent(String content) {
@@ -56,27 +51,23 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
     }
     
     @Override
-    protected void onMessage(Session session, StatusAndSessionIDMessage message) {
-        Optional<User> user = LoginSessions.getUser(message.getSessionid());
-        
-        if (user.isEmpty()) {//User not already logged in since the last server restart
-            user = DB.getUserBySessionID(message.getSessionid());
-            
-            if (user.isEmpty()) {//User was never logged in
-                send("{\"status\":\"NO_LOGIN_OR_TOO_MUCH_DEVICES\"," +
-                        "\"messageType\":\"You are either not logged in or using more than " +
-                        Properties.getUserConfig().maxdevices() + " devices\"}");
-                return;
-            }
+    protected void onTextMessage(Session session, StatusAndSessionIDMessage message) {
+        Optional<User> optionalUser = LoginSessions.isLoggedIn(message.getSessionid(), session);
+        if (optionalUser.isEmpty()) {
+            send("{\"status\":\"NO_LOGIN_OR_TOO_MUCH_DEVICES\"," +
+                    "\"messageType\":\"You are either not logged in or using more than " +
+                    Properties.getUserConfig().maxdevices() + " devices\"}");
+            return;
         }
-        LoginSessions.addSession(user.get(), message.getSessionid(), null, HomeEndpoint.class, session);
-        handleLogic(message, user.get());
+    
+        firstHandler.handleMessage(message, optionalUser.get());
     }
     
-    private void handleLogic(StatusAndSessionIDMessage message, User user) {
-        firstHandler.handleMessage(message, user);
+    @Override
+    protected void onBinaryMessage(Session session, byte[] binary) {
+        //Dont expect any binary messages
     }
-
+    
     public Set<ObjectId> getAllExistingUserIDs(final List<String> userIDs) {
         return userIDs.parallelStream()
                 .filter(ObjectId::isValid)
@@ -87,7 +78,7 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
                 .map(u -> u.id)
                 .collect(Collectors.toSet());
     }
-
+    
     public Optional<Message> fillMessage(AddMessageMessage messageFromClient, User sender, boolean isChat) {
         String communicationType = isChat ? "CHAT" : "PROJECT";
         Message newMessage = new Message();
@@ -128,39 +119,40 @@ public class HomeEndpoint extends Endpoint<StatusAndSessionIDMessage> {
                 newMessage.sender = sender.id;
                 return Optional.of(newMessage);
             case IMAGE:
-                //TODO: Save image on server, generate url, send url
-                Base64.Decoder decoder = Base64.getDecoder();
-                final String[] messageImageSplit = messageFromClient.getMessageImage().split("base64,");
-                final String imageMime = messageImageSplit[0];
-                final String imageContent = messageImageSplit[1];
-                final byte[] imageData = decoder.decode(imageContent);
-                try {
-                    if (!MimeTypeHelper.hasValidMimeType(imageMime)) {
-                        // ToDo: Return error
-                        ErrorResponse error = new ErrorResponse();
-                        error.status = "NOT_A_VALID_IMAGE";
-                        error.description = "The image has not a valid mime type: " + imageMime + ". Should be one of: " + MimeTypeHelper.validMimeTypes.keySet().toString();
-                        send(error);
-                        return Optional.empty();
-    
-                    }
-                    final String imageName = UUID.randomUUID().toString();
-                    final String extension = MimeTypeHelper.getExtension(imageMime);
-                    final String imageFullName = imageName + "." + extension;
-                    final Path imageDirectory = Paths.get("").toAbsolutePath().getParent().resolve("webapps").resolve("slash").resolve("img");
-                    Files.createDirectories(imageDirectory);
-                    final Path imagePath = imageDirectory.resolve(imageFullName);
-                    Files.write(imagePath, imageData);
-    
-                    String baseURL = "";
-                    newMessage.imageUrl = new URL(baseURL + "img/" + imageFullName);
-                } catch (MalformedURLException e) {
-                    Logger.getGlobal().warning("Image has no correct URL " + e);
-                } catch (IOException e) {
-                    Logger.getGlobal().warning("Could not read or write Image! " + e);
-                    e.printStackTrace();
-                }
-                return Optional.of(newMessage);
+//                //TODO: Save image on server, generate url, send url
+//                Base64.Decoder decoder = Base64.getDecoder();
+//                final String[] messageImageSplit = messageFromClient.getMessageImage().split("base64,");
+//                final String imageMime = messageImageSplit[0];
+//                final String imageContent = messageImageSplit[1];
+//                final byte[] imageData = decoder.decode(imageContent);
+//                try {
+//                    if (!MimeTypeHelper.hasValidMimeType(imageMime)) {
+//                        // ToDo: Return error
+//                        ErrorResponse error = new ErrorResponse();
+//                        error.status = "NOT_A_VALID_IMAGE";
+//                        error.description = "The image has not a valid mime type: " + imageMime + ". Should be one of: " + MimeTypeHelper.validMimeTypes.keySet().toString();
+//                        send(error);
+//                        return Optional.empty();
+//
+//                    }
+//                    final String imageName = UUID.randomUUID().toString();
+//                    final String extension = MimeTypeHelper.getExtension(imageMime);
+//                    final String imageFullName = imageName + "." + extension;
+//                    final Path imageDirectory = Paths.get("").toAbsolutePath().getParent().resolve("webapps").resolve("slash").resolve("img");
+//                    Files.createDirectories(imageDirectory);
+//                    final Path imagePath = imageDirectory.resolve(imageFullName);
+//                    Files.write(imagePath, imageData);
+//
+//                    String baseURL = "";
+//                    newMessage.imageUrl = new URL(baseURL + "img/" + imageFullName);
+//                } catch (MalformedURLException e) {
+//                    Logger.getGlobal().warning("Image has no correct URL " + e);
+//                } catch (IOException e) {
+//                    Logger.getGlobal().warning("Could not read or write Image! " + e);
+//                    e.printStackTrace();
+//                }
+//                return Optional.of(newMessage);
+                break;
             case NONE:
                 //The chat message type is invalid
                 ErrorResponse error = new ErrorResponse();

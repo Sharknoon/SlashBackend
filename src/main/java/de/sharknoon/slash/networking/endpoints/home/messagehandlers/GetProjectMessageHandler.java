@@ -1,14 +1,10 @@
 package de.sharknoon.slash.networking.endpoints.home.messagehandlers;
 
 import de.sharknoon.slash.database.DB;
-import de.sharknoon.slash.database.models.Project;
-import de.sharknoon.slash.database.models.User;
-import de.sharknoon.slash.networking.endpoints.home.HomeEndpoint;
-import de.sharknoon.slash.networking.endpoints.home.Status;
-import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.ErrorResponse;
-import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.ProjectResponse;
-import de.sharknoon.slash.networking.endpoints.home.messages.GetProjectMessage;
-import de.sharknoon.slash.networking.endpoints.home.messages.StatusAndSessionIDMessage;
+import de.sharknoon.slash.database.models.*;
+import de.sharknoon.slash.networking.endpoints.home.*;
+import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.*;
+import de.sharknoon.slash.networking.endpoints.home.messages.*;
 import de.sharknoon.slash.serialisation.Serialisation;
 import org.bson.types.ObjectId;
 
@@ -26,7 +22,7 @@ public class GetProjectMessageHandler extends HomeEndpointMessageHandler {
 
     @Override
     public void messageLogic(StatusAndSessionIDMessage message, User user) {
-        GetProjectMessage getProjectMessage = Serialisation.getGSON().fromJson(homeEndpoint.getLastMessage(), GetProjectMessage.class);
+        GetProjectMessage getProjectMessage = Serialisation.getGSON().fromJson(homeEndpoint.getLastTextMessage(), GetProjectMessage.class);
         if (!ObjectId.isValid(getProjectMessage.getProjectID())) {
             ErrorResponse error = new ErrorResponse();
             error.status = "WRONG_PROJECT_ID";

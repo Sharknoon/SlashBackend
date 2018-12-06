@@ -3,7 +3,6 @@ package de.sharknoon.slash.networking.endpoints.home.messagehandlers;
 import de.sharknoon.slash.database.DB;
 import de.sharknoon.slash.database.models.*;
 import de.sharknoon.slash.database.models.message.Message;
-import de.sharknoon.slash.networking.endpoints.Endpoint;
 import de.sharknoon.slash.networking.endpoints.home.*;
 import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.*;
 import de.sharknoon.slash.networking.endpoints.home.messages.*;
@@ -26,7 +25,7 @@ public class AddProjectMessageMessageHandler extends HomeEndpointMessageHandler 
     
     @Override
     public void messageLogic(StatusAndSessionIDMessage message, User user) {
-        AddProjectMessageMessage addProjectMessageMessage = Serialisation.getGSON().fromJson(homeEndpoint.getLastMessage(), AddProjectMessageMessage.class);
+        AddProjectMessageMessage addProjectMessageMessage = Serialisation.getGSON().fromJson(homeEndpoint.getLastTextMessage(), AddProjectMessageMessage.class);
         Optional<Project> project;
         if (!ObjectId.isValid(addProjectMessageMessage.getProjectID())) {
             //wrong chat id syntax
@@ -52,7 +51,7 @@ public class AddProjectMessageMessageHandler extends HomeEndpointMessageHandler 
             //Project specific, send to every user of the project
             ProjectResponse pr = new ProjectResponse();
             pr.project = p;
-            LoginSessions.getSessions(HomeEndpoint.class, p.usernames).forEach(session -> Endpoint.sendTo(session, pr));
+            LoginSessions.getSessions(HomeEndpoint.class, p.usernames).forEach(session -> homeEndpoint.sendTo(session, pr));
             //Dont want to send the push notification to myself
             Set<User> usersWithoutSender = new HashSet<>(p.usernames);
             usersWithoutSender.remove(user);

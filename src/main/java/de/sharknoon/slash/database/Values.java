@@ -21,8 +21,7 @@ public enum Values {
 //    USERS_COLLECTION_SALT("salt"),
 //    USERS_COLLECTION_REGISTRATION_DATE("registrationDate"),
 // --Commented out by Inspection STOP (14.11.2018 13:35)
-    USERS_COLLECTION_SESSION_IDS("sessionIDs"),
-    USERS_COLLECTION_DEVICE_IDS("deviceIDs"),
+    USERS_COLLECTION_IDS("ids"),
     
     // --Commented out by Inspection START (14.11.2018 13:35):
 //    //Collection projects

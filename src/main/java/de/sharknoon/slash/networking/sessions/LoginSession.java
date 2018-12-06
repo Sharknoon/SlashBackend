@@ -10,15 +10,13 @@ import de.sharknoon.slash.networking.endpoints.register.RegisterEndpoint;
 import javax.websocket.Session;
 
 class LoginSession {
-    private final String deviceID;
     private final User user;
     private Session loginSession = null;
     private Session registerSession = null;
     private Session homeSession = null;
     private Session fileSession = null;
-
-    LoginSession(String deviceID, User user) {
-        this.deviceID = deviceID;
+    
+    LoginSession(User user) {
         this.user = user;
     }
 
@@ -50,10 +48,6 @@ class LoginSession {
 
     User getUser() {
         return user;
-    }
-
-    String getDeviceID() {
-        return deviceID;
     }
 
     Session getLoginSession() {

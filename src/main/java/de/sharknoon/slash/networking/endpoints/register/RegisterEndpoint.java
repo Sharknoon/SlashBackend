@@ -8,7 +8,7 @@ import org.springframework.security.crypto.bcrypt.BCrypt;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 import java.time.LocalDateTime;
-import java.util.Set;
+import java.util.Map;
 
 @ServerEndpoint("/register")
 public class RegisterEndpoint extends Endpoint<RegisterMessage> {
@@ -36,8 +36,7 @@ public class RegisterEndpoint extends Endpoint<RegisterMessage> {
         user.password = message.getPassword();
         user.salt = salt;
         user.registrationDate = registrationDate;
-        user.sessionIDs = Set.of();
-        user.deviceIDs = Set.of();
+        user.ids = Map.of();
         
         return DB.register(user);
     }
@@ -56,7 +55,7 @@ public class RegisterEndpoint extends Endpoint<RegisterMessage> {
     }
     
     @Override
-    protected void onMessage(Session session, RegisterMessage message) {
+    protected void onTextMessage(Session session, RegisterMessage message) {
         String returnMessage;
     
         if (DB.existsUsername(message.getUsername())) {
@@ -74,6 +73,11 @@ public class RegisterEndpoint extends Endpoint<RegisterMessage> {
         }
         
         session.getAsyncRemote().sendText(returnMessage);
+    }
+    
+    @Override
+    protected void onBinaryMessage(Session session, byte[] binary) {
+        //Dont expect any binary messages
     }
     
 }

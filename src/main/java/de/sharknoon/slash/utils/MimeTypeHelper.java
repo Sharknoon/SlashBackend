@@ -1,38 +1,38 @@
 package de.sharknoon.slash.utils;
 
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 
 public final class MimeTypeHelper {
-    public static final Map<String, String> validMimeTypes = Map.of(
-            "image/jpeg", "jpg",
-            "image/png", "png",
-            "image/gif", "gif"
+    private static final Map<String, String> validMimeTypes = Map.of(
+            "data:image/jpeg", "jpg",
+            "data:image/png", "png",
+            "data:image/gif", "gif"
     );
-
-    private MimeTypeHelper() {
+    
+    public static Optional<String> getMimeType(final String data) {
+        String d = data.trim();
+        return validMimeTypes.keySet().stream().filter(d::startsWith).findAny();
     }
-
-    public static boolean hasValidMimeType(final String str) {
-        return validMimeTypes.keySet().stream().anyMatch(str::contains);
+    
+    
+    public static boolean isValidMimeType(final String data) {
+        String d = data.trim();
+        return validMimeTypes.keySet().stream().anyMatch(d::startsWith);
     }
-
-    public static String getMimeType(String data) {
-        return validMimeTypes.keySet().stream().filter(data::contains).findAny().orElse("");
-    }
-
+    
     public static String getExtensionForMimeType(final String mimeType) {
         return validMimeTypes.get(mimeType);
     }
-
-    public static String getExtension(final String data) {
+    
+    public static Optional<String> getExtension(final String data) {
+        String d = data.trim();
         return validMimeTypes
                 .entrySet()
                 .stream()
-                .filter(e -> data.contains(e.getKey()))
+                .filter(e -> d.startsWith(e.getKey()))
                 .map(Entry::getValue)
-                .findAny()
-                .orElse("");
+                .findAny();
     }
-
+    
 }

@@ -25,7 +25,7 @@ public class LoginEndpoint extends Endpoint<LoginMessage> {
     }
     
     @Override
-    protected void onMessage(Session session, LoginMessage message) {
+    protected void onTextMessage(Session session, LoginMessage message) {
         String returnMessage;
         Optional<User> optionalUser = Optional.empty();
         
@@ -58,19 +58,19 @@ public class LoginEndpoint extends Endpoint<LoginMessage> {
             String deviceID = (String) session.getUserProperties().get(DEVICE);
             User user = (User) session.getUserProperties().get(USER);
     
-            while (user.sessionIDs.size() >= Properties.getUserConfig().maxdevices()) {
-                user.sessionIDs.remove(user.sessionIDs.iterator().next());
+            while (user.ids.size() >= Properties.getUserConfig().maxdevices()) {
+                user.ids.remove(user.ids.keySet().iterator().next());
             }
-            user.sessionIDs.add(sessionID);
-            DB.addSessionID(user, sessionID);
-            LoginSessions.addSession(user, sessionID, deviceID, LoginEndpoint.class, session);
+            user.ids.put(deviceID, sessionID);
+            DB.registerDeviceID(user, deviceID, sessionID);
     
-            while (user.deviceIDs.size() >= Properties.getUserConfig().maxdevices()) {
-                user.deviceIDs.remove(user.deviceIDs.iterator().next());
-            }
-            user.deviceIDs.add(deviceID);
-            DB.addDeviceID(user, deviceID);
+            LoginSessions.addSession(user, sessionID, LoginEndpoint.class, session);
         }
+    }
+    
+    @Override
+    protected void onBinaryMessage(Session session, byte[] binary) {
+        //Dont expect any binary messages
     }
     
     private Optional<User> login(LoginMessage message) {

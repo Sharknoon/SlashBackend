@@ -1,20 +1,15 @@
 package de.sharknoon.slash.networking.endpoints.home.messagehandlers;
 
 import de.sharknoon.slash.database.DB;
-import de.sharknoon.slash.database.models.Chat;
-import de.sharknoon.slash.database.models.User;
-import de.sharknoon.slash.networking.endpoints.home.HomeEndpoint;
-import de.sharknoon.slash.networking.endpoints.home.Status;
-import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.ChatResponse;
-import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.ErrorResponse;
-import de.sharknoon.slash.networking.endpoints.home.messages.GetChatMessage;
-import de.sharknoon.slash.networking.endpoints.home.messages.StatusAndSessionIDMessage;
+import de.sharknoon.slash.database.models.*;
+import de.sharknoon.slash.networking.endpoints.home.*;
+import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.*;
+import de.sharknoon.slash.networking.endpoints.home.messages.*;
 import de.sharknoon.slash.serialisation.Serialisation;
 import org.bson.types.ObjectId;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 public class GetChatMessageHandler extends HomeEndpointMessageHandler {
 
@@ -28,7 +23,7 @@ public class GetChatMessageHandler extends HomeEndpointMessageHandler {
 
     @Override
     public void messageLogic(StatusAndSessionIDMessage message, User user) {
-        GetChatMessage getChatMessage = Serialisation.getGSON().fromJson(homeEndpoint.getLastMessage(), GetChatMessage.class);
+        GetChatMessage getChatMessage = Serialisation.getGSON().fromJson(homeEndpoint.getLastTextMessage(), GetChatMessage.class);
         if (!ObjectId.isValid(getChatMessage.getPartnerUserID())) {
             ErrorResponse error = new ErrorResponse();
             error.status = "WRONG_USER_ID";

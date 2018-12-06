@@ -3,7 +3,6 @@ package de.sharknoon.slash.networking.endpoints.home.messagehandlers;
 import de.sharknoon.slash.database.DB;
 import de.sharknoon.slash.database.models.*;
 import de.sharknoon.slash.database.models.message.Message;
-import de.sharknoon.slash.networking.endpoints.Endpoint;
 import de.sharknoon.slash.networking.endpoints.home.*;
 import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.*;
 import de.sharknoon.slash.networking.endpoints.home.messages.*;
@@ -26,7 +25,7 @@ public class AddChatMessageMessageHandler extends HomeEndpointMessageHandler {
     
     @Override
     public void messageLogic(StatusAndSessionIDMessage message, User user) {
-        AddChatMessageMessage addChatMessageMessage = Serialisation.getGSON().fromJson(homeEndpoint.getLastMessage(), AddChatMessageMessage.class);
+        AddChatMessageMessage addChatMessageMessage = Serialisation.getGSON().fromJson(homeEndpoint.getLastTextMessage(), AddChatMessageMessage.class);
         Optional<Chat> chat;
         if (!ObjectId.isValid(addChatMessageMessage.getChatID())) {
             //wrong chat id syntax
@@ -70,7 +69,7 @@ public class AddChatMessageMessageHandler extends HomeEndpointMessageHandler {
                 c.partnerUsername = user.username;
                 LoginSessions
                         .getSession(HomeEndpoint.class, partner.get())
-                        .ifPresent(session -> Endpoint.sendTo(session, cr));
+                        .ifPresent(session -> homeEndpoint.sendTo(session, cr));
             }
         }
     }

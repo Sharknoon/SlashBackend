@@ -17,8 +17,8 @@ public class Pushy {
         // Prepare list of target device tokens
         List<String> to = users
                 .parallelStream()
-                .map(u -> u.deviceIDs)
-                .flatMap(Collection::stream)
+                .map(u -> u.ids)
+                .flatMap(m -> m.keySet().stream())
                 .collect(Collectors.toList());
         
         //If we dont have any receiver, abort

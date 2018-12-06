@@ -4,19 +4,19 @@ import com.google.gson.JsonSyntaxException;
 import de.sharknoon.slash.serialisation.Serialisation;
 
 import javax.websocket.*;
-import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
 import java.util.logging.*;
 
-public abstract class Endpoint<M> {
+public abstract class Endpoint<M> implements Sendable {
     
     //The class of the messages e.g. RegisterMessage or LoginMessage
     private final Class<M> messageClass;
     //The type of the extending class of this class e.g. LoginEndpoint or RegisterEndpoint
     private final Class<? extends Endpoint> endpointClass;
     //The last message in case the provided Object doesnt contain specific fields
-    private String lastMessage = "";
+    private String lastTextMessage = "";
     //The current Session for easy send(...) calls
     private Session session;
     
@@ -41,7 +41,8 @@ public abstract class Endpoint<M> {
         this.endpointClass = getClass();
     }
     
-    private static String toJSON(Object o) {
+    @Override
+    public String serialize(Object o) {
         try {
             return Serialisation.getGSON().toJson(o);
         } catch (Exception e) {
@@ -50,11 +51,9 @@ public abstract class Endpoint<M> {
         }
     }
     
-    
-    private static void sendTo(Session session, String json) {
-        if (session != null) {
-            session.getAsyncRemote().sendText(json);
-        }
+    @Override
+    public Session getSession() {
+        return session;
     }
     
     @OnOpen
@@ -67,7 +66,10 @@ public abstract class Endpoint<M> {
     }
     
     //To be implemented
-    protected abstract void onMessage(Session session, M message);
+    protected abstract void onTextMessage(Session session, M message);
+    
+    //To be implemented
+    protected abstract void onBinaryMessage(Session session, byte[] binary);
     
     @OnClose
     public void onClose(Session session, CloseReason closeReason) {
@@ -91,44 +93,14 @@ public abstract class Endpoint<M> {
         );
     }
     
-    public static void sendTo(Session session, Object o) {
-        sendTo(session, toJSON(o));
-    }
-    
-    
-    protected void send(String json) {
-        if (session != null) {
-            sendTo(session, json);
-        }
-    }
-    
-    public void send(Object o) {
-        send(toJSON(o));
-    }
-    
-    @SuppressWarnings("WeakerAccess")
-    protected void sendSync(String json) {
-        if (session != null) {
-            try {
-                session.getBasicRemote().sendText(json);
-            } catch (IOException e) {
-                Logger.getGlobal().log(Level.SEVERE, "Could not send message", e);
-            }
-        }
-    }
-    
-    public void sendSync(Object o) {
-        sendSync(toJSON(o));
-    }
-    
     @OnMessage
-    public final void onMessage(Session session, String message) {
+    public final void onTMessage(Session session, String message) {
         Logger.getGlobal().info(session.getId() + ": " + message);
         this.session = session;
-        this.lastMessage = message;
+        this.lastTextMessage = message;
         try {
             M messageObject = Serialisation.getGSON().fromJson(message, messageClass);
-            onMessage(
+            onTextMessage(
                     session,
                     messageObject
             );
@@ -139,8 +111,24 @@ public abstract class Endpoint<M> {
         }
     }
     
-    public String getLastMessage() {
-        return lastMessage;
+    @OnMessage
+    public final void onBMessage(Session session, byte[] binary) {
+        Logger.getGlobal().info(session.getId() + ": Binary");
+        this.session = session;
+        try {
+            onBinaryMessage(session, binary);
+        } catch (Exception e) {
+            onError(session, "Internal server error occurred");
+        }
+    }
+    
+    @OnMessage
+    public final void onPMessage(Session session, PongMessage pong) {
+        Logger.getGlobal().info("PONG MESSAGE: " + StandardCharsets.UTF_8.decode(pong.getApplicationData()).toString());
+    }
+    
+    public String getLastTextMessage() {
+        return lastTextMessage;
     }
     
     private static class OpeningMessage {
@@ -158,6 +146,7 @@ public abstract class Endpoint<M> {
             return className;
         }
     }
+    
     
     private static class ErrorMessage {
         private static final String JSON = "{\"status\":\"ERROR\",\"message\":\"$\"}";

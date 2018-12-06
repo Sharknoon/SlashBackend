@@ -117,7 +117,7 @@ public class TestSession implements Session {
             
             @Override
             public void sendText(String text, SendHandler handler) {
-            
+                resultConsumer.accept(text);
             }
             
             @Override

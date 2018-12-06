@@ -2,10 +2,8 @@ package de.sharknoon.slash.networking.endpoints.home.messagehandlers;
 
 import de.sharknoon.slash.database.DB;
 import de.sharknoon.slash.database.models.User;
-import de.sharknoon.slash.networking.endpoints.home.HomeEndpoint;
-import de.sharknoon.slash.networking.endpoints.home.Status;
-import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.ErrorResponse;
-import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.LogoutResponse;
+import de.sharknoon.slash.networking.endpoints.home.*;
+import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.*;
 import de.sharknoon.slash.networking.endpoints.home.messages.StatusAndSessionIDMessage;
 import de.sharknoon.slash.networking.sessions.LoginSessions;
 
@@ -33,8 +31,7 @@ public class LogoutMessageHandler extends HomeEndpointMessageHandler {
             homeEndpoint.send(error);
         } else {
             String deviceID = optionalDeviceID.get();
-            DB.removeSessionID(user, sessionID);
-            DB.removeDeviceID(user, deviceID);
+            DB.unregisterDeviceID(user, deviceID);
             homeEndpoint.sendSync(new LogoutResponse());
             LoginSessions.removeSession(sessionID);
         }

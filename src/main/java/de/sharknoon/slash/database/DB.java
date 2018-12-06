@@ -1,37 +1,21 @@
 package de.sharknoon.slash.database;
 
-import com.mongodb.MongoClientSettings;
-import com.mongodb.MongoCredential;
-import com.mongodb.ServerAddress;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.gridfs.GridFSBucket;
-import com.mongodb.client.gridfs.GridFSBuckets;
-import com.mongodb.client.gridfs.GridFSDownloadStream;
-import com.mongodb.client.gridfs.GridFSUploadStream;
-import com.mongodb.client.model.Collation;
-import com.mongodb.client.model.PushOptions;
-import de.sharknoon.slash.database.models.Chat;
-import de.sharknoon.slash.database.models.File;
-import de.sharknoon.slash.database.models.Project;
-import de.sharknoon.slash.database.models.User;
+import com.mongodb.*;
+import com.mongodb.client.*;
+import com.mongodb.client.gridfs.*;
+import com.mongodb.client.model.*;
+import de.sharknoon.slash.database.models.*;
 import de.sharknoon.slash.database.models.message.Message;
-import de.sharknoon.slash.properties.DBConfig;
 import de.sharknoon.slash.properties.Properties;
+import de.sharknoon.slash.properties.*;
 import de.sharknoon.slash.utils.JavaURLCodec;
 import org.bson.BsonObjectId;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
 import org.bson.types.ObjectId;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.*;
+import java.util.logging.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -43,7 +27,7 @@ import static de.sharknoon.slash.database.Values.*;
 import static org.bson.codecs.configuration.CodecRegistries.*;
 
 public class DB {
-
+    
     //Collations for indexes
     private static final Collation caseInsensitiveCollation = Collation.builder().locale("en").collationStrength(SECONDARY).build();
     //PushOptions
@@ -56,17 +40,17 @@ public class DB {
     private static MongoCollection<Project> projects;
     private static MongoCollection<Chat> chats;
     private static GridFSBucket files;
-
+    
     static {
         try {
             DBConfig props = Properties.getDBConfig();
-
+    
             String ip = props.databaseip();
             int port = props.databaseport();
             String database = props.database();
             String username = props.dbuser();
             String password = props.dbpassword();
-
+    
             MongoCredential credential = MongoCredential.createCredential(username, database, password.toCharArray());
             CodecRegistry codecRegistry = fromRegistries(
                     fromCodecs(new JavaURLCodec()),
@@ -87,8 +71,8 @@ public class DB {
                             .codecRegistry(codecRegistry)
                             .build()
             );
-
-
+    
+    
             DB.database = mongoClient.getDatabase(database);
             DB.users = DB.database.getCollection(USERS_COLLECTION.value, User.class);
             DB.projects = DB.database.getCollection(PROJECTS_COLLECTION.value, Project.class);
@@ -99,7 +83,7 @@ public class DB {
             System.exit(1);
         }
     }
-
+    
     /**
      * USE WITH CAUTION NO WARRANTY FOR ANY DAMAGE, USE ONLY FOR TESTS
      *
@@ -108,12 +92,12 @@ public class DB {
     public static MongoDatabase leakDatabase() {
         return database;
     }
-
-
+    
+    
     //
     // LOGIN
     //
-
+    
     /**
      * Gets a user
      *
@@ -132,52 +116,36 @@ public class DB {
                 .first();
         return Optional.ofNullable(user);
     }
-
-    public static void addSessionID(User user, String sessionID) {
-        users.updateOne(
-                eq(COLLECTION_ID.value, user.id),
-                pushEach(USERS_COLLECTION_SESSION_IDS.value, List.of(sessionID), maxDevicesSlice)
-        );
-        user.sessionIDs.add(sessionID);
-    }
-
-    public static void removeSessionID(User user, String sessionID) {
-        users.updateOne(
-                eq(COLLECTION_ID.value, user.id),
-                pull(USERS_COLLECTION_SESSION_IDS.value, sessionID)
-        );
-        user.sessionIDs.remove(sessionID);
-    }
-
-    public static void addDeviceID(User user, String deviceID) {
-        User u2 = users.find(
+    
+    public static void registerDeviceID(User user, String deviceID, String sessionID) {
+        User u = users.find(
                 and(
                         eq(COLLECTION_ID.value, user.id),
-                        in(USERS_COLLECTION_DEVICE_IDS.value, deviceID)
+                        exists(USERS_COLLECTION_IDS.value + "." + deviceID)
                 )
         ).first();
         //The device id is already added
-        if (u2 != null) {
+        if (u != null) {
             return;
         }
-        DB.users.updateOne(
-                eq(COLLECTION_ID.value, user.id),
-                pushEach(USERS_COLLECTION_DEVICE_IDS.value, List.of(deviceID), maxDevicesSlice)
-        );
-        user.deviceIDs.add(deviceID);
-    }
-
-    public static void removeDeviceID(User user, String deviceID) {
         users.updateOne(
                 eq(COLLECTION_ID.value, user.id),
-                pull(USERS_COLLECTION_DEVICE_IDS.value, deviceID)
+                set(USERS_COLLECTION_IDS.value, Map.of(deviceID, sessionID))
         );
-        user.deviceIDs.remove(deviceID);
+        user.ids.put(deviceID, sessionID);
+    }
+    
+    public static void unregisterDeviceID(User user, String deviceID) {
+        users.updateOne(
+                eq(COLLECTION_ID.value, user.id),
+                unset(USERS_COLLECTION_IDS.value + "." + deviceID)
+        );
+        user.ids.remove(deviceID);
     }
     //
     // REGISTER
     //
-
+    
     /**
      * @param email The email to check for duplicates
      * @return True if this email already exists
@@ -190,7 +158,7 @@ public class DB {
                 .collation(caseInsensitiveCollation)
                 .first() != null;
     }
-
+    
     /**
      * @param username The username to check for duplicates
      * @return True if this username already exists
@@ -203,7 +171,7 @@ public class DB {
                 .collation(caseInsensitiveCollation)
                 .first() != null;
     }
-
+    
     /**
      * @param usernameOrEmail The username/email to check for duplicates
      * @return True ich this username or email already exists
@@ -219,7 +187,7 @@ public class DB {
                 .collation(caseInsensitiveCollation)
                 .first() != null;
     }
-
+    
     /**
      * Registers a new user
      *
@@ -235,7 +203,7 @@ public class DB {
             return false;
         }
     }
-
+    
     /**
      * Unregisters a user, mainly used in tests for now
      *
@@ -244,11 +212,11 @@ public class DB {
     public static void unregister(User user) {
         users.deleteOne(eq(COLLECTION_ID.value, user.id));
     }
-
+    
     //
     // PROJECTS
     //
-
+    
     public static Set<Project> getProjectsForUser(User u) {
         ObjectId userId = u.id;
         HashSet<Project> projects = DB.projects
@@ -259,7 +227,7 @@ public class DB {
         projects.forEach(DB::completeProject);
         return projects;
     }
-
+    
     public static void addProject(Project project) {
         completeProject(project);
         try {
@@ -268,7 +236,7 @@ public class DB {
             Logger.getGlobal().log(Level.WARNING, "Could not add project", e);
         }
     }
-
+    
     public static Optional<Project> getProject(ObjectId projectID) {
         Optional<Project> project = Optional.ofNullable(
                 projects
@@ -278,7 +246,7 @@ public class DB {
         project.ifPresent(DB::completeProject);
         return project;
     }
-
+    
     public static void addMessageToProject(Project project, Message message) {
         projects.updateOne(
                 eq(COLLECTION_ID.value, project.id),
@@ -286,7 +254,7 @@ public class DB {
         );
         project.messages.add(message);
     }
-
+    
     public static void addUserToProject(Project project, User user) {
         projects.updateOne(
                 eq(COLLECTION_ID.value, project.id),
@@ -294,7 +262,7 @@ public class DB {
         );
         project.users.add(user.id);
     }
-
+    
     public static void removeUserFromProject(Project project, User user) {
         projects.updateOne(
                 eq(COLLECTION_ID.value, project.id),
@@ -302,11 +270,11 @@ public class DB {
         );
         project.users.remove(user.id);
     }
-
+    
     //
     // CHATS
     //
-
+    
     public static Set<Chat> getNLastChatsForUser(ObjectId id, int n) {
         return chats
                 .find(
@@ -319,7 +287,7 @@ public class DB {
                 .limit(n)
                 .into(new HashSet<>());
     }
-
+    
     public static Optional<Chat> getChatByPartnerID(ObjectId userID, ObjectId partnerID) {
         return Optional.ofNullable(
                 chats
@@ -337,7 +305,7 @@ public class DB {
                         ).first()
         );
     }
-
+    
     public static void addChat(Chat chat) {
         try {
             chats.insertOne(chat);
@@ -345,8 +313,8 @@ public class DB {
             Logger.getGlobal().log(Level.WARNING, "Could not add chat", e);
         }
     }
-
-
+    
+    
     public static Optional<Chat> getChat(ObjectId objectId) {
         return Optional.ofNullable(
                 chats.find(
@@ -354,7 +322,7 @@ public class DB {
                 ).first()
         );
     }
-
+    
     public static void addMessageToChat(Chat chat, Message message) {
         chats.updateOne(
                 eq(COLLECTION_ID.value, chat.id),
@@ -362,11 +330,11 @@ public class DB {
         );
         chat.messages.add(message);
     }
-
+    
     //
     // USER
     //
-
+    
     public static Optional<User> getUser(ObjectId id) {
         return Optional.ofNullable(
                 users
@@ -374,7 +342,7 @@ public class DB {
                         .first()
         );
     }
-
+    
     public static Set<User> searchUsers(String search) {
         if (search == null || search.isEmpty()) {
             return Set.of();
@@ -384,19 +352,19 @@ public class DB {
                 .limit(10)
                 .into(new HashSet<>());
     }
-
+    
     public static Optional<User> getUserBySessionID(String sessionID) {
         return Optional.ofNullable(
                 users
-                        .find(in(USERS_COLLECTION_SESSION_IDS.value, sessionID))
+                        .find(in(USERS_COLLECTION_IDS.value, sessionID))
                         .first()
         );
     }
-
+    
     //
     // FILES
     //
-
+    
     public static Optional<File> getFile(ObjectId id) {
         try {
             GridFSDownloadStream downloadStream = files.openDownloadStream(id);
@@ -411,24 +379,25 @@ public class DB {
             return Optional.empty();
         }
     }
-
+    
     public static void addFile(File f) {
         try {
             GridFSUploadStream uploadStream = files.openUploadStream(new BsonObjectId(f.id), f.name);
             uploadStream.write(f.data);
             uploadStream.close();
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            Logger.getGlobal().log(Level.WARNING, "Unable to add File to DB", e);
         }
     }
-
+    
     //
     // MISC
     //
-
+    
     private static void completeChat(Chat c) {
-
+    
     }
-
+    
     private static void completeProject(Project p) {
         p.usernames = p.users
                 .parallelStream()
