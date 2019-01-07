@@ -2,9 +2,12 @@ package de.sharknoon.slash.networking.endpoints.home.messagehandlers;
 
 import de.sharknoon.slash.database.DB;
 import de.sharknoon.slash.database.models.User;
-import de.sharknoon.slash.networking.endpoints.home.*;
-import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.*;
-import de.sharknoon.slash.networking.endpoints.home.messages.*;
+import de.sharknoon.slash.networking.endpoints.Status;
+import de.sharknoon.slash.networking.endpoints.StatusAndSessionIDMessage;
+import de.sharknoon.slash.networking.endpoints.home.HomeEndpoint;
+import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.ErrorResponse;
+import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.UserResponse;
+import de.sharknoon.slash.networking.endpoints.home.messages.GetUserMessage;
 import de.sharknoon.slash.serialisation.Serialisation;
 import org.bson.types.ObjectId;
 

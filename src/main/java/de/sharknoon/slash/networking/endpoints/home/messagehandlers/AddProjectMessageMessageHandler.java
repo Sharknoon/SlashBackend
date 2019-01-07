@@ -1,17 +1,24 @@
 package de.sharknoon.slash.networking.endpoints.home.messagehandlers;
 
 import de.sharknoon.slash.database.DB;
-import de.sharknoon.slash.database.models.*;
+import de.sharknoon.slash.database.models.Project;
+import de.sharknoon.slash.database.models.User;
 import de.sharknoon.slash.database.models.message.Message;
-import de.sharknoon.slash.networking.endpoints.home.*;
-import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.*;
-import de.sharknoon.slash.networking.endpoints.home.messages.*;
-import de.sharknoon.slash.networking.pushy.*;
+import de.sharknoon.slash.networking.endpoints.Status;
+import de.sharknoon.slash.networking.endpoints.StatusAndSessionIDMessage;
+import de.sharknoon.slash.networking.endpoints.home.HomeEndpoint;
+import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.ErrorResponse;
+import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.ProjectResponse;
+import de.sharknoon.slash.networking.endpoints.home.messages.AddProjectMessageMessage;
+import de.sharknoon.slash.networking.pushy.PushStatus;
+import de.sharknoon.slash.networking.pushy.Pushy;
 import de.sharknoon.slash.networking.sessions.LoginSessions;
 import de.sharknoon.slash.serialisation.Serialisation;
 import org.bson.types.ObjectId;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 
 public class AddProjectMessageMessageHandler extends HomeEndpointMessageHandler {
     

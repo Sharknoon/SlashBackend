@@ -1,69 +1,77 @@
 package de.sharknoon.slash.networking.endpoints.file;
 
 import de.sharknoon.slash.database.DB;
-import de.sharknoon.slash.database.models.*;
+import de.sharknoon.slash.database.models.File;
+import de.sharknoon.slash.database.models.User;
 import de.sharknoon.slash.networking.endpoints.Endpoint;
-import de.sharknoon.slash.networking.sessions.LoginSessions;
-import de.sharknoon.slash.properties.Properties;
-import de.sharknoon.slash.utils.MimeTypeHelper;
+import de.sharknoon.slash.networking.endpoints.StatusAndSessionIDMessage;
+import de.sharknoon.slash.networking.sessions.LoginSessionUtils;
 
+import javax.websocket.OnMessage;
 import javax.websocket.Session;
+import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
-@ServerEndpoint("/file")
-public class FileEndpoint extends Endpoint<FileMessage> {
-    private static final String EMPTY_BASE64_ERROR_MSG
-            = "{\"status\":\"NO_FILE\",\"message\":\"The file is null or empty!\"}";
-    private static final String WRONG_BASE64_ERROR_MSG
-            = "{\"status\":\"INCORRECT_FILE\",\"message\":\"The file is not of the correct type!\"}";
+@ServerEndpoint(
+        value = "/file/{name}",
+        decoders = FileEndpointDecoder.class
+)
+public class FileEndpoint extends Endpoint {
+    private static final String EMPTY_FILENAME_ERROR_MSG
+            = "{\"status\":\"NO_FILE_NAME\",\"message\":\"The file name is null or empty!\"}";
+    private static final String UPLOAD_NOT_ALLOWED_ERROR_MSG
+            = "{\"status\":\"UPLOAD_NOT_ALLOWED\",\"message\":\"The file upload has not been granted, use e.g. the send image function in the chat!\"}";
     private static final String FILE_UPLOADED_OK_MSG = "{\"status\":\"OK_FILE_UPLOAD\"}";
-    private static final String FILE_ID_NOT_FOUND_MSG
-            = "{\"status\":\"NO_FILE_FOR_ID\",\"message\":\"There is no file for the given ID!\"}";
-    
-    public FileEndpoint() {
-        super(FileMessage.class);
+    private static final String FILE_UPLOADED_ERROR_MSG = "{\"status\":\"ERROR_FILE_UPLOAD\",\"message\":\"An unexpected error occurred during the upload\"}";
+    private static final String FILE_NOT_FOUND_MSG
+            = "{\"status\":\"FILE_NOT_FOUND\",\"message\":\"There is no file for the given name!\"}";
+
+    private static final Set<String> READY_TO_UPLOAD_FILES = new HashSet<>();
+
+    public static void allowUpload(String filename) {
+        READY_TO_UPLOAD_FILES.add(filename);
     }
-    
-    @Override
-    protected void onTextMessage(Session session, FileMessage message) {
-        Optional<User> optionalUser = LoginSessions.isLoggedIn(message.getSessionid(), session);
+
+    @OnMessage
+    public void onTextMessage(Session session, StatusAndSessionIDMessage message, @PathParam("name") String name) {
+        Optional<User> optionalUser = LoginSessionUtils.checkLogin(message.getSessionid(), session, this);
         if (optionalUser.isEmpty()) {
-            send("{\"status\":\"NO_LOGIN_OR_TOO_MUCH_DEVICES\"," +
-                    "\"messageType\":\"You are either not logged in or using more than " +
-                    Properties.getUserConfig().maxdevices() + " devices\"}");
             return;
         }
-        
-        switch (message.getStatus()) {
-            case GET_FILE:
-                Optional<File> file = DB.getFile(message.getDataId());
-                if (file.isEmpty()) {
-                    send(FILE_ID_NOT_FOUND_MSG);
-                } else {
-                    send(file.get().data);
-                }
-                break;
-            case SEND_FILE:
-                final String base64Data = message.getBase64Data();
-                if (base64Data == null || base64Data.isEmpty() || base64Data.isBlank()) {
-                    session.getAsyncRemote().sendText(EMPTY_BASE64_ERROR_MSG);
-                } else {
-                    if (MimeTypeHelper.isValidMimeType(base64Data)) {
-                        File newFile = new File();
-                        newFile.data = base64Data.getBytes();
-                        DB.addFile(newFile);
-                        session.getAsyncRemote().sendText(FILE_UPLOADED_OK_MSG);
-                    } else {
-                        session.getAsyncRemote().sendText(WRONG_BASE64_ERROR_MSG);
-                    }
-                }
-                break;
+
+        Optional<File> file = DB.getFile(name);
+        if (file.isEmpty()) {
+            send(FILE_NOT_FOUND_MSG);
+        } else {
+            send(file.get().data);
         }
+
     }
-    
-    @Override
-    protected void onBinaryMessage(Session session, byte[] binary) {
-    
+
+
+    @OnMessage
+    public void onBinaryMessage(Session session, byte[] binary, @PathParam("name") String name) {
+        handleMessage(() -> {
+            if (!READY_TO_UPLOAD_FILES.contains(name)) {
+                send(UPLOAD_NOT_ALLOWED_ERROR_MSG);
+                return;
+            }
+            if (name == null || name.isEmpty() || name.isBlank()) {
+                send(EMPTY_FILENAME_ERROR_MSG);
+                return;
+            }
+            File uploadedFile = new File();
+            uploadedFile.data = binary;
+            uploadedFile.name = name;
+            boolean success = DB.addFile(uploadedFile);
+            if (success) {
+                send(FILE_UPLOADED_OK_MSG);
+            } else {
+                send(FILE_UPLOADED_ERROR_MSG);
+            }
+        });
     }
 }

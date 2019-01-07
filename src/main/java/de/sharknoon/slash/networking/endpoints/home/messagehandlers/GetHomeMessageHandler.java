@@ -3,10 +3,10 @@ package de.sharknoon.slash.networking.endpoints.home.messagehandlers;
 import de.sharknoon.slash.database.DB;
 import de.sharknoon.slash.database.models.Chat;
 import de.sharknoon.slash.database.models.User;
+import de.sharknoon.slash.networking.endpoints.Status;
+import de.sharknoon.slash.networking.endpoints.StatusAndSessionIDMessage;
 import de.sharknoon.slash.networking.endpoints.home.HomeEndpoint;
-import de.sharknoon.slash.networking.endpoints.home.Status;
 import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.HomeResponse;
-import de.sharknoon.slash.networking.endpoints.home.messages.StatusAndSessionIDMessage;
 import de.sharknoon.slash.properties.Properties;
 
 import java.util.Objects;

@@ -1,7 +1,8 @@
 package de.sharknoon.slash.networking.endpoints.home.messages;
 
 import com.google.gson.annotations.Expose;
-import de.sharknoon.slash.networking.endpoints.home.Status;
+import de.sharknoon.slash.networking.endpoints.Status;
+import de.sharknoon.slash.networking.endpoints.StatusAndSessionIDMessage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +18,7 @@ public class AddProjectMessage extends StatusAndSessionIDMessage {
     private List<String> projectMembers = new ArrayList<>();
 
     public AddProjectMessage() {
-        setStatus(Status.ADD_PROJECT);
+        super(Status.ADD_PROJECT);
     }
 
 

@@ -4,14 +4,18 @@ import de.sharknoon.slash.database.DB;
 import de.sharknoon.slash.database.models.User;
 import de.sharknoon.slash.networking.endpoints.TestSession;
 import org.bson.types.ObjectId;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 
 import javax.websocket.Session;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.HashSet;
+import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class LoginEndpointTest {
     
@@ -22,7 +26,7 @@ class LoginEndpointTest {
         user = new User();
         user.id = new ObjectId();
         user.username = UUID.randomUUID().toString().substring(0, 15);
-        user.ids = new HashMap<>();
+        user.ids = new HashSet<>();
         user.salt = BCrypt.gensalt();
         user.registrationDate = LocalDateTime.now().withNano(0);
         user.password = BCrypt.hashpw("123456", user.salt);

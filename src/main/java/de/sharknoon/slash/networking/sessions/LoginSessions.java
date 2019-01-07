@@ -9,7 +9,6 @@ import org.bson.types.ObjectId;
 import javax.websocket.Session;
 import java.io.IOException;
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 /**
@@ -76,10 +75,9 @@ public class LoginSessions {
         }
         return loginSession.getUser()
                 .ids
-                .entrySet()
                 .stream()
-                .filter(e -> Objects.equals(e.getValue(), sessionID))
-                .map(Entry::getKey)
+                .filter(l -> Objects.equals(l.sessionID, sessionID))
+                .map(l -> l.deviceID)
                 .findAny();
     }
     

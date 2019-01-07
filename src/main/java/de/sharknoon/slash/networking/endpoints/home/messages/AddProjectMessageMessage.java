@@ -2,14 +2,14 @@ package de.sharknoon.slash.networking.endpoints.home.messages;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
-import de.sharknoon.slash.networking.endpoints.home.Status;
+import de.sharknoon.slash.networking.endpoints.Status;
 
 import java.util.Objects;
 
 public class AddProjectMessageMessage extends AddMessageMessage {
 
     public AddProjectMessageMessage() {
-        setStatus(Status.ADD_PROJECT_MESSAGE);
+        super(Status.ADD_PROJECT_MESSAGE);
     }
 
     @Expose

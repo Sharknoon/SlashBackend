@@ -8,27 +8,27 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class Pushy {
-    
+
     public static void sendPush(PushStatus status, String chatOrProjectID, Message message, String from, User... to) {
         sendPush(status, chatOrProjectID, message, from, Arrays.asList(to));
     }
-    
+
     public static void sendPush(PushStatus status, String chatOrProjectID, Message message, String from, Collection<User> users) {
         // Prepare list of target device tokens
         List<String> to = users
                 .parallelStream()
-                .map(u -> u.ids)
-                .flatMap(m -> m.keySet().stream())
+                .flatMap(u -> u.ids.stream())
+                .map(l -> l.deviceID)
                 .collect(Collectors.toList());
-        
+
         //If we dont have any receiver, abort
         if (to.isEmpty()) {
             return;
         }
-        
+
         // Set payload (any object, it will be serialized to JSON)
         Map<String, Object> payload = new HashMap<>();
-        
+
         payload.put("status", status.name());
         payload.put("id", chatOrProjectID);
         payload.put("type", message.type.name());
@@ -52,10 +52,10 @@ public class Pushy {
                 Logger.getGlobal().warning("Message for push notification has a NONE type " + message.toString());
                 return;
         }
-        
+
         // Prepare the push request
         PushyPushRequest push = new PushyPushRequest(payload, to);
-        
+
         try {
             // Try sending the push notification
             PushyAPI.sendPushAsync(push, t -> Logger.getGlobal().severe("Could not send push notification " + t.toString()));
@@ -64,5 +64,5 @@ public class Pushy {
             Logger.getGlobal().severe("Could not send push notification " + exc.toString());
         }
     }
-    
+
 }

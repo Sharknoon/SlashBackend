@@ -1,8 +1,7 @@
-package de.sharknoon.slash.networking.endpoints.home.messages;
+package de.sharknoon.slash.networking.endpoints;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
-import de.sharknoon.slash.networking.endpoints.home.Status;
 
 import java.util.Objects;
 
@@ -12,8 +11,12 @@ public class StatusAndSessionIDMessage {
     @SerializedName(value = "sessionid", alternate = {"sessionID", "sessionId"})
     private String sessionid = "";
     @Expose
-    private Status status = Status.NONE;
+    private final Status status;
 
+    public StatusAndSessionIDMessage(Status status) {
+        this.status = status;
+    }
+    
     public String getSessionid() {
         return Objects.requireNonNullElse(sessionid, "");
     }
@@ -28,9 +31,4 @@ public class StatusAndSessionIDMessage {
         return Objects.requireNonNullElse(status, Status.NONE);
     }
 
-    public void setStatus(Status status) {
-        if (status != null) {
-            this.status = status;
-        }
-    }
 }

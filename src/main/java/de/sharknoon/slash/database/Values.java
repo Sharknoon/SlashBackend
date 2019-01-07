@@ -22,6 +22,8 @@ public enum Values {
 //    USERS_COLLECTION_REGISTRATION_DATE("registrationDate"),
 // --Commented out by Inspection STOP (14.11.2018 13:35)
     USERS_COLLECTION_IDS("ids"),
+    USERS_COLLECTION_IDS_SESSION_ID("sessionID"),
+    USERS_COLLECTION_IDS_DEVICE_ID("deviceID"),
     
     // --Commented out by Inspection START (14.11.2018 13:35):
 //    //Collection projects

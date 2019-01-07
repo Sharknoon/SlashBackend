@@ -1,10 +1,10 @@
 package de.sharknoon.slash.networking.endpoints.home.messagehandlers;
 
 import de.sharknoon.slash.database.models.User;
+import de.sharknoon.slash.networking.endpoints.Status;
+import de.sharknoon.slash.networking.endpoints.StatusAndSessionIDMessage;
 import de.sharknoon.slash.networking.endpoints.home.HomeEndpoint;
-import de.sharknoon.slash.networking.endpoints.home.Status;
 import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.ErrorResponse;
-import de.sharknoon.slash.networking.endpoints.home.messages.StatusAndSessionIDMessage;
 
 public class NoneStatusMessageHandler extends HomeEndpointMessageHandler {
 
@@ -20,7 +20,7 @@ public class NoneStatusMessageHandler extends HomeEndpointMessageHandler {
     protected void messageLogic(StatusAndSessionIDMessage message, User user) {
         ErrorResponse error = new ErrorResponse();
         error.status = "WRONG_STATUS";
-        error.description = "The status was wrong, please check the API";
+        error.description = "The status was wrong, please checkLogin the API";
         homeEndpoint.send(error);
     }
 }

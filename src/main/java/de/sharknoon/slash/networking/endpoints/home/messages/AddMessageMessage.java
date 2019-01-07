@@ -3,6 +3,8 @@ package de.sharknoon.slash.networking.endpoints.home.messages;
 import com.google.gson.annotations.Expose;
 import de.sharknoon.slash.database.models.message.MessageEmotion;
 import de.sharknoon.slash.database.models.message.MessageType;
+import de.sharknoon.slash.networking.endpoints.Status;
+import de.sharknoon.slash.networking.endpoints.StatusAndSessionIDMessage;
 
 import java.util.Objects;
 
@@ -19,6 +21,10 @@ public abstract class AddMessageMessage extends StatusAndSessionIDMessage {
     @Expose
     private String messageImage = "";
 
+    public AddMessageMessage(Status status) {
+        super(status);
+    }
+    
     public MessageType getMessageType() {
         return Objects.requireNonNullElse(messageType, MessageType.NONE);
     }

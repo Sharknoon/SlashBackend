@@ -1,9 +1,9 @@
 package de.sharknoon.slash.networking.endpoints.home.messagehandlers;
 
 import de.sharknoon.slash.database.models.User;
+import de.sharknoon.slash.networking.endpoints.Status;
+import de.sharknoon.slash.networking.endpoints.StatusAndSessionIDMessage;
 import de.sharknoon.slash.networking.endpoints.home.HomeEndpoint;
-import de.sharknoon.slash.networking.endpoints.home.Status;
-import de.sharknoon.slash.networking.endpoints.home.messages.StatusAndSessionIDMessage;
 
 public abstract class HomeEndpointMessageHandler {
 
