@@ -28,7 +28,7 @@ public class Project {
     @Expose
     public Set<User> usernames = Set.of();
     @Expose
-    public User projectOwner = new User();
+    public ObjectId projectOwner = new ObjectId();
     @BsonIgnore
     @Expose
     public Sentiment sentiment = new Sentiment();

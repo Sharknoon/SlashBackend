@@ -51,6 +51,7 @@ public class AddProjectMessageHandler extends HomeEndpointMessageHandler {
             newProject.id = new ObjectId();
             newProject.name = projectName;
             newProject.description = projectDescription;
+            newProject.projectOwner = user.id;
             DB.addProject(newProject);
             ProjectResponse pm = new ProjectResponse();
             pm.project = newProject;
