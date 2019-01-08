@@ -13,7 +13,7 @@ public class User {
 
     @BsonId
     @Expose
-    public ObjectId id;
+    public ObjectId id = new ObjectId();
     @Expose
     public String username = StringUtils.EMPTY;
     public String email = StringUtils.EMPTY;

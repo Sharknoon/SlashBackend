@@ -15,13 +15,15 @@
         </element>
         <element id="directory" name="lib">
           <element id="library" level="project" name="Maven: com.google.code.gson:gson:2.8.5" />
-          <element id="library" level="project" name="Maven: org.mongodb:mongodb-driver-sync:3.9.0" />
-          <element id="library" level="project" name="Maven: org.mongodb:bson:3.9.0" />
-          <element id="library" level="project" name="Maven: org.mongodb:mongodb-driver-core:3.9.0" />
+          <element id="library" level="project" name="Maven: org.mongodb:mongodb-driver-sync:3.9.1" />
+          <element id="library" level="project" name="Maven: org.mongodb:bson:3.9.1" />
+          <element id="library" level="project" name="Maven: org.mongodb:mongodb-driver-core:3.9.1" />
           <element id="library" level="project" name="Maven: org.aeonbits.owner:owner-java8:1.0.10" />
           <element id="library" level="project" name="Maven: org.aeonbits.owner:owner:1.0.10" />
-          <element id="library" level="project" name="Maven: org.springframework.security:spring-security-crypto:5.1.1.RELEASE" />
+          <element id="library" level="project" name="Maven: org.springframework.security:spring-security-crypto:5.1.2.RELEASE" />
           <element id="library" level="project" name="Maven: org.apache.commons:commons-lang3:3.8.1" />
+          <element id="library" level="project" name="Maven: com.aylien.textapi:client:0.7.0" />
+          <element id="library" level="project" name="Maven: org.json:json:20140107" />
         </element>
       </element>
       <element id="directory" name="META-INF">

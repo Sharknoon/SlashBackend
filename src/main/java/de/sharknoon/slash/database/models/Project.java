@@ -2,12 +2,12 @@ package de.sharknoon.slash.database.models;
 
 import com.google.gson.annotations.Expose;
 import de.sharknoon.slash.database.models.message.Message;
+import de.sharknoon.slash.networking.aylien.Sentiment;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.codecs.pojo.annotations.BsonId;
 import org.bson.codecs.pojo.annotations.BsonIgnore;
 import org.bson.types.ObjectId;
 
-import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.Set;
 public class Project {
@@ -20,13 +20,18 @@ public class Project {
     @Expose
     public String description = StringUtils.EMPTY;
     @Expose
-    public URL image;
+    public ObjectId image;
     @Expose
     public LocalDateTime creationDate = LocalDateTime.now();
     public Set<ObjectId> users = Set.of();
     @BsonIgnore
     @Expose
     public Set<User> usernames = Set.of();
+    @Expose
+    public User projectOwner = new User();
+    @BsonIgnore
+    @Expose
+    public Sentiment sentiment = new Sentiment();
     @Expose
     public Set<Message> messages = Set.of();
 }

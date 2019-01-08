@@ -75,6 +75,12 @@
             <version>LATEST</version>
             <scope>test</scope>
         </dependency>
+        <!-- Aylien API -->
+        <dependency>
+            <groupId>com.aylien.textapi</groupId>
+            <artifactId>client</artifactId>
+            <version>LATEST</version>
+        </dependency>
     </dependencies>
 
 </project>

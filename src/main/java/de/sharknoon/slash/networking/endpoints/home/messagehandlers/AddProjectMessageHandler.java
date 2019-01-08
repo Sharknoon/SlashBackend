@@ -12,8 +12,6 @@ import de.sharknoon.slash.networking.endpoints.home.messages.AddProjectMessage;
 import de.sharknoon.slash.serialisation.Serialisation;
 import org.bson.types.ObjectId;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -45,11 +43,8 @@ public class AddProjectMessageHandler extends HomeEndpointMessageHandler {
             homeEndpoint.send(error);
         } else {
             Project newProject = new Project();
-            try {
-                newProject.image = new URL("https://www.myfloridacfo.com/division/oit/images/DIS-HomeResponse.png");
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            }
+            //TODO replace with real image
+            newProject.image = new ObjectId();
             newProject.creationDate = LocalDateTime.now().withNano(0);
             newProject.users = homeEndpoint.getAllExistingUserIDs(memberIDs);
             newProject.users.add(user.id);
