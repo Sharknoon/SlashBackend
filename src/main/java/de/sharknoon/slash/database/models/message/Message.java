@@ -4,7 +4,6 @@ import com.google.gson.annotations.Expose;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 
-import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -25,7 +24,7 @@ public class Message {
     public MessageEmotion emotion;
     //No default value because GSON doesnt serialize null values
     @Expose
-    public URL imageUrl;
+    public ObjectId image;
 
 
     public Message() {
@@ -59,8 +58,8 @@ public class Message {
         return type;
     }
 
-    public URL getImageUrl() {
-        return imageUrl;
+    public ObjectId getImage() {
+        return image;
     }
 
     public MessageEmotion getEmotion() {
@@ -80,7 +79,7 @@ public class Message {
         if (!Objects.equals(creationDate, message.creationDate)) return false;
         if (!Objects.equals(sender, message.sender)) return false;
         if (emotion != message.emotion) return false;
-        return Objects.equals(imageUrl, message.imageUrl);
+        return Objects.equals(image, message.image);
     }
 
     @Override
@@ -91,7 +90,7 @@ public class Message {
         result = 31 * result + (creationDate != null ? creationDate.hashCode() : 0);
         result = 31 * result + (sender != null ? sender.hashCode() : 0);
         result = 31 * result + (emotion != null ? emotion.hashCode() : 0);
-        result = 31 * result + (imageUrl != null ? imageUrl.hashCode() : 0);
+        result = 31 * result + (image != null ? image.hashCode() : 0);
         return result;
     }
 }

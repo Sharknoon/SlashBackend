@@ -6,8 +6,10 @@ import de.sharknoon.slash.database.models.message.Message;
 import de.sharknoon.slash.database.models.message.MessageEmotion;
 import de.sharknoon.slash.networking.endpoints.Endpoint;
 import de.sharknoon.slash.networking.endpoints.StatusAndSessionIDMessage;
+import de.sharknoon.slash.networking.endpoints.file.FileEndpoint;
 import de.sharknoon.slash.networking.endpoints.home.messagehandlers.*;
 import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.ErrorResponse;
+import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.ImageResponse;
 import de.sharknoon.slash.networking.endpoints.home.messages.AddMessageMessage;
 import de.sharknoon.slash.networking.sessions.LoginSessionUtils;
 import de.sharknoon.slash.serialisation.Serialisation;
@@ -120,9 +122,17 @@ public class HomeEndpoint extends Endpoint {
                 newMessage.sender = sender.id;
                 return Optional.of(newMessage);
             case IMAGE:
-//                //TODO: Save image on server, generate url, send url
-
-                break;
+                //Constructing new ID for the future image to be uploaded
+                ObjectId newImageObjectID = new ObjectId();
+                String newImageID = newImageObjectID.toHexString();
+                ImageResponse ir = new ImageResponse();
+                ir.imageID = newImageID;
+                //Sending the imageID to the user to allow for the upload
+                send(ir);
+                //Adding the id for allowing upload access
+                FileEndpoint.allowUpload(newImageID);
+                newMessage.image = newImageObjectID;
+                return Optional.of(newMessage);
             case NONE:
                 //The chat message type is invalid
                 ErrorResponse error = new ErrorResponse();

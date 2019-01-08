@@ -20,8 +20,6 @@ import java.util.Set;
         decoders = FileEndpointDecoder.class
 )
 public class FileEndpoint extends Endpoint {
-    private static final String EMPTY_FILENAME_ERROR_MSG
-            = "{\"status\":\"NO_FILE_NAME\",\"message\":\"The file name is null or empty!\"}";
     private static final String UPLOAD_NOT_ALLOWED_ERROR_MSG
             = "{\"status\":\"UPLOAD_NOT_ALLOWED\",\"message\":\"The file upload has not been granted, use e.g. the send image function in the chat!\"}";
     private static final String FILE_UPLOADED_OK_MSG = "{\"status\":\"OK_FILE_UPLOAD\"}";
@@ -55,14 +53,12 @@ public class FileEndpoint extends Endpoint {
     @OnMessage
     public void onBinaryMessage(Session session, byte[] binary, @PathParam("name") String name) {
         handleMessage(() -> {
-            if (!READY_TO_UPLOAD_FILES.contains(name)) {
+            if (name == null || !READY_TO_UPLOAD_FILES.contains(name)) {
                 send(UPLOAD_NOT_ALLOWED_ERROR_MSG);
                 return;
             }
-            if (name == null || name.isEmpty() || name.isBlank()) {
-                send(EMPTY_FILENAME_ERROR_MSG);
-                return;
-            }
+            //Only one upload per file is allowed
+            READY_TO_UPLOAD_FILES.remove(name);
             File uploadedFile = new File();
             uploadedFile.data = binary;
             uploadedFile.name = name;

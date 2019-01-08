@@ -46,7 +46,7 @@ public class Pushy {
                 payload.put("content", emotion);
                 break;
             case IMAGE:
-                payload.put("content", message.imageUrl.toString());
+                payload.put("content", message.image.toString());
                 break;
             case NONE:
                 Logger.getGlobal().warning("Message for push notification has a NONE type " + message.toString());
