@@ -218,6 +218,7 @@ class HomeEndpointTest {
         final String projectStatus = sendText;
 
         ProjectResponse response = gson.fromJson(sendText, ProjectResponse.class);
+        Assertions.assertEquals(response.project.projectOwner, user1.id);
         PROJECT_IDS_TO_DELETE.add(response.project.id);
         GetProjectMessage getProjectMessage = new GetProjectMessage();
         getProjectMessage.setProjectID(response.project.id.toString());

@@ -12,7 +12,6 @@ import com.mongodb.client.gridfs.GridFSBuckets;
 import com.mongodb.client.gridfs.GridFSDownloadStream;
 import com.mongodb.client.gridfs.GridFSUploadStream;
 import com.mongodb.client.model.Collation;
-import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.PushOptions;
 import de.sharknoon.slash.database.models.*;
 import de.sharknoon.slash.database.models.message.Message;
@@ -153,9 +152,10 @@ public class DB {
     }
 
     public static void unregisterDeviceID(User user, String deviceID) {
+        System.out.println(pullByFilter(eq("ids", eq("deviceID", deviceID))).toBsonDocument(null, database.getCodecRegistry()).toJson());
         users.updateOne(
                 eq(COLLECTION_ID.value, user.id),
-                pullByFilter(Filters.eq("ids.deviceID", deviceID))
+                pullByFilter(eq("ids", eq("deviceID", deviceID)))
         );
         user.ids.removeIf(l -> l.deviceID.equals(deviceID));
     }

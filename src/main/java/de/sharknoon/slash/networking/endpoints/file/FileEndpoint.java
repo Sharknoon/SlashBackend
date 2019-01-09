@@ -6,6 +6,7 @@ import de.sharknoon.slash.database.models.User;
 import de.sharknoon.slash.networking.endpoints.Endpoint;
 import de.sharknoon.slash.networking.endpoints.StatusAndSessionIDMessage;
 import de.sharknoon.slash.networking.sessions.LoginSessionUtils;
+import org.bson.types.ObjectId;
 
 import javax.websocket.OnMessage;
 import javax.websocket.Session;
@@ -53,7 +54,7 @@ public class FileEndpoint extends Endpoint {
     @OnMessage
     public void onBinaryMessage(Session session, byte[] binary, @PathParam("name") String name) {
         handleMessage(() -> {
-            if (name == null || !READY_TO_UPLOAD_FILES.contains(name)) {
+            if (name == null || !READY_TO_UPLOAD_FILES.contains(name) || !ObjectId.isValid(name)) {
                 send(UPLOAD_NOT_ALLOWED_ERROR_MSG);
                 return;
             }
@@ -62,6 +63,7 @@ public class FileEndpoint extends Endpoint {
             File uploadedFile = new File();
             uploadedFile.data = binary;
             uploadedFile.name = name;
+            uploadedFile.id = new ObjectId(name);
             boolean success = DB.addFile(uploadedFile);
             if (success) {
                 send(FILE_UPLOADED_OK_MSG);
