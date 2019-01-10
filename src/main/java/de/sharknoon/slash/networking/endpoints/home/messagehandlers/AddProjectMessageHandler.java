@@ -31,6 +31,7 @@ public class AddProjectMessageHandler extends HomeEndpointMessageHandler {
         String projectName = addProjectMessage.getProjectName();
         String projectDescription = addProjectMessage.getProjectDescription();
         List<String> memberIDs = addProjectMessage.getProjectMembers();
+        String projectOwner = addProjectMessage.getProjectOwner();
         if (!isValidProjectName(projectName)) {
             ErrorResponse error = new ErrorResponse();
             error.status = "WRONG_PROJECT_NAME";
@@ -40,6 +41,11 @@ public class AddProjectMessageHandler extends HomeEndpointMessageHandler {
             ErrorResponse error = new ErrorResponse();
             error.status = "WRONG_PROJECT_DESCRIPTION";
             error.description = "The project description doesn't match the specifications";
+            homeEndpoint.send(error);
+        } else if ((!projectOwner.isEmpty() && !ObjectId.isValid(projectOwner)) || (!projectOwner.isEmpty() && DB.getUser(new ObjectId(projectOwner)).isEmpty())) {
+            ErrorResponse error = new ErrorResponse();
+            error.status = "WRONG_PROJECT_OWNER";
+            error.description = "The project owner is not a valid id";
             homeEndpoint.send(error);
         } else {
             Project newProject = new Project();
@@ -51,7 +57,10 @@ public class AddProjectMessageHandler extends HomeEndpointMessageHandler {
             newProject.id = new ObjectId();
             newProject.name = projectName;
             newProject.description = projectDescription;
-            newProject.projectOwner = user.id;
+            //Optional
+            if (!projectOwner.isEmpty()) {
+                newProject.projectOwner = new ObjectId(projectOwner);
+            }
             DB.addProject(newProject);
             ProjectResponse pm = new ProjectResponse();
             pm.project = newProject;

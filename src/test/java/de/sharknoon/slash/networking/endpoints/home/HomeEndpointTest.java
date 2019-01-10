@@ -213,12 +213,18 @@ class HomeEndpointTest {
         addProjectMessage.setProjectName(projectName);
         String projectDescription = UUID.randomUUID().toString().substring(0, 15);
         addProjectMessage.setProjectDescription(projectDescription);
+        addProjectMessage.setProjectOwner("asölodfkgjh");
+        he.onTextMessage(s, gson.toJson(addProjectMessage));
+        Assertions.assertEquals("{\"status\":\"WRONG_PROJECT_OWNER\",\"description\":\"The project owner is not a valid id\"}", sendText);
+
+        String projectOwner = user2.id.toString();
+        addProjectMessage.setProjectOwner(projectOwner);
         he.onTextMessage(s, gson.toJson(addProjectMessage));
         Assertions.assertTrue(sendText.startsWith("{\"status\":\"OK_PROJECT\",\"project\":"));
         final String projectStatus = sendText;
 
         ProjectResponse response = gson.fromJson(sendText, ProjectResponse.class);
-        Assertions.assertEquals(response.project.projectOwner, user1.id);
+        Assertions.assertEquals(response.project.projectOwner, user2.id);
         PROJECT_IDS_TO_DELETE.add(response.project.id);
         GetProjectMessage getProjectMessage = new GetProjectMessage();
         getProjectMessage.setProjectID(response.project.id.toString());
@@ -478,7 +484,7 @@ class HomeEndpointTest {
         sendText = "";
         modifyProjectUsersMessage.setProjectID(pr.project.id.toString());
         he.onTextMessage(s, gson.toJson(modifyProjectUsersMessage));
-        Assertions.assertEquals("", sendText);
+        Assertions.assertEquals("{\"status\":\"OK\"}", sendText);
 
         GetProjectMessage getProjectMessage = new GetProjectMessage();
         getProjectMessage.setSessionid(user1.ids.iterator().next().sessionID);
@@ -492,6 +498,51 @@ class HomeEndpointTest {
         he.onTextMessage(s, gson.toJson(getProjectMessage));
         pr2 = gson.fromJson(sendText, ProjectResponse.class);
         Assertions.assertFalse(pr2.project.usernames.stream().anyMatch(o -> o.id.equals(user2.id)));
+
+        DB.leakDatabase().getCollection("projects").deleteOne(eq("_id", pr.project.id));
+    }
+
+    @Test
+    void test_modifyProjectOwnerStatus() {
+        HomeEndpoint he = new HomeEndpoint();
+
+        ModifyProjectOwnerMessage modifyProjectOwnerMessage = new ModifyProjectOwnerMessage();
+        modifyProjectOwnerMessage.setSessionid(user1.ids.iterator().next().sessionID);
+
+        he.onOpen(s);
+        he.onTextMessage(s, gson.toJson(modifyProjectOwnerMessage));
+        Assertions.assertEquals("{\"status\":\"NO_PROJECT_FOUND\",\"description\":\"No project with the specified id was found\"}", sendText);
+
+        modifyProjectOwnerMessage.setProjectOwner(user2.id.toString());
+        he.onTextMessage(s, gson.toJson(modifyProjectOwnerMessage));
+        Assertions.assertEquals("{\"status\":\"NO_PROJECT_FOUND\",\"description\":\"No project with the specified id was found\"}", sendText);
+
+        //constructing a new project
+        AddProjectMessage addProjectMessage = new AddProjectMessage();
+        addProjectMessage.setProjectName("Test123 Project");
+        addProjectMessage.setProjectDescription("I am going to be deleted very soon");
+        addProjectMessage.setSessionid(user1.ids.iterator().next().sessionID);
+        he.onTextMessage(s, gson.toJson(addProjectMessage));
+        ProjectResponse pr = gson.fromJson(sendText, ProjectResponse.class);
+        PROJECT_IDS_TO_DELETE.add(pr.project.id);
+
+        sendText = "";
+        modifyProjectOwnerMessage.setProjectID(pr.project.id.toString());
+        he.onTextMessage(s, gson.toJson(modifyProjectOwnerMessage));
+        Assertions.assertEquals("{\"status\":\"OK\"}", sendText);
+
+        GetProjectMessage getProjectMessage = new GetProjectMessage();
+        getProjectMessage.setSessionid(user1.ids.iterator().next().sessionID);
+        getProjectMessage.setProjectID(pr.project.id.toString());
+        he.onTextMessage(s, gson.toJson(getProjectMessage));
+        ProjectResponse pr2 = gson.fromJson(sendText, ProjectResponse.class);
+        Assertions.assertEquals(pr2.project.projectOwner, user2.id);
+
+        modifyProjectOwnerMessage.setProjectOwner("");
+        he.onTextMessage(s, gson.toJson(modifyProjectOwnerMessage));
+        he.onTextMessage(s, gson.toJson(getProjectMessage));
+        pr2 = gson.fromJson(sendText, ProjectResponse.class);
+        Assertions.assertNull(pr2.project.projectOwner);
 
         DB.leakDatabase().getCollection("projects").deleteOne(eq("_id", pr.project.id));
     }

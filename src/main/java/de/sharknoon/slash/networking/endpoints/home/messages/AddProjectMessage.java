@@ -16,6 +16,8 @@ public class AddProjectMessage extends StatusAndSessionIDMessage {
     private String projectDescription = "";
     @Expose
     private List<String> projectMembers = new ArrayList<>();
+    @Expose
+    private String projectOwner = "";
 
     public AddProjectMessage() {
         super(Status.ADD_PROJECT);
@@ -49,6 +51,16 @@ public class AddProjectMessage extends StatusAndSessionIDMessage {
     public void setProjectMembers(List<String> projectMembers) {
         if (projectMembers != null) {
             this.projectMembers = new ArrayList<>(projectMembers);
+        }
+    }
+
+    public String getProjectOwner() {
+        return Objects.requireNonNullElse(projectOwner, "");
+    }
+
+    public void setProjectOwner(String projectOwner) {
+        if (projectOwner != null) {
+            this.projectOwner = projectOwner;
         }
     }
 }

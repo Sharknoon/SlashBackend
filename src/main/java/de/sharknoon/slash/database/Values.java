@@ -32,6 +32,7 @@ public enum Values {
     // --Commented out by Inspection (14.11.2018 13:35):PROJECTS_COLLECTION_IMAGE("image"),
     // --Commented out by Inspection (14.11.2018 13:35):PROJECTS_COLLECTION_CREATION_DATE("creationDate"),
     PROJECTS_COLLECTION_USERS("users"),
+    PROJECTS_COLLECTION_PROJECTOWNER("projectOwner"),
     
     //Collections chats
     CHATS_COLLECTION_PERSON_A("personA"),

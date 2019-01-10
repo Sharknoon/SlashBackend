@@ -13,6 +13,7 @@ import com.mongodb.client.gridfs.GridFSDownloadStream;
 import com.mongodb.client.gridfs.GridFSUploadStream;
 import com.mongodb.client.model.Collation;
 import com.mongodb.client.model.PushOptions;
+import com.mongodb.lang.Nullable;
 import de.sharknoon.slash.database.models.*;
 import de.sharknoon.slash.database.models.message.Message;
 import de.sharknoon.slash.properties.DBConfig;
@@ -152,7 +153,6 @@ public class DB {
     }
 
     public static void unregisterDeviceID(User user, String deviceID) {
-        System.out.println(pullByFilter(eq("ids", eq("deviceID", deviceID))).toBsonDocument(null, database.getCodecRegistry()).toJson());
         users.updateOne(
                 eq(COLLECTION_ID.value, user.id),
                 pullByFilter(eq("ids", eq("deviceID", deviceID)))
@@ -286,6 +286,15 @@ public class DB {
                 pull(PROJECTS_COLLECTION_USERS.value, user.id)
         );
         project.users.remove(user.id);
+    }
+
+    public static void setProjectOwner(Project project, @Nullable User user) {
+        ObjectId newProjectOwner = user == null ? null : user.id;
+        projects.updateOne(
+                eq(COLLECTION_ID.value, project.id),
+                set(PROJECTS_COLLECTION_PROJECTOWNER.value, newProjectOwner)
+        );
+        project.projectOwner = newProjectOwner;
     }
 
     //
@@ -422,4 +431,5 @@ public class DB {
                 .map(Optional::get)
                 .collect(Collectors.toSet());
     }
+
 }

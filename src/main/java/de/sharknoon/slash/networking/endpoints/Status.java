@@ -14,4 +14,6 @@ public enum Status {
     LOGOUT,
     GET_USER,
     MODIFY_PROJECT_USERS,
+    MODIFY_PROJECT_OWNER,
+
 }

@@ -52,6 +52,7 @@ public class HomeEndpoint extends Endpoint {
         firstHandler.appendSuccessorToLast(new GetProjectMessageHandler(this));
         firstHandler.appendSuccessorToLast(new GetUsersMessageHandler(this));
         firstHandler.appendSuccessorToLast(new ModifyProjectUsersMessageHandler(this));
+        firstHandler.appendSuccessorToLast(new ModifyProjectOwnerMessageHandler(this));
         firstHandler.appendSuccessorToLast(new AddProjectMessageMessageHandler(this));
         firstHandler.appendSuccessorToLast(new AddChatMessageMessageHandler(this));
         firstHandler.appendSuccessorToLast(new NoneStatusMessageHandler(this));

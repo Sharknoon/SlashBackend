@@ -86,7 +86,7 @@ public abstract class Endpoint implements Sendable {
         try {
             message.run();
         } catch (Exception e) {
-            onError(session, "Internal server error occurred");
+            onError(session, e);
         }
     }
 
