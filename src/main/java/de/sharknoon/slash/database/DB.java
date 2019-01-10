@@ -9,7 +9,6 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.gridfs.GridFSBucket;
 import com.mongodb.client.gridfs.GridFSBuckets;
-import com.mongodb.client.gridfs.GridFSDownloadStream;
 import com.mongodb.client.gridfs.GridFSUploadStream;
 import com.mongodb.client.model.Collation;
 import com.mongodb.client.model.PushOptions;
@@ -24,6 +23,7 @@ import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
 import org.bson.types.ObjectId;
 
+import java.io.ByteArrayOutputStream;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -394,13 +394,10 @@ public class DB {
 
     public static Optional<File> getFile(String name) {
         try {
-            GridFSDownloadStream downloadStream = files.openDownloadStream(name);
-            int fileLength = (int) downloadStream.getGridFSFile().getLength();
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            files.downloadToStream(name, outputStream);
             File f = new File();
-            f.data = new byte[fileLength];
-            //noinspection ResultOfMethodCallIgnored
-            downloadStream.read(f.data);
-            downloadStream.close();
+            f.data = outputStream.toByteArray();
             return Optional.of(f);
         } catch (Exception e) {
             return Optional.empty();
