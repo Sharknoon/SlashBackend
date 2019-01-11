@@ -1,4 +1,4 @@
-package de.sharknoon.slash.networking.pushy;
+package de.sharknoon.slash.networking.apis.pushy;
 
 import de.sharknoon.slash.database.models.User;
 import de.sharknoon.slash.database.models.message.Message;

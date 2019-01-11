@@ -1,4 +1,4 @@
-package de.sharknoon.slash.utils;
+package de.sharknoon.slash.serialisation.gsonconverter;
 
 import com.google.gson.*;
 import org.bson.types.ObjectId;

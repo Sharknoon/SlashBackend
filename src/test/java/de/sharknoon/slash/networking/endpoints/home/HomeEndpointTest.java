@@ -18,8 +18,8 @@ import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.Use
 import de.sharknoon.slash.networking.endpoints.home.messages.*;
 import de.sharknoon.slash.networking.endpoints.login.LoginEndpoint;
 import de.sharknoon.slash.networking.endpoints.login.LoginMessage;
-import de.sharknoon.slash.utils.LocalDateTimeConverter;
-import de.sharknoon.slash.utils.ObjectIdConverter;
+import de.sharknoon.slash.serialisation.gsonconverter.LocalDateTimeConverter;
+import de.sharknoon.slash.serialisation.gsonconverter.ObjectIdConverter;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.AfterAll;

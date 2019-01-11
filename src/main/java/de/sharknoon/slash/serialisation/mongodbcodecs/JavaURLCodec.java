@@ -1,4 +1,4 @@
-package de.sharknoon.slash.utils;
+package de.sharknoon.slash.serialisation.mongodbcodecs;
 
 import org.bson.BsonInvalidOperationException;
 import org.bson.BsonReader;

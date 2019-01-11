@@ -15,9 +15,10 @@ import com.mongodb.client.model.PushOptions;
 import com.mongodb.lang.Nullable;
 import de.sharknoon.slash.database.models.*;
 import de.sharknoon.slash.database.models.message.Message;
+import de.sharknoon.slash.networking.apis.aylien.Sentiment;
 import de.sharknoon.slash.properties.DBConfig;
 import de.sharknoon.slash.properties.Properties;
-import de.sharknoon.slash.utils.JavaURLCodec;
+import de.sharknoon.slash.serialisation.mongodbcodecs.JavaURLCodec;
 import org.bson.BsonObjectId;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
@@ -88,10 +89,10 @@ public class DB {
 
 
             DB.database = mongoClient.getDatabase(database);
-            DB.users = DB.database.getCollection(USERS_COLLECTION.value, User.class);
-            DB.projects = DB.database.getCollection(PROJECTS_COLLECTION.value, Project.class);
-            DB.chats = DB.database.getCollection(CHATS_COLLECTION.value, Chat.class);
-            DB.files = GridFSBuckets.create(DB.database, FILES_BUCKET.value);
+            DB.users = DB.database.getCollection(COLLECTION_USERS.value, User.class);
+            DB.projects = DB.database.getCollection(COLLECTION_PROJECTS.value, Project.class);
+            DB.chats = DB.database.getCollection(COLLECTION_CHATS.value, Chat.class);
+            DB.files = GridFSBuckets.create(DB.database, COLLECTION_FILES.value);
         } catch (Exception e) {
             Logger.getGlobal().log(Level.SEVERE, "Database not reachable", e);
             System.exit(1);
@@ -292,9 +293,21 @@ public class DB {
         ObjectId newProjectOwner = user == null ? null : user.id;
         projects.updateOne(
                 eq(COLLECTION_ID.value, project.id),
-                set(PROJECTS_COLLECTION_PROJECTOWNER.value, newProjectOwner)
+                set(PROJECTS_COLLECTION_PROJECT_OWNER.value, newProjectOwner)
         );
         project.projectOwner = newProjectOwner;
+    }
+
+    public static Set<Project> getAllProjects() {
+        return projects.find().into(new HashSet<>());
+    }
+
+    public static void setProjectSentiment(Project project, Sentiment sentiment) {
+        projects.updateOne(
+                eq(COLLECTION_ID.value, project.id),
+                set(PROJECTS_COLLECTION_SENTIMENT.value, sentiment)
+        );
+        project.sentiment = sentiment;
     }
 
     //
@@ -357,6 +370,11 @@ public class DB {
         chat.messages.add(message);
     }
 
+    public static Set<Chat> getAllChats() {
+        return chats.find().into(new HashSet<>());
+    }
+
+
     //
     // USER
     //
@@ -386,6 +404,14 @@ public class DB {
                         .find(eq(USERS_COLLECTION_IDS.value + "." + USERS_COLLECTION_IDS_SESSION_ID.value, sessionID))
                         .first()
         );
+    }
+
+    public static void setUserSentiment(User user, Sentiment sentiment) {
+        users.updateOne(
+                eq(COLLECTION_ID.value, user.id),
+                set(USERS_COLLECTION_SENTIMENT.value, sentiment)
+        );
+        user.sentiment = sentiment;
     }
 
     //

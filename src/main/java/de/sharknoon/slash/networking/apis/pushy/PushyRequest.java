@@ -1,8 +1,9 @@
-package de.sharknoon.slash.networking.pushy;
+package de.sharknoon.slash.networking.apis.pushy;
 
 import com.google.gson.annotations.Expose;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
 class PushyPushRequest {
     @Expose

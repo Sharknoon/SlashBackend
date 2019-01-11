@@ -2,8 +2,8 @@ package de.sharknoon.slash.serialisation;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import de.sharknoon.slash.utils.LocalDateTimeConverter;
-import de.sharknoon.slash.utils.ObjectIdConverter;
+import de.sharknoon.slash.serialisation.gsonconverter.LocalDateTimeConverter;
+import de.sharknoon.slash.serialisation.gsonconverter.ObjectIdConverter;
 import org.bson.types.ObjectId;
 
 import java.lang.reflect.Modifier;

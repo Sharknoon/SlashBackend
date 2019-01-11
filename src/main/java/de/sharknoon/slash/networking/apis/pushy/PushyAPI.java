@@ -1,4 +1,4 @@
-package de.sharknoon.slash.networking.pushy;
+package de.sharknoon.slash.networking.apis.pushy;
 
 import com.google.gson.reflect.TypeToken;
 import de.sharknoon.slash.properties.Properties;

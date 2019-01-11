@@ -1,4 +1,4 @@
-package de.sharknoon.slash.networking.aylien;
+package de.sharknoon.slash.networking.apis.aylien;
 
 import com.google.gson.annotations.Expose;
 

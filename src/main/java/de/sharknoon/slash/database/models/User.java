@@ -1,10 +1,9 @@
 package de.sharknoon.slash.database.models;
 
 import com.google.gson.annotations.Expose;
-import de.sharknoon.slash.networking.aylien.Sentiment;
+import de.sharknoon.slash.networking.apis.aylien.Sentiment;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.codecs.pojo.annotations.BsonId;
-import org.bson.codecs.pojo.annotations.BsonIgnore;
 import org.bson.types.ObjectId;
 
 import java.time.LocalDateTime;
@@ -18,7 +17,6 @@ public class User {
     public ObjectId id = new ObjectId();
     @Expose
     public String username = StringUtils.EMPTY;
-    @BsonIgnore
     @Expose
     public Sentiment sentiment = new Sentiment();
     public String email = StringUtils.EMPTY;
