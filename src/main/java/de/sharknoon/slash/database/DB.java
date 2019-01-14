@@ -33,6 +33,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.mongodb.client.model.CollationStrength.SECONDARY;
 import static com.mongodb.client.model.Filters.*;
@@ -370,10 +371,6 @@ public class DB {
         chat.messages.add(message);
     }
 
-    public static Set<Chat> getAllChats() {
-        return chats.find().into(new HashSet<>());
-    }
-
 
     //
     // USER
@@ -385,6 +382,10 @@ public class DB {
                         .find(eq(COLLECTION_ID.value, id))
                         .first()
         );
+    }
+
+    public static Set<User> getAllUsers() {
+        return users.find().into(new HashSet<>());
     }
 
     public static Set<User> searchUsers(String search) {
@@ -404,6 +405,30 @@ public class DB {
                         .find(eq(USERS_COLLECTION_IDS.value + "." + USERS_COLLECTION_IDS_SESSION_ID.value, sessionID))
                         .first()
         );
+    }
+
+    public static Set<Message> getAllMessagesOfUser(User u) {
+        HashSet<Project> projects = DB.projects
+                .find(
+                        in(PROJECTS_COLLECTION_USERS.value, u.id)
+                ).into(new HashSet<>());
+
+        HashSet<Chat> chats = DB.chats
+                .find(
+                        or(
+                                eq(CHATS_COLLECTION_PERSON_A.value, u.id),
+                                eq(CHATS_COLLECTION_PERSON_B.value, u.id)
+                        )
+                ).into(new HashSet<>());
+
+        Stream<Message> projectMessages = projects.stream()
+                .flatMap(p -> p.messages.stream());
+        Stream<Message> chatMessages = chats.stream()
+                .flatMap(c -> c.messages.stream());
+
+        return Stream.concat(projectMessages, chatMessages)
+                .filter(m -> u.id.equals(m.sender))
+                .collect(Collectors.toSet());
     }
 
     public static void setUserSentiment(User user, Sentiment sentiment) {

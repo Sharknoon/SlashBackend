@@ -1,5 +1,7 @@
 package de.sharknoon.slash.networking.endpoints;
 
+import de.sharknoon.slash.networking.apis.aylien.Aylien;
+
 import javax.websocket.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -20,6 +22,11 @@ public abstract class Endpoint implements Sendable {
     private String lastTextMessage = "";
 
     static {
+        initLogger();
+        Aylien.init();
+    }
+
+    private static void initLogger() {
         FileHandler fh;
         try {
             // This block configure the logger with handler and formatter
@@ -27,7 +34,7 @@ public abstract class Endpoint implements Sendable {
             Files.createDirectories(logFilePath.getParent());
             Files.deleteIfExists(logFilePath);
             fh = new FileHandler(logFilePath.toString());
-            fh.setLevel(Level.WARNING);
+            fh.setLevel(Level.CONFIG);
             Logger.getGlobal().addHandler(fh);
             fh.setFormatter(new SimpleFormatter());
         } catch (Exception e) {
