@@ -1,4 +1,4 @@
-package de.sharknoon.slash.networking.endpoints.home.messagehandlers;
+package de.sharknoon.slash.networking.endpoints.home.handlers;
 
 import de.sharknoon.slash.database.DB;
 import de.sharknoon.slash.database.models.Project;
@@ -6,31 +6,31 @@ import de.sharknoon.slash.database.models.User;
 import de.sharknoon.slash.networking.endpoints.Status;
 import de.sharknoon.slash.networking.endpoints.StatusAndSessionIDMessage;
 import de.sharknoon.slash.networking.endpoints.home.HomeEndpoint;
-import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.ErrorResponse;
-import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.OKResponse;
-import de.sharknoon.slash.networking.endpoints.home.messages.ModifyProjectOwnerMessage;
+import de.sharknoon.slash.networking.endpoints.home.handlers.response.ErrorResponse;
+import de.sharknoon.slash.networking.endpoints.home.handlers.response.OKResponse;
+import de.sharknoon.slash.networking.endpoints.home.messages.ModifyProjectUsersMessage;
 import de.sharknoon.slash.serialisation.Serialisation;
 import org.bson.types.ObjectId;
 
 import java.util.Optional;
 
-public class ModifyProjectOwnerMessageHandler extends HomeEndpointMessageHandler {
+public final class ModifyProjectUsersHandler extends HomeEndpointHandler {
 
-    public ModifyProjectOwnerMessageHandler(HomeEndpoint homeEndpoint) {
-        super(Status.MODIFY_PROJECT_OWNER, homeEndpoint);
+    public ModifyProjectUsersHandler(HomeEndpoint homeEndpoint) {
+        super(Status.MODIFY_PROJECT_USERS, homeEndpoint);
     }
 
-    public ModifyProjectOwnerMessageHandler(HomeEndpoint homeEndpoint, HomeEndpointMessageHandler successor) {
-        super(Status.MODIFY_PROJECT_OWNER, homeEndpoint, successor);
+    public ModifyProjectUsersHandler(HomeEndpoint homeEndpoint, HomeEndpointHandler successor) {
+        super(Status.MODIFY_PROJECT_USERS, homeEndpoint, successor);
     }
 
     @Override
     protected void messageLogic(StatusAndSessionIDMessage message, User user) {
-        ModifyProjectOwnerMessage modifyProjectUsersMessage = Serialisation.getGSON().fromJson(homeEndpoint.getLastTextMessage(), ModifyProjectOwnerMessage.class);
-        Optional<User> optionalUser = Optional.empty();
+        ModifyProjectUsersMessage modifyProjectUsersMessage = Serialisation.getGSON().fromJson(homeEndpoint.getLastTextMessage(), ModifyProjectUsersMessage.class);
+        Optional<User> optionalUser;
         Optional<Project> optionalProject;
-        if (!modifyProjectUsersMessage.getProjectOwner().isEmpty() && !ObjectId.isValid(modifyProjectUsersMessage.getProjectOwner())
-                || (!modifyProjectUsersMessage.getProjectOwner().isEmpty() && (optionalUser = DB.getUser(new ObjectId(modifyProjectUsersMessage.getProjectOwner()))).isEmpty())) {
+        if (!ObjectId.isValid(modifyProjectUsersMessage.getUserID())
+                || (optionalUser = DB.getUser(new ObjectId(modifyProjectUsersMessage.getUserID()))).isEmpty()) {
             ErrorResponse error = new ErrorResponse();
             error.status = "NO_USER_FOUND";
             error.description = "No user with the specified id was found";
@@ -42,9 +42,13 @@ public class ModifyProjectOwnerMessageHandler extends HomeEndpointMessageHandler
             error.description = "No project with the specified id was found";
             homeEndpoint.send(error);
         } else {
-            User userToModify = optionalUser.orElse(null);
+            User userToModify = optionalUser.get();
             Project projectToModify = optionalProject.get();
-            DB.setProjectOwner(projectToModify, userToModify);
+            if (modifyProjectUsersMessage.isAddUser()) {
+                DB.addUserToProject(projectToModify, userToModify);
+            } else {
+                DB.removeUserFromProject(projectToModify, userToModify);
+            }
             OKResponse response = new OKResponse();
             homeEndpoint.send(response);
         }

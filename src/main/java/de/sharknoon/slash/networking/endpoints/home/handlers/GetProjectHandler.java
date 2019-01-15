@@ -1,4 +1,4 @@
-package de.sharknoon.slash.networking.endpoints.home.messagehandlers;
+package de.sharknoon.slash.networking.endpoints.home.handlers;
 
 import de.sharknoon.slash.database.DB;
 import de.sharknoon.slash.database.models.Project;
@@ -6,21 +6,21 @@ import de.sharknoon.slash.database.models.User;
 import de.sharknoon.slash.networking.endpoints.Status;
 import de.sharknoon.slash.networking.endpoints.StatusAndSessionIDMessage;
 import de.sharknoon.slash.networking.endpoints.home.HomeEndpoint;
-import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.ErrorResponse;
-import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.ProjectResponse;
+import de.sharknoon.slash.networking.endpoints.home.handlers.response.ErrorResponse;
+import de.sharknoon.slash.networking.endpoints.home.handlers.response.ProjectResponse;
 import de.sharknoon.slash.networking.endpoints.home.messages.GetProjectMessage;
 import de.sharknoon.slash.serialisation.Serialisation;
 import org.bson.types.ObjectId;
 
 import java.util.Optional;
 
-public class GetProjectMessageHandler extends HomeEndpointMessageHandler {
+public class GetProjectHandler extends HomeEndpointHandler {
 
-    public GetProjectMessageHandler(HomeEndpoint homeEndpoint) {
+    public GetProjectHandler(HomeEndpoint homeEndpoint) {
         super(Status.GET_PROJECT, homeEndpoint);
     }
 
-    public GetProjectMessageHandler(HomeEndpoint homeEndpoint, HomeEndpointMessageHandler successor) {
+    public GetProjectHandler(HomeEndpoint homeEndpoint, HomeEndpointHandler successor) {
         super(Status.GET_PROJECT, homeEndpoint, successor);
     }
 

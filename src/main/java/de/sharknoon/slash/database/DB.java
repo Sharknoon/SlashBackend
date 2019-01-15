@@ -311,6 +311,15 @@ public class DB {
         project.sentiment = sentiment;
     }
 
+    public static void removeImage(Project project) {
+        //TODO
+    }
+
+    public static void setImage(Project project, ObjectId image) {
+        //TODO
+    }
+
+
     //
     // CHATS
     //
@@ -437,6 +446,14 @@ public class DB {
                 set(USERS_COLLECTION_SENTIMENT.value, sentiment)
         );
         user.sentiment = sentiment;
+    }
+
+    public static void removeImage(User user) {
+        //TODO
+    }
+
+    public static void setImage(User user, ObjectId image) {
+        //TODO
     }
 
     //

@@ -19,14 +19,16 @@ public class Project {
     public String name = StringUtils.EMPTY;
     @Expose
     public String description = StringUtils.EMPTY;
+    //Can be null if no image has been set
     @Expose
-    public ObjectId image;
+    public ObjectId image = null;
     @Expose
     public LocalDateTime creationDate = LocalDateTime.now();
     public Set<ObjectId> users = Set.of();
     @BsonIgnore
     @Expose
     public Set<User> usernames = Set.of();
+    //Can be null if no projectOwner has been set
     @Expose
     public ObjectId projectOwner = null;
     @Expose

@@ -11,10 +11,7 @@ import de.sharknoon.slash.database.models.message.MessageType;
 import de.sharknoon.slash.networking.endpoints.Status;
 import de.sharknoon.slash.networking.endpoints.StatusAndSessionIDMessage;
 import de.sharknoon.slash.networking.endpoints.TestSession;
-import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.ChatResponse;
-import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.ProjectResponse;
-import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.UserResponse;
-import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.UsersResponse;
+import de.sharknoon.slash.networking.endpoints.home.handlers.response.*;
 import de.sharknoon.slash.networking.endpoints.home.messages.*;
 import de.sharknoon.slash.networking.endpoints.login.LoginEndpoint;
 import de.sharknoon.slash.networking.endpoints.login.LoginMessage;
@@ -543,6 +540,48 @@ class HomeEndpointTest {
         he.onTextMessage(s, gson.toJson(getProjectMessage));
         pr2 = gson.fromJson(sendText, ProjectResponse.class);
         Assertions.assertNull(pr2.project.projectOwner);
+
+        DB.leakDatabase().getCollection("projects").deleteOne(eq("_id", pr.project.id));
+    }
+
+    @Test
+    void test_modifyProjectImageStatus() {
+        HomeEndpoint he = new HomeEndpoint();
+
+        ModifyProjectImageMessage modifyProjectImageMessage = new ModifyProjectImageMessage();
+        modifyProjectImageMessage.setSessionid(user1.ids.iterator().next().sessionID);
+        //modifyProjectImageMessage.setRemoved(false);
+
+        he.onOpen(s);
+        he.onTextMessage(s, gson.toJson(modifyProjectImageMessage));
+        Assertions.assertEquals("{\"status\":\"NO_PROJECT_FOUND\",\"description\":\"No project with the specified id was found\"}", sendText);
+
+        //constructing a new project
+        AddProjectMessage addProjectMessage = new AddProjectMessage();
+        addProjectMessage.setProjectName("Test123 Project");
+        addProjectMessage.setProjectDescription("I am going to be deleted very soon");
+        addProjectMessage.setSessionid(user1.ids.iterator().next().sessionID);
+        he.onTextMessage(s, gson.toJson(addProjectMessage));
+        ProjectResponse pr = gson.fromJson(sendText, ProjectResponse.class);
+        PROJECT_IDS_TO_DELETE.add(pr.project.id);
+
+        sendText = "";
+        modifyProjectImageMessage.setProjectID(pr.project.id.toString());
+        he.onTextMessage(s, gson.toJson(modifyProjectImageMessage));
+        ImageResponse imageResponse = new Gson().fromJson(sendText, ImageResponse.class);
+
+        GetProjectMessage getProjectMessage = new GetProjectMessage();
+        getProjectMessage.setSessionid(user1.ids.iterator().next().sessionID);
+        getProjectMessage.setProjectID(pr.project.id.toString());
+        he.onTextMessage(s, gson.toJson(getProjectMessage));
+        ProjectResponse pr2 = gson.fromJson(sendText, ProjectResponse.class);
+        Assertions.assertNotNull(pr2.project.image);
+
+        modifyProjectImageMessage.setRemoved(true);
+        he.onTextMessage(s, gson.toJson(modifyProjectImageMessage));
+        he.onTextMessage(s, gson.toJson(getProjectMessage));
+        pr2 = gson.fromJson(sendText, ProjectResponse.class);
+        Assertions.assertNull(pr2.project.image);
 
         DB.leakDatabase().getCollection("projects").deleteOne(eq("_id", pr.project.id));
     }

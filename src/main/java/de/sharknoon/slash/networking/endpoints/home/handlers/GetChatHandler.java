@@ -1,4 +1,4 @@
-package de.sharknoon.slash.networking.endpoints.home.messagehandlers;
+package de.sharknoon.slash.networking.endpoints.home.handlers;
 
 import de.sharknoon.slash.database.DB;
 import de.sharknoon.slash.database.models.Chat;
@@ -6,8 +6,8 @@ import de.sharknoon.slash.database.models.User;
 import de.sharknoon.slash.networking.endpoints.Status;
 import de.sharknoon.slash.networking.endpoints.StatusAndSessionIDMessage;
 import de.sharknoon.slash.networking.endpoints.home.HomeEndpoint;
-import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.ChatResponse;
-import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.ErrorResponse;
+import de.sharknoon.slash.networking.endpoints.home.handlers.response.ChatResponse;
+import de.sharknoon.slash.networking.endpoints.home.handlers.response.ErrorResponse;
 import de.sharknoon.slash.networking.endpoints.home.messages.GetChatMessage;
 import de.sharknoon.slash.serialisation.Serialisation;
 import org.bson.types.ObjectId;
@@ -16,13 +16,13 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Set;
 
-public class GetChatMessageHandler extends HomeEndpointMessageHandler {
+public class GetChatHandler extends HomeEndpointHandler {
 
-    public GetChatMessageHandler(HomeEndpoint homeEndpoint) {
+    public GetChatHandler(HomeEndpoint homeEndpoint) {
         super(Status.GET_CHAT, homeEndpoint);
     }
 
-    public GetChatMessageHandler(HomeEndpoint homeEndpoint, HomeEndpointMessageHandler successor) {
+    public GetChatHandler(HomeEndpoint homeEndpoint, HomeEndpointHandler successor) {
         super(Status.GET_CHAT, homeEndpoint, successor);
     }
 
@@ -42,6 +42,7 @@ public class GetChatMessageHandler extends HomeEndpointMessageHandler {
                 ChatResponse cm = new ChatResponse();
                 cm.chat = chat.get();
                 cm.chat.partnerUsername = partner.get().username;
+                cm.chat.partnerImage = partner.get().image;
                 homeEndpoint.send(cm);
             } else {
                 if (partner.isEmpty()) {
@@ -56,6 +57,7 @@ public class GetChatMessageHandler extends HomeEndpointMessageHandler {
                     newChat.personA = user.id;
                     newChat.personB = partner.get().id;
                     newChat.partnerUsername = partner.get().username;
+                    newChat.partnerImage = partner.get().image;
                     newChat.id = new ObjectId();
                     DB.addChat(newChat);
                     ChatResponse cm = new ChatResponse();

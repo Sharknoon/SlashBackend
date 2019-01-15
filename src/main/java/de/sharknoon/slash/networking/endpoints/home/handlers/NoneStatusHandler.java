@@ -1,18 +1,18 @@
-package de.sharknoon.slash.networking.endpoints.home.messagehandlers;
+package de.sharknoon.slash.networking.endpoints.home.handlers;
 
 import de.sharknoon.slash.database.models.User;
 import de.sharknoon.slash.networking.endpoints.Status;
 import de.sharknoon.slash.networking.endpoints.StatusAndSessionIDMessage;
 import de.sharknoon.slash.networking.endpoints.home.HomeEndpoint;
-import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.ErrorResponse;
+import de.sharknoon.slash.networking.endpoints.home.handlers.response.ErrorResponse;
 
-public class NoneStatusMessageHandler extends HomeEndpointMessageHandler {
+public class NoneStatusHandler extends HomeEndpointHandler {
 
-    public NoneStatusMessageHandler(HomeEndpoint homeEndpoint) {
+    public NoneStatusHandler(HomeEndpoint homeEndpoint) {
         super(Status.NONE, homeEndpoint);
     }
 
-    public NoneStatusMessageHandler(HomeEndpoint homeEndpoint, HomeEndpointMessageHandler successor) {
+    public NoneStatusHandler(HomeEndpoint homeEndpoint, HomeEndpointHandler successor) {
         super(Status.NONE, homeEndpoint, successor);
     }
 

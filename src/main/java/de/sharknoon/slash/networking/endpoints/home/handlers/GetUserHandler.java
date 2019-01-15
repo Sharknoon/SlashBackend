@@ -1,25 +1,25 @@
-package de.sharknoon.slash.networking.endpoints.home.messagehandlers;
+package de.sharknoon.slash.networking.endpoints.home.handlers;
 
 import de.sharknoon.slash.database.DB;
 import de.sharknoon.slash.database.models.User;
 import de.sharknoon.slash.networking.endpoints.Status;
 import de.sharknoon.slash.networking.endpoints.StatusAndSessionIDMessage;
 import de.sharknoon.slash.networking.endpoints.home.HomeEndpoint;
-import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.ErrorResponse;
-import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.UserResponse;
+import de.sharknoon.slash.networking.endpoints.home.handlers.response.ErrorResponse;
+import de.sharknoon.slash.networking.endpoints.home.handlers.response.UserResponse;
 import de.sharknoon.slash.networking.endpoints.home.messages.GetUserMessage;
 import de.sharknoon.slash.serialisation.Serialisation;
 import org.bson.types.ObjectId;
 
 import java.util.Optional;
 
-public class GetUserMessageHandler extends HomeEndpointMessageHandler {
+public class GetUserHandler extends HomeEndpointHandler {
 
-    public GetUserMessageHandler(HomeEndpoint homeEndpoint) {
+    public GetUserHandler(HomeEndpoint homeEndpoint) {
         super(Status.GET_USER, homeEndpoint);
     }
 
-    public GetUserMessageHandler(HomeEndpoint homeEndpoint, HomeEndpointMessageHandler successor) {
+    public GetUserHandler(HomeEndpoint homeEndpoint, HomeEndpointHandler successor) {
         super(Status.GET_USER, homeEndpoint, successor);
     }
 

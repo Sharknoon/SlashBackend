@@ -1,4 +1,4 @@
-package de.sharknoon.slash.networking.endpoints.home.messagehandlers;
+package de.sharknoon.slash.networking.endpoints.home.handlers;
 
 import de.sharknoon.slash.database.DB;
 import de.sharknoon.slash.database.models.Project;
@@ -9,8 +9,8 @@ import de.sharknoon.slash.networking.apis.pushy.Pushy;
 import de.sharknoon.slash.networking.endpoints.Status;
 import de.sharknoon.slash.networking.endpoints.StatusAndSessionIDMessage;
 import de.sharknoon.slash.networking.endpoints.home.HomeEndpoint;
-import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.ErrorResponse;
-import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.ProjectResponse;
+import de.sharknoon.slash.networking.endpoints.home.handlers.response.ErrorResponse;
+import de.sharknoon.slash.networking.endpoints.home.handlers.response.ProjectResponse;
 import de.sharknoon.slash.networking.endpoints.home.messages.AddProjectMessageMessage;
 import de.sharknoon.slash.networking.sessions.LoginSessions;
 import de.sharknoon.slash.serialisation.Serialisation;
@@ -20,13 +20,13 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
-public class AddProjectMessageMessageHandler extends HomeEndpointMessageHandler {
-    
-    public AddProjectMessageMessageHandler(HomeEndpoint homeEndpoint) {
+public class AddProjectMessageHandler extends HomeEndpointHandler {
+
+    public AddProjectMessageHandler(HomeEndpoint homeEndpoint) {
         super(Status.ADD_PROJECT_MESSAGE, homeEndpoint);
     }
-    
-    public AddProjectMessageMessageHandler(HomeEndpoint homeEndpoint, HomeEndpointMessageHandler successor) {
+
+    public AddProjectMessageHandler(HomeEndpoint homeEndpoint, HomeEndpointHandler successor) {
         super(Status.ADD_PROJECT_MESSAGE, homeEndpoint, successor);
     }
     

@@ -1,17 +1,17 @@
-package de.sharknoon.slash.networking.endpoints.home.messagehandlers;
+package de.sharknoon.slash.networking.endpoints.home.handlers;
 
 import de.sharknoon.slash.database.models.User;
 import de.sharknoon.slash.networking.endpoints.StatusAndSessionIDMessage;
 import de.sharknoon.slash.networking.endpoints.home.HomeEndpoint;
-import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.ErrorResponse;
+import de.sharknoon.slash.networking.endpoints.home.handlers.response.ErrorResponse;
 
-public class NullStatusMessageHandler extends HomeEndpointMessageHandler {
+public class NullStatusHandler extends HomeEndpointHandler {
 
-    public NullStatusMessageHandler(HomeEndpoint homeEndpoint) {
+    public NullStatusHandler(HomeEndpoint homeEndpoint) {
         super(null, homeEndpoint);
     }
 
-    public NullStatusMessageHandler(HomeEndpoint homeEndpoint, HomeEndpointMessageHandler successor) {
+    public NullStatusHandler(HomeEndpoint homeEndpoint, HomeEndpointHandler successor) {
         super(null, homeEndpoint, successor);
     }
 

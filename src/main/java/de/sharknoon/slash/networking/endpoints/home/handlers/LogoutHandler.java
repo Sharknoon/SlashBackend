@@ -1,23 +1,23 @@
-package de.sharknoon.slash.networking.endpoints.home.messagehandlers;
+package de.sharknoon.slash.networking.endpoints.home.handlers;
 
 import de.sharknoon.slash.database.DB;
 import de.sharknoon.slash.database.models.User;
 import de.sharknoon.slash.networking.endpoints.Status;
 import de.sharknoon.slash.networking.endpoints.StatusAndSessionIDMessage;
 import de.sharknoon.slash.networking.endpoints.home.HomeEndpoint;
-import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.ErrorResponse;
-import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.LogoutResponse;
+import de.sharknoon.slash.networking.endpoints.home.handlers.response.ErrorResponse;
+import de.sharknoon.slash.networking.endpoints.home.handlers.response.LogoutResponse;
 import de.sharknoon.slash.networking.sessions.LoginSessions;
 
 import java.util.Optional;
 
-public class LogoutMessageHandler extends HomeEndpointMessageHandler {
+public class LogoutHandler extends HomeEndpointHandler {
 
-    public LogoutMessageHandler(HomeEndpoint homeEndpoint) {
+    public LogoutHandler(HomeEndpoint homeEndpoint) {
         super(Status.LOGOUT, homeEndpoint);
     }
 
-    public LogoutMessageHandler(HomeEndpoint homeEndpoint, HomeEndpointMessageHandler successor) {
+    public LogoutHandler(HomeEndpoint homeEndpoint, HomeEndpointHandler successor) {
         super(Status.LOGOUT, homeEndpoint, successor);
     }
 

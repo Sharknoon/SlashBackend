@@ -1,30 +1,31 @@
-package de.sharknoon.slash.networking.endpoints.home.messagehandlers;
+package de.sharknoon.slash.networking.endpoints.home.handlers;
 
 import de.sharknoon.slash.database.models.User;
 import de.sharknoon.slash.networking.endpoints.Status;
 import de.sharknoon.slash.networking.endpoints.StatusAndSessionIDMessage;
 import de.sharknoon.slash.networking.endpoints.home.HomeEndpoint;
 
-public abstract class HomeEndpointMessageHandler {
+public abstract class HomeEndpointHandler {
 
     private final Status messageStatus;
     protected final HomeEndpoint homeEndpoint;
-    protected HomeEndpointMessageHandler successor;
+    protected HomeEndpointHandler successor;
 
 
-    public HomeEndpointMessageHandler(final Status messageStatus, final HomeEndpoint homeEndpoint) {
+    public HomeEndpointHandler(final Status messageStatus, final HomeEndpoint homeEndpoint) {
         this(messageStatus, homeEndpoint, null);
     }
-    public HomeEndpointMessageHandler(final Status messageStatus,
-                                      final HomeEndpoint homeEndpoint,
-                                      final HomeEndpointMessageHandler successor) {
+
+    public HomeEndpointHandler(final Status messageStatus,
+                               final HomeEndpoint homeEndpoint,
+                               final HomeEndpointHandler successor) {
         this.messageStatus = messageStatus;
         this.homeEndpoint = homeEndpoint;
         this.successor = successor;
     }
 
 
-    public final void appendSuccessorToLast(final HomeEndpointMessageHandler newLastSuccessor) {
+    public final void appendSuccessorToLast(final HomeEndpointHandler newLastSuccessor) {
         if (successor == null) {
             this.successor = newLastSuccessor;
         } else {

@@ -1,4 +1,4 @@
-package de.sharknoon.slash.networking.endpoints.home.messagehandlers;
+package de.sharknoon.slash.networking.endpoints.home.handlers;
 
 import de.sharknoon.slash.database.DB;
 import de.sharknoon.slash.database.models.Chat;
@@ -9,8 +9,8 @@ import de.sharknoon.slash.networking.apis.pushy.Pushy;
 import de.sharknoon.slash.networking.endpoints.Status;
 import de.sharknoon.slash.networking.endpoints.StatusAndSessionIDMessage;
 import de.sharknoon.slash.networking.endpoints.home.HomeEndpoint;
-import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.ChatResponse;
-import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.ErrorResponse;
+import de.sharknoon.slash.networking.endpoints.home.handlers.response.ChatResponse;
+import de.sharknoon.slash.networking.endpoints.home.handlers.response.ErrorResponse;
 import de.sharknoon.slash.networking.endpoints.home.messages.AddChatMessageMessage;
 import de.sharknoon.slash.networking.sessions.LoginSessions;
 import de.sharknoon.slash.serialisation.Serialisation;
@@ -19,13 +19,13 @@ import org.bson.types.ObjectId;
 import java.util.Objects;
 import java.util.Optional;
 
-public class AddChatMessageMessageHandler extends HomeEndpointMessageHandler {
-    
-    public AddChatMessageMessageHandler(HomeEndpoint homeEndpoint) {
+public class AddChatMessageHandler extends HomeEndpointHandler {
+
+    public AddChatMessageHandler(HomeEndpoint homeEndpoint) {
         super(Status.ADD_CHAT_MESSAGE, homeEndpoint);
     }
-    
-    public AddChatMessageMessageHandler(HomeEndpoint homeEndpoint, HomeEndpointMessageHandler successor) {
+
+    public AddChatMessageHandler(HomeEndpoint homeEndpoint, HomeEndpointHandler successor) {
         super(Status.ADD_CHAT_MESSAGE, homeEndpoint, successor);
     }
     
@@ -70,9 +70,11 @@ public class AddChatMessageMessageHandler extends HomeEndpointMessageHandler {
                 ChatResponse cr = new ChatResponse();
                 cr.chat = c;
                 c.partnerUsername = partner.get().username;
+                c.partnerImage = partner.get().image;
                 homeEndpoint.send(cr);
                 Pushy.sendPush(PushStatus.NEW_CHAT_MESSAGE, c.id.toHexString(), m, user.username, partner.get());
                 c.partnerUsername = user.username;
+                c.partnerImage = user.image;
                 LoginSessions
                         .getSession(HomeEndpoint.class, partner.get())
                         .ifPresent(session -> homeEndpoint.sendTo(session, cr));

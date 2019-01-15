@@ -1,4 +1,4 @@
-package de.sharknoon.slash.networking.endpoints.home.messagehandlers;
+package de.sharknoon.slash.networking.endpoints.home.handlers;
 
 import de.sharknoon.slash.database.DB;
 import de.sharknoon.slash.database.models.Chat;
@@ -6,17 +6,20 @@ import de.sharknoon.slash.database.models.User;
 import de.sharknoon.slash.networking.endpoints.Status;
 import de.sharknoon.slash.networking.endpoints.StatusAndSessionIDMessage;
 import de.sharknoon.slash.networking.endpoints.home.HomeEndpoint;
-import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.HomeResponse;
+import de.sharknoon.slash.networking.endpoints.home.handlers.response.HomeResponse;
 import de.sharknoon.slash.properties.Properties;
+import org.bson.types.ObjectId;
 
 import java.util.Objects;
+import java.util.Optional;
 
-public class GetHomeMessageHandler extends HomeEndpointMessageHandler {
+public class GetHomeHandler extends HomeEndpointHandler {
 
-    public GetHomeMessageHandler(HomeEndpoint homeEndpoint) {
+    public GetHomeHandler(HomeEndpoint homeEndpoint) {
         super(Status.GET_HOME, homeEndpoint);
     }
-    public GetHomeMessageHandler(HomeEndpoint homeEndpoint, HomeEndpointMessageHandler successor) {
+
+    public GetHomeHandler(HomeEndpoint homeEndpoint, HomeEndpointHandler successor) {
         super(Status.GET_HOME, homeEndpoint, successor);
     }
 
@@ -26,10 +29,18 @@ public class GetHomeMessageHandler extends HomeEndpointMessageHandler {
         home.projects = DB.getProjectsForUser(user);
         home.chats = DB.getNLastChatsForUser(user.id, Properties.getUserConfig().amountfavouritechats());
         for (Chat chat : home.chats) {
+            ObjectId partnerID;
             if (Objects.equals(chat.personA, user.id)) {//I am user a
-                chat.partnerUsername = DB.getUser(chat.personB).map(u -> u.username).orElse("ERROR");
+                partnerID = chat.personB;
             } else {
-                chat.partnerUsername = DB.getUser(chat.personA).map(u -> u.username).orElse("ERROR");
+                partnerID = chat.personA;
+            }
+            Optional<User> u = DB.getUser(partnerID);
+            if (u.isPresent()) {
+                chat.partnerUsername = u.get().username;
+                chat.partnerImage = u.get().image;
+            } else {
+                chat.partnerUsername = "ERROR";
             }
         }
         homeEndpoint.send(home);

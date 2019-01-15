@@ -23,6 +23,10 @@ public class Chat {
     @BsonIgnore
     @Expose
     public String partnerUsername = StringUtils.EMPTY;
+    //partnerImage can be null if no image has been set
+    @BsonIgnore
+    @Expose
+    public ObjectId partnerImage = null;
     @Expose
     public LocalDateTime creationDate = LocalDateTime.now();
     @Expose

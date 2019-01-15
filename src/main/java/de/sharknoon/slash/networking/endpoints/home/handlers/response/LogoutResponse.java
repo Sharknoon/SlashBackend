@@ -1,4 +1,4 @@
-package de.sharknoon.slash.networking.endpoints.home.messagehandlers.response;
+package de.sharknoon.slash.networking.endpoints.home.handlers.response;
 
 import com.google.gson.annotations.Expose;
 

@@ -17,6 +17,9 @@ public class User {
     public ObjectId id = new ObjectId();
     @Expose
     public String username = StringUtils.EMPTY;
+    //Can be null if no image is set
+    @Expose
+    public ObjectId image = null;
     @Expose
     public Sentiment sentiment = new Sentiment();
     public String email = StringUtils.EMPTY;

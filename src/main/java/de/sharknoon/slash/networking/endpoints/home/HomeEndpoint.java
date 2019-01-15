@@ -7,9 +7,9 @@ import de.sharknoon.slash.database.models.message.MessageEmotion;
 import de.sharknoon.slash.networking.endpoints.Endpoint;
 import de.sharknoon.slash.networking.endpoints.StatusAndSessionIDMessage;
 import de.sharknoon.slash.networking.endpoints.file.FileEndpoint;
-import de.sharknoon.slash.networking.endpoints.home.messagehandlers.*;
-import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.ErrorResponse;
-import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.ImageResponse;
+import de.sharknoon.slash.networking.endpoints.home.handlers.*;
+import de.sharknoon.slash.networking.endpoints.home.handlers.response.ErrorResponse;
+import de.sharknoon.slash.networking.endpoints.home.handlers.response.ImageResponse;
 import de.sharknoon.slash.networking.endpoints.home.messages.AddMessageMessage;
 import de.sharknoon.slash.networking.sessions.LoginSessionUtils;
 import de.sharknoon.slash.serialisation.Serialisation;
@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 )
 public class HomeEndpoint extends Endpoint {
 
-    private HomeEndpointMessageHandler firstHandler = new GetHomeMessageHandler(this);
+    private HomeEndpointHandler firstHandler = new GetHomeHandler(this);
 
     private static boolean isNotValidChatMessageContent(String content) {
         return content.length() <= 0 || content.length() >= 5000;
@@ -45,18 +45,20 @@ public class HomeEndpoint extends Endpoint {
 
     //Needs to stay public because of the endpoints
     public HomeEndpoint() {
-        firstHandler.appendSuccessorToLast(new GetUserMessageHandler(this));
-        firstHandler.appendSuccessorToLast(new LogoutMessageHandler(this));
-        firstHandler.appendSuccessorToLast(new GetChatMessageHandler(this));
+        firstHandler.appendSuccessorToLast(new GetUserHandler(this));
+        firstHandler.appendSuccessorToLast(new LogoutHandler(this));
+        firstHandler.appendSuccessorToLast(new GetChatHandler(this));
+        firstHandler.appendSuccessorToLast(new AddProjectHandler(this));
+        firstHandler.appendSuccessorToLast(new GetProjectHandler(this));
+        firstHandler.appendSuccessorToLast(new GetUsersHandler(this));
+        firstHandler.appendSuccessorToLast(new ModifyProjectUsersHandler(this));
+        firstHandler.appendSuccessorToLast(new ModifyProjectOwnerHandler(this));
         firstHandler.appendSuccessorToLast(new AddProjectMessageHandler(this));
-        firstHandler.appendSuccessorToLast(new GetProjectMessageHandler(this));
-        firstHandler.appendSuccessorToLast(new GetUsersMessageHandler(this));
-        firstHandler.appendSuccessorToLast(new ModifyProjectUsersMessageHandler(this));
-        firstHandler.appendSuccessorToLast(new ModifyProjectOwnerMessageHandler(this));
-        firstHandler.appendSuccessorToLast(new AddProjectMessageMessageHandler(this));
-        firstHandler.appendSuccessorToLast(new AddChatMessageMessageHandler(this));
-        firstHandler.appendSuccessorToLast(new NoneStatusMessageHandler(this));
-        firstHandler.appendSuccessorToLast(new NullStatusMessageHandler(this));
+        firstHandler.appendSuccessorToLast(new AddChatMessageHandler(this));
+        firstHandler.appendSuccessorToLast(new ModifyUserImageHandler(this));
+        firstHandler.appendSuccessorToLast(new ModifyProjectImageHandler(this));
+        firstHandler.appendSuccessorToLast(new NoneStatusHandler(this));
+        firstHandler.appendSuccessorToLast(new NullStatusHandler(this));
     }
 
     @OnMessage

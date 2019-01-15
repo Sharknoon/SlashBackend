@@ -12,6 +12,7 @@ import de.sharknoon.slash.utils.Try;
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.Duration;
+import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -92,9 +93,9 @@ public class Aylien {
     }
 
     private static String getMessageContent(Message m) {
-        String subject = m.getSubject();
-        String content = m.getContent();
-        if (subject != null) {
+        String subject = Objects.requireNonNullElse(m.getSubject(), StringUtils.EMPTY);
+        String content = Objects.requireNonNullElse(m.getContent(), StringUtils.EMPTY);
+        if (!subject.isEmpty()) {
             return subject
                     + StringUtils.SPACE
                     + content;
