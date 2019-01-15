@@ -33,6 +33,7 @@ import java.util.function.Supplier;
  *
  * @since 1.4
  */
+@SuppressWarnings("WeakerAccess")
 public abstract class Try<V> {
 
     private Try() {
@@ -51,7 +52,7 @@ public abstract class Try<V> {
      * @see #failure(Exception)
      */
     public static <V> Try<V> call(Callable<V> action) {
-        checkNotNull(action, "action");
+        Objects.requireNonNull(action, "action must not be null");
         return Try.of(() -> success(action.call()));
     }
 
@@ -74,16 +75,7 @@ public abstract class Try<V> {
      * {@code null}
      */
     public static <V> Try<V> failure(Exception cause) {
-        return new Failure<>(checkNotNull(cause, "cause"));
-    }
-
-    // Cannot use Preconditions due to package cycle
-    private static <T> T checkNotNull(T input, String title) {
-        if (input == null) {
-            // Cannot use PreconditionViolationException due to package cycle
-            throw new NullPointerException(title + " must not be null");
-        }
-        return input;
+        return new Failure<>(Objects.requireNonNull(cause, "cause must not be null"));
     }
 
     private static <V> Try<V> of(Callable<Try<V>> action) {
@@ -212,13 +204,13 @@ public abstract class Try<V> {
 
         @Override
         public <U> Try<U> andThenTry(Transformer<V, U> transformer) {
-            checkNotNull(transformer, "transformer");
+            Objects.requireNonNull(transformer, "transformer must not be null");
             return Try.call(() -> transformer.apply(this.value));
         }
 
         @Override
         public <U> Try<U> andThen(Function<V, Try<U>> function) {
-            checkNotNull(function, "function");
+            Objects.requireNonNull(function, "function must not be null");
             return Try.of(() -> function.apply(this.value));
         }
 
@@ -247,7 +239,7 @@ public abstract class Try<V> {
 
         @Override
         public Try<V> ifSuccess(Consumer<V> valueConsumer) {
-            checkNotNull(valueConsumer, "valueConsumer");
+            Objects.requireNonNull(valueConsumer, "valueConsumer must not be null");
             valueConsumer.accept(this.value);
             return this;
         }
@@ -307,13 +299,13 @@ public abstract class Try<V> {
 
         @Override
         public Try<V> orElseTry(Callable<V> action) {
-            checkNotNull(action, "action");
+            Objects.requireNonNull(action, "action must not be null");
             return Try.call(action);
         }
 
         @Override
         public Try<V> orElse(Supplier<Try<V>> supplier) {
-            checkNotNull(supplier, "supplier");
+            Objects.requireNonNull(supplier, "supplier must not be null");
             return Try.of(supplier::get);
         }
 
@@ -324,7 +316,7 @@ public abstract class Try<V> {
 
         @Override
         public <E extends Exception> V getOrThrow(Function<? super Exception, E> exceptionTransformer) throws E {
-            checkNotNull(exceptionTransformer, "exceptionTransformer");
+            Objects.requireNonNull(exceptionTransformer, "exceptionTransformer must not be null");
             throw exceptionTransformer.apply(this.cause);
         }
 
@@ -336,7 +328,7 @@ public abstract class Try<V> {
 
         @Override
         public Try<V> ifFailure(Consumer<Exception> causeConsumer) {
-            checkNotNull(causeConsumer, "causeConsumer");
+            Objects.requireNonNull(causeConsumer, "causeConsumer must not be null");
             causeConsumer.accept(this.cause);
             return this;
         }
