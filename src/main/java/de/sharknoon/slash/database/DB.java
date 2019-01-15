@@ -15,7 +15,7 @@ import com.mongodb.client.model.PushOptions;
 import com.mongodb.lang.Nullable;
 import de.sharknoon.slash.database.models.*;
 import de.sharknoon.slash.database.models.message.Message;
-import de.sharknoon.slash.networking.apis.aylien.Sentiment;
+import de.sharknoon.slash.database.models.sentiment.Sentiment;
 import de.sharknoon.slash.properties.DBConfig;
 import de.sharknoon.slash.properties.Properties;
 import de.sharknoon.slash.serialisation.mongodbcodecs.JavaURLCodec;

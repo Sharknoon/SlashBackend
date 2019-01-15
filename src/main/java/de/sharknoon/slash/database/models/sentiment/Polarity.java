@@ -1,4 +1,4 @@
-package de.sharknoon.slash.networking.apis.aylien;
+package de.sharknoon.slash.database.models.sentiment;
 
 public enum Polarity {
 
