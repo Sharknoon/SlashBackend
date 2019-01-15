@@ -312,11 +312,19 @@ public class DB {
     }
 
     public static void removeImage(Project project) {
-        //TODO
+        projects.updateOne(
+                eq(COLLECTION_ID.value, project.id),
+                unset(PROJECTS_COLLECTION_IMAGE.value)
+        );
+        project.image = null;
     }
 
     public static void setImage(Project project, ObjectId image) {
-        //TODO
+        projects.updateOne(
+                eq(COLLECTION_ID.value, project.id),
+                set(PROJECTS_COLLECTION_IMAGE.value, image)
+        );
+        project.image = image;
     }
 
 
@@ -449,11 +457,19 @@ public class DB {
     }
 
     public static void removeImage(User user) {
-        //TODO
+        users.updateOne(
+                eq(COLLECTION_ID.value, user.id),
+                unset(USERS_COLLECTION_IMAGE.value)
+        );
+        user.image = null;
     }
 
     public static void setImage(User user, ObjectId image) {
-        //TODO
+        users.updateOne(
+                eq(COLLECTION_ID.value, user.id),
+                set(USERS_COLLECTION_IMAGE.value, image)
+        );
+        user.image = image;
     }
 
     //

@@ -18,6 +18,7 @@ public enum Values {
     USERS_COLLECTION_IDS_SESSION_ID("sessionID"),
     USERS_COLLECTION_IDS_DEVICE_ID("deviceID"),
     USERS_COLLECTION_SENTIMENT("sentiment"),
+    USERS_COLLECTION_IMAGE("image"),
 
     //Collections chats
     CHATS_COLLECTION_PERSON_A("personA"),
@@ -29,7 +30,8 @@ public enum Values {
     PROJECTS_COLLECTION_USERS("users"),
     PROJECTS_COLLECTION_PROJECT_OWNER("projectOwner"),
     PROJECTS_COLLECTION_MESSAGES("messages"),
-    PROJECTS_COLLECTION_SENTIMENT("sentiment");
+    PROJECTS_COLLECTION_SENTIMENT("sentiment"),
+    PROJECTS_COLLECTION_IMAGE("image");
 
     public final String value;
 
