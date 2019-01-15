@@ -445,6 +445,7 @@ class HomeEndpointTest {
         UserResponse ur = gson.fromJson(sendText, UserResponse.class);
         Assertions.assertEquals(ur.user.id, user1.id);
         Assertions.assertEquals(ur.user.username, user1.username);
+        Assertions.assertNull(ur.user.image);
 
         getUserMessage.setUserID(user2.id.toString());
         he.onTextMessage(s, gson.toJson(getUserMessage));
@@ -452,6 +453,51 @@ class HomeEndpointTest {
         ur = gson.fromJson(sendText, UserResponse.class);
         Assertions.assertEquals(ur.user.id, user2.id);
         Assertions.assertEquals(ur.user.username, user2.username);
+    }
+
+    @Test
+    void test_modifyUserImage() {
+        HomeEndpoint he = new HomeEndpoint();
+
+        GetUserMessage getUserMessage = new GetUserMessage();
+        getUserMessage.setSessionid(user1.ids.iterator().next().sessionID);
+
+        he.onOpen(s);
+        he.onTextMessage(s, gson.toJson(getUserMessage));
+        Assertions.assertEquals("{\"status\":\"NO_USER_FOUND\",\"description\":\"No user with the specified id was found\"}", sendText);
+
+        getUserMessage.setUserID(user1.id.toString());
+        he.onTextMessage(s, gson.toJson(getUserMessage));
+
+        UserResponse ur = gson.fromJson(sendText, UserResponse.class);
+        Assertions.assertEquals(ur.user.id, user1.id);
+        Assertions.assertEquals(ur.user.username, user1.username);
+        Assertions.assertNull(ur.user.image);
+
+
+        // Set image
+        ModifyUserImageMessage modifyUserImageMessage = new ModifyUserImageMessage();
+        modifyUserImageMessage.setSessionid(user1.ids.iterator().next().sessionID);
+        he.onOpen(s);
+        he.onTextMessage(s, gson.toJson(modifyUserImageMessage));
+
+        he.onTextMessage(s, gson.toJson(getUserMessage));
+        ur = gson.fromJson(sendText, UserResponse.class);
+        Assertions.assertEquals(ur.user.id, user1.id);
+        Assertions.assertEquals(ur.user.username, user1.username);
+        Assertions.assertNotNull(ur.user.image);
+
+
+        // Unset image
+        modifyUserImageMessage.setRemoved(true);
+        he.onOpen(s);
+        he.onTextMessage(s, gson.toJson(modifyUserImageMessage));
+
+        he.onTextMessage(s, gson.toJson(getUserMessage));
+        ur = gson.fromJson(sendText, UserResponse.class);
+        Assertions.assertEquals(ur.user.id, user1.id);
+        Assertions.assertEquals(ur.user.username, user1.username);
+        Assertions.assertNull(ur.user.image);
     }
 
     @Test
@@ -568,7 +614,7 @@ class HomeEndpointTest {
         sendText = "";
         modifyProjectImageMessage.setProjectID(pr.project.id.toString());
         he.onTextMessage(s, gson.toJson(modifyProjectImageMessage));
-        ImageResponse imageResponse = new Gson().fromJson(sendText, ImageResponse.class);
+        new Gson().fromJson(sendText, ImageResponse.class); // Must not throw an exception
 
         GetProjectMessage getProjectMessage = new GetProjectMessage();
         getProjectMessage.setSessionid(user1.ids.iterator().next().sessionID);
