@@ -18,6 +18,9 @@ public class AddProjectMessage extends StatusAndSessionIDMessage {
     private List<String> projectMembers = new ArrayList<>();
     @Expose
     private String projectOwner = "";
+    @Expose
+    private boolean withProjectImage = false;
+
 
     public AddProjectMessage() {
         super(Status.ADD_PROJECT);
@@ -62,5 +65,13 @@ public class AddProjectMessage extends StatusAndSessionIDMessage {
         if (projectOwner != null) {
             this.projectOwner = projectOwner;
         }
+    }
+
+    public boolean isWithProjectImage() {
+        return withProjectImage;
+    }
+
+    public void setWithProjectImage(boolean withProjectImage) {
+        this.withProjectImage = withProjectImage;
     }
 }

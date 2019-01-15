@@ -128,10 +128,10 @@ public class HomeEndpoint extends Endpoint {
                 String newImageID = newImageObjectID.toHexString();
                 ImageResponse ir = new ImageResponse();
                 ir.imageID = newImageID;
-                //Sending the imageID to the user to allow for the upload
-                send(ir);
                 //Adding the id for allowing upload access
                 FileEndpoint.allowUpload(newImageID);
+                //Sending the imageID to the user to allow for the upload
+                send(ir);
                 newMessage.image = newImageObjectID;
                 return Optional.of(newMessage);
             case NONE:

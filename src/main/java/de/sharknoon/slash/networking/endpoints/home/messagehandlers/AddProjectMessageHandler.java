@@ -5,8 +5,10 @@ import de.sharknoon.slash.database.models.Project;
 import de.sharknoon.slash.database.models.User;
 import de.sharknoon.slash.networking.endpoints.Status;
 import de.sharknoon.slash.networking.endpoints.StatusAndSessionIDMessage;
+import de.sharknoon.slash.networking.endpoints.file.FileEndpoint;
 import de.sharknoon.slash.networking.endpoints.home.HomeEndpoint;
 import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.ErrorResponse;
+import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.ImageResponse;
 import de.sharknoon.slash.networking.endpoints.home.messagehandlers.response.ProjectResponse;
 import de.sharknoon.slash.networking.endpoints.home.messages.AddProjectMessage;
 import de.sharknoon.slash.serialisation.Serialisation;
@@ -49,8 +51,6 @@ public class AddProjectMessageHandler extends HomeEndpointMessageHandler {
             homeEndpoint.send(error);
         } else {
             Project newProject = new Project();
-            //TODO replace with real image
-            newProject.image = new ObjectId();
             newProject.creationDate = LocalDateTime.now().withNano(0);
             newProject.users = homeEndpoint.getAllExistingUserIDs(memberIDs);
             newProject.users.add(user.id);
@@ -60,6 +60,17 @@ public class AddProjectMessageHandler extends HomeEndpointMessageHandler {
             //Optional
             if (!projectOwner.isEmpty()) {
                 newProject.projectOwner = new ObjectId(projectOwner);
+            }
+            if (addProjectMessage.isWithProjectImage()) {
+                // Constructing new ID for the project image to be uploaded
+                final ObjectId newImageObjectID = new ObjectId();
+                newProject.image = newImageObjectID;
+
+                final String newImageID = newImageObjectID.toHexString();
+                ImageResponse ir = new ImageResponse();
+                ir.imageID = newImageID;
+                FileEndpoint.allowUpload(newImageID);   // Adding the id for allowing upload access
+                homeEndpoint.send(ir);                  // Sending the imageID to the user to allow for the upload
             }
             DB.addProject(newProject);
             ProjectResponse pm = new ProjectResponse();
