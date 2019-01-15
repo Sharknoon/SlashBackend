@@ -1,24 +1,29 @@
 package de.sharknoon.slash.networking.endpoints.home.messages;
 
 import com.google.gson.annotations.Expose;
-import de.sharknoon.slash.networking.endpoints.home.Status;
+import com.google.gson.annotations.SerializedName;
+import de.sharknoon.slash.networking.endpoints.Status;
+import de.sharknoon.slash.networking.endpoints.StatusAndSessionIDMessage;
+
+import java.util.Objects;
 
 public class GetUserMessage extends StatusAndSessionIDMessage {
 
+    @Expose
+    @SerializedName(value = "userID", alternate = {"userId", "userid"})
+    private String userID = "";
+
     public GetUserMessage() {
-        setStatus(Status.GET_USER);
+        super(Status.GET_USER);
     }
 
-    @Expose
-    private String username = "";
-    
-    public String getUsername() {
-        return username;
+    public String getUserID() {
+        return Objects.requireNonNullElse(userID, "");
     }
-    
-    public void setUsername(String username) {
-        if (username != null) {
-            this.username = username;
+
+    public void setUserID(String userID) {
+        if (userID != null) {
+            this.userID = userID;
         }
     }
 }

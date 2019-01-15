@@ -1,128 +1,111 @@
 package de.sharknoon.slash.networking.endpoints;
 
-import com.google.gson.JsonSyntaxException;
-import de.sharknoon.slash.serialisation.Serialisation;
+import de.sharknoon.slash.networking.apis.aylien.Aylien;
 
 import javax.websocket.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
-public abstract class Endpoint<M> {
+public abstract class Endpoint implements Sendable {
 
-    //The class of the messages e.g. RegisterMessage or LoginMessage
-    private final Class<M> messageClass;
     //The type of the extending class of this class e.g. LoginEndpoint or RegisterEndpoint
     private final Class<? extends Endpoint> endpointClass;
-    //The last message in case the provided Object doesnt contain specific fields
-    
-    private static String toJSON(Object o) {
+    //The current Session for easy send(...) calls
+    private Session session;
+    private String lastTextMessage = "";
+
+    static {
+        initLogger();
+        Aylien.init();
+    }
+
+    private static void initLogger() {
+        FileHandler fh;
         try {
-            return Serialisation.getGSON().toJson(o);
+            // This block configure the logger with handler and formatter
+            Path logFilePath = Paths.get(System.getProperty("user.home"), ".slash", "slash-errors.log");
+            Files.createDirectories(logFilePath.getParent());
+            Files.deleteIfExists(logFilePath);
+            fh = new FileHandler(logFilePath.toString());
+            fh.setLevel(Level.CONFIG);
+            Logger.getGlobal().addHandler(fh);
+            fh.setFormatter(new SimpleFormatter());
         } catch (Exception e) {
-            return "{\"status\":\"ERROR\"," +
-                    "\"message\":\"An unexpected error occurred, please try again later\"}";
+            e.printStackTrace();
         }
     }
-    
-    public Endpoint(Class<M> messageClass) {
-        this.messageClass = messageClass;
+
+    public Endpoint() {
         this.endpointClass = getClass();
     }
-    
-    private static void sendTo(Session session, String json) {
-        if (session != null) {
-            session.getAsyncRemote().sendText(json);
-        }
+
+    @Override
+    public Session getSession() {
+        return session;
     }
-    private Session session;
-    
+
     @OnOpen
     public void onOpen(Session session) {
-        Logger.getGlobal().log(Level.INFO, session.getId() + " connected");
+        Logger.getGlobal().info(session.getId() + " connected");
         this.session = session;
         session.getAsyncRemote().sendText(
                 OpeningMessage.getOpeningMessage(endpointClass)
         );
     }
-    
-    //To be implemented
-    protected abstract void onMessage(Session session, M message);
-    
+
     @OnClose
     public void onClose(Session session, CloseReason closeReason) {
-        Logger.getGlobal().log(Level.INFO, session.getId() + " disconnected");
+        Logger.getGlobal().info(session.toString() + "disconnected because " + closeReason.toString());
     }
-    
+
     @OnError
     public void onError(Session session, Throwable throwable) {
-        Logger.getGlobal().log(Level.SEVERE, session.getId() + " has an Error", throwable);
-        
+        Logger.getGlobal().log(Level.SEVERE, "Session: " + session.toString() + " Error: " + throwable.getClass().getSimpleName(), throwable);
+
         session.getAsyncRemote().sendText(
                 ErrorMessage.getErrorMessage(throwable)
         );
     }
-    
+
     private void onError(Session session, String errorMessage) {
-        Logger.getGlobal().log(Level.SEVERE, session.getId() + " has an Error: " + errorMessage);
-        
+        Logger.getGlobal().severe("Session: " + session.toString() + " Error: " + errorMessage);
+
         session.getAsyncRemote().sendText(
                 ErrorMessage.getErrorMessage(errorMessage)
         );
     }
-    
-    protected static void sendTo(Session session, Object o) {
-        sendTo(session, toJSON(o));
+
+    protected void handleMessage(Runnable message) {
+        handleMessage(null, message);
     }
-    
-    private String lastMessage = "";
-    
-    protected void send(String json) {
-        if (session != null) {
-            session.getAsyncRemote().sendText(json);
+
+    protected void handleMessage(String s, Runnable message) {
+        if (s != null) {
+            lastTextMessage = s;
         }
-    }
-    
-    protected void send(Object o) {
-        send(toJSON(o));
-    }
-    
-    @OnMessage
-    public final void onMessage(Session session, String message) {
-        Logger.getGlobal().log(Level.INFO, session.getId() + ": " + message);
-        this.session = session;
-        this.lastMessage = message;
         try {
-            M messageObject = Serialisation.getGSON().fromJson(message, messageClass);
-            onMessage(
-                    session,
-                    messageObject
-            );
-        } catch (JsonSyntaxException je) {
-            onError(session, "JSON not well formatted");
+            message.run();
         } catch (Exception e) {
-            onError(session, "Internal server error occurred");
+            onError(session, e);
         }
     }
-    
-    public Class<M> getMessageClass() {
-        return messageClass;
+
+    public String getLastTextMessage() {
+        return lastTextMessage;
     }
-    
-    protected String getLastMessage() {
-        return lastMessage;
-    }
-    
-    public Session getSession() {
-        return session;
-    }
-    
+
     private static class OpeningMessage {
-    
+
         private static final String JSON = "{\"status\":\"CONNECTED\",\"message\":\"Connected to $\"}";
         private static final Map<Class<?>, String> JSONS = new HashMap<>();
-        
+
         static String getOpeningMessage(Class<?> messageClass) {
             if (JSONS.containsKey(messageClass)) {
                 return JSONS.get(messageClass);
@@ -133,12 +116,13 @@ public abstract class Endpoint<M> {
             return className;
         }
     }
-    
+
+
     private static class ErrorMessage {
         private static final String JSON = "{\"status\":\"ERROR\",\"message\":\"$\"}";
         private static final Map<Throwable, String> JSONS_THROWABLES = new HashMap<>();
         private static final Map<String, String> JSON_STRINGS = new HashMap<>();
-        
+
         static String getErrorMessage(String message) {
             if (JSON_STRINGS.containsKey(message)) {
                 return JSON_STRINGS.get(message);
@@ -147,7 +131,7 @@ public abstract class Endpoint<M> {
             JSON_STRINGS.put(message, errorMessage);
             return errorMessage;
         }
-        
+
         static String getErrorMessage(Throwable t) {
             if (JSONS_THROWABLES.containsKey(t)) {
                 return JSONS_THROWABLES.get(t);
@@ -158,5 +142,5 @@ public abstract class Endpoint<M> {
             return errorMessage;
         }
     }
-    
+
 }

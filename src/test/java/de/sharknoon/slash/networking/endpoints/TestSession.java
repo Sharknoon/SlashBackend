@@ -3,6 +3,7 @@ package de.sharknoon.slash.networking.endpoints;
 import javax.websocket.*;
 import javax.websocket.MessageHandler.*;
 import javax.websocket.RemoteEndpoint.*;
+import java.io.*;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.security.Principal;
@@ -69,10 +70,7 @@ public class TestSession implements Session {
         return false;
     }
     
-    @Override
-    public boolean isOpen() {
-        return false;
-    }
+    private boolean isClosed = false;
     
     @Override
     public long getMaxIdleTimeout() {
@@ -119,7 +117,7 @@ public class TestSession implements Session {
             
             @Override
             public void sendText(String text, SendHandler handler) {
-            
+                resultConsumer.accept(text);
             }
             
             @Override
@@ -176,8 +174,73 @@ public class TestSession implements Session {
     }
     
     @Override
+    public boolean isOpen() {
+        return !isClosed;
+    }
+    
+    @Override
     public Basic getBasicRemote() {
-        return null;
+        return new Basic() {
+            @Override
+            public void sendText(String text) {
+                resultConsumer.accept(text);
+            }
+        
+            @Override
+            public void sendBinary(ByteBuffer data) {
+            
+            }
+        
+            @Override
+            public void sendText(String partialMessage, boolean isLast) {
+            
+            }
+        
+            @Override
+            public void sendBinary(ByteBuffer partialByte, boolean isLast) {
+            
+            }
+        
+            @Override
+            public OutputStream getSendStream() {
+                return null;
+            }
+        
+            @Override
+            public Writer getSendWriter() {
+                return null;
+            }
+        
+            @Override
+            public void sendObject(Object data) {
+            
+            }
+        
+            @Override
+            public void setBatchingAllowed(boolean allowed) {
+            
+            }
+        
+            @Override
+            public boolean getBatchingAllowed() {
+                return false;
+            }
+        
+            @Override
+            public void flushBatch() {
+            
+            }
+        
+            @Override
+            public void sendPing(ByteBuffer applicationData) throws IllegalArgumentException {
+            
+            }
+        
+            @Override
+            public void sendPong(ByteBuffer applicationData) throws IllegalArgumentException {
+            
+            }
+        };
     }
     
     @Override
@@ -187,12 +250,12 @@ public class TestSession implements Session {
     
     @Override
     public void close() {
-    
+        isClosed = true;
     }
     
     @Override
     public void close(CloseReason closeReason) {
-    
+        isClosed = true;
     }
     
     @Override

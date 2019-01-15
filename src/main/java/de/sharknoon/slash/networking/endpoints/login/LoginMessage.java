@@ -2,6 +2,9 @@ package de.sharknoon.slash.networking.endpoints.login;
 
 import com.google.gson.annotations.Expose;
 
+import java.util.Objects;
+
+@SuppressWarnings("WeakerAccess")
 public class LoginMessage {
     @Expose
     private String usernameOrEmail = "";
@@ -9,21 +12,21 @@ public class LoginMessage {
     private String password = "";
     @Expose
     private String deviceID = "";
-    
+
     public String getUsernameOrEmail() {
-        return usernameOrEmail;
+        return Objects.requireNonNullElse(usernameOrEmail, "");
     }
-    
+
     public void setUsernameOrEmail(String usernameOrEmail) {
         if (usernameOrEmail != null) {
             this.usernameOrEmail = usernameOrEmail;
         }
     }
-    
+
     public String getPassword() {
-        return password;
+        return Objects.requireNonNullElse(password, "");
     }
-    
+
     public void setPassword(String password) {
         if (password != null) {
             this.password = password;
@@ -31,7 +34,7 @@ public class LoginMessage {
     }
 
     public String getDeviceID() {
-        return deviceID;
+        return Objects.requireNonNullElse(deviceID, "");
     }
 
     public void setDeviceID(String deviceID) {

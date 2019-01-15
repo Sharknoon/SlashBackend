@@ -1,8 +1,12 @@
 package de.sharknoon.slash.networking.endpoints.home.messages;
 
 import com.google.gson.annotations.Expose;
-import de.sharknoon.slash.database.models.MessageEmotion;
-import de.sharknoon.slash.database.models.MessageType;
+import de.sharknoon.slash.database.models.message.MessageEmotion;
+import de.sharknoon.slash.database.models.message.MessageType;
+import de.sharknoon.slash.networking.endpoints.Status;
+import de.sharknoon.slash.networking.endpoints.StatusAndSessionIDMessage;
+
+import java.util.Objects;
 
 public abstract class AddMessageMessage extends StatusAndSessionIDMessage {
 
@@ -17,8 +21,12 @@ public abstract class AddMessageMessage extends StatusAndSessionIDMessage {
     @Expose
     private String messageImage = "";
 
+    public AddMessageMessage(Status status) {
+        super(status);
+    }
+    
     public MessageType getMessageType() {
-        return messageType;
+        return Objects.requireNonNullElse(messageType, MessageType.NONE);
     }
 
     public void setMessageType(MessageType messageType) {
@@ -28,7 +36,7 @@ public abstract class AddMessageMessage extends StatusAndSessionIDMessage {
     }
 
     public String getMessageContent() {
-        return messageContent;
+        return Objects.requireNonNullElse(messageContent, "");
     }
 
     public void setMessageContent(String messageContent) {
@@ -38,7 +46,7 @@ public abstract class AddMessageMessage extends StatusAndSessionIDMessage {
     }
 
     public String getMessageSubject() {
-        return messageSubject;
+        return Objects.requireNonNullElse(messageSubject, "");
     }
 
     public void setMessageSubject(String messageSubject) {
@@ -48,7 +56,7 @@ public abstract class AddMessageMessage extends StatusAndSessionIDMessage {
     }
 
     public MessageEmotion getMessageEmotion() {
-        return messageEmotion;
+        return Objects.requireNonNullElse(messageEmotion, MessageEmotion.NONE);
     }
 
     public void setMessageEmotion(MessageEmotion messageEmotion) {
@@ -58,7 +66,7 @@ public abstract class AddMessageMessage extends StatusAndSessionIDMessage {
     }
 
     public String getMessageImage() {
-        return messageImage;
+        return Objects.requireNonNullElse(messageImage, "");
     }
 
     public void setMessageImage(String messageImage) {
@@ -66,5 +74,5 @@ public abstract class AddMessageMessage extends StatusAndSessionIDMessage {
             this.messageImage = messageImage;
         }
     }
-    
+
 }
