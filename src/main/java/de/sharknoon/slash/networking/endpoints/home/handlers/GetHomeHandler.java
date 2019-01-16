@@ -39,6 +39,7 @@ public class GetHomeHandler extends HomeEndpointHandler {
             if (u.isPresent()) {
                 chat.partnerUsername = u.get().username;
                 chat.partnerImage = u.get().image;
+                chat.partnerSentiment = u.get().sentiment;
             } else {
                 chat.partnerUsername = "ERROR";
             }

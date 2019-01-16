@@ -2,6 +2,7 @@ package de.sharknoon.slash.database.models;
 
 import com.google.gson.annotations.Expose;
 import de.sharknoon.slash.database.models.message.Message;
+import de.sharknoon.slash.database.models.sentiment.Sentiment;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.codecs.pojo.annotations.BsonId;
 import org.bson.codecs.pojo.annotations.BsonIgnore;
@@ -27,6 +28,9 @@ public class Chat {
     @BsonIgnore
     @Expose
     public ObjectId partnerImage = null;
+    @BsonIgnore
+    @Expose
+    public Sentiment partnerSentiment = new Sentiment();
     @Expose
     public LocalDateTime creationDate = LocalDateTime.now();
     @Expose

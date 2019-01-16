@@ -43,6 +43,7 @@ public class GetChatHandler extends HomeEndpointHandler {
                 cm.chat = chat.get();
                 cm.chat.partnerUsername = partner.get().username;
                 cm.chat.partnerImage = partner.get().image;
+                cm.chat.partnerSentiment = partner.get().sentiment;
                 homeEndpoint.send(cm);
             } else {
                 if (partner.isEmpty()) {
@@ -58,6 +59,7 @@ public class GetChatHandler extends HomeEndpointHandler {
                     newChat.personB = partner.get().id;
                     newChat.partnerUsername = partner.get().username;
                     newChat.partnerImage = partner.get().image;
+                    newChat.partnerSentiment = partner.get().sentiment;
                     newChat.id = new ObjectId();
                     DB.addChat(newChat);
                     ChatResponse cm = new ChatResponse();

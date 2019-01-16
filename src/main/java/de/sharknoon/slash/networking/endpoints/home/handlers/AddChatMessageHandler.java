@@ -71,10 +71,12 @@ public class AddChatMessageHandler extends HomeEndpointHandler {
                 cr.chat = c;
                 c.partnerUsername = partner.get().username;
                 c.partnerImage = partner.get().image;
+                c.partnerSentiment = partner.get().sentiment;
                 homeEndpoint.send(cr);
                 Pushy.sendPush(PushStatus.NEW_CHAT_MESSAGE, c.id.toHexString(), m, user.username, partner.get());
                 c.partnerUsername = user.username;
                 c.partnerImage = user.image;
+                c.partnerSentiment = user.sentiment;
                 LoginSessions
                         .getSession(HomeEndpoint.class, partner.get())
                         .ifPresent(session -> homeEndpoint.sendTo(session, cr));
