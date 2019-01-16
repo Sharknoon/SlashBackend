@@ -9,20 +9,33 @@ import java.util.stream.Collectors;
 
 public class Pushy {
 
-    public static void sendPush(PushStatus status, String chatOrProjectID, Message message, String from, User... to) {
-        sendPush(status, chatOrProjectID, message, from, Arrays.asList(to));
+    public static void sendPush(PushStatus status, String referenceID, String message, String from, User... to) {
+        Message m = new Message();
+        m.content = message;
+        sendPush(status, referenceID, m, from, to);
     }
 
-    public static void sendPush(PushStatus status, String chatOrProjectID, Message message, String from, Collection<User> users) {
+    public static void sendPush(PushStatus status, String referenceID, Message message, String from, User... to) {
+        sendPush(status, referenceID, message, from, Arrays.asList(to));
+    }
+
+    /**
+     * @param status      The status sayswhich type of notification this is, e.g. new chat message or new project message
+     * @param referenceID This is a reference to a chat, a project or something else, dependent on the status
+     * @param message     The message itself
+     * @param from        The sender
+     * @param to          The receiver
+     */
+    public static void sendPush(PushStatus status, String referenceID, Message message, String from, Collection<User> to) {
         // Prepare list of target device tokens
-        List<String> to = users
+        List<String> toList = to
                 .parallelStream()
                 .flatMap(u -> u.ids.stream())
                 .map(l -> l.deviceID)
                 .collect(Collectors.toList());
 
         //If we dont have any receiver, abort
-        if (to.isEmpty()) {
+        if (toList.isEmpty()) {
             return;
         }
 
@@ -30,7 +43,7 @@ public class Pushy {
         Map<String, Object> payload = new HashMap<>();
 
         payload.put("status", status.name());
-        payload.put("id", chatOrProjectID);
+        payload.put("id", referenceID);
         payload.put("type", message.type.name());
         payload.put("from", from);
         switch (message.type) {
@@ -54,7 +67,7 @@ public class Pushy {
         }
 
         // Prepare the push request
-        PushyPushRequest push = new PushyPushRequest(payload, to);
+        PushyPushRequest push = new PushyPushRequest(payload, toList);
 
         try {
             // Try sending the push notification

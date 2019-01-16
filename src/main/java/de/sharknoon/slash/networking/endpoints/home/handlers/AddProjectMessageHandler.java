@@ -29,18 +29,18 @@ public class AddProjectMessageHandler extends HomeEndpointHandler {
     public AddProjectMessageHandler(HomeEndpoint homeEndpoint, HomeEndpointHandler successor) {
         super(Status.ADD_PROJECT_MESSAGE, homeEndpoint, successor);
     }
-    
+
     @Override
-    public void messageLogic(StatusAndSessionIDMessage message, User user) {
+    public void messageLogic(StatusAndSessionIDMessage statusAndSessionID, User user) {
         AddProjectMessageMessage addProjectMessageMessage = Serialisation.getGSON().fromJson(homeEndpoint.getLastTextMessage(), AddProjectMessageMessage.class);
-        Optional<Project> project;
+        Optional<Project> optionalProject;
         if (!ObjectId.isValid(addProjectMessageMessage.getProjectID())) {
             //wrong chat id syntax
             ErrorResponse error = new ErrorResponse();
             error.status = "WRONG_PROJECT_ID";
             error.description = "The syntax of the project-ID was not correct";
             homeEndpoint.send(error);
-        } else if ((project = DB.getProject(new ObjectId(addProjectMessageMessage.getProjectID()))).isEmpty()) {
+        } else if ((optionalProject = DB.getProject(new ObjectId(addProjectMessageMessage.getProjectID()))).isEmpty()) {
             //chat id doesn't exist
             ErrorResponse error = new ErrorResponse();
             error.status = "NO_PROJECT_FOUND";
@@ -52,17 +52,17 @@ public class AddProjectMessageHandler extends HomeEndpointHandler {
             if (optionalMessage.isEmpty()) {
                 return;
             }
-            Message m = optionalMessage.get();
-            Project p = project.get();
-            DB.addMessageToProject(p, m);
+            Message message = optionalMessage.get();
+            Project project = optionalProject.get();
+            DB.addMessageToProject(project, message);
             //Project specific, send to every user of the project
             ProjectResponse pr = new ProjectResponse();
-            pr.project = p;
-            LoginSessions.getSessions(HomeEndpoint.class, p.usernames).forEach(session -> homeEndpoint.sendTo(session, pr));
+            pr.project = project;
+            LoginSessions.getSessions(HomeEndpoint.class, project.usernames).forEach(session -> homeEndpoint.sendTo(session, pr));
             //Dont want to send the push notification to myself
-            Set<User> usersWithoutSender = new HashSet<>(p.usernames);
+            Set<User> usersWithoutSender = new HashSet<>(project.usernames);
             usersWithoutSender.remove(user);
-            Pushy.sendPush(PushStatus.NEW_PROJECT_MESSAGE, p.id.toHexString(), m, user.username, usersWithoutSender);
+            Pushy.sendPush(PushStatus.NEW_PROJECT_MESSAGE, project.id.toHexString(), message, project.name + ": " + user.username, usersWithoutSender);
         }
     }
 }

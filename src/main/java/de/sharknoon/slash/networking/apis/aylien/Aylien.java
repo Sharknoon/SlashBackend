@@ -7,6 +7,8 @@ import de.sharknoon.slash.database.models.message.Message;
 import de.sharknoon.slash.database.models.sentiment.Polarity;
 import de.sharknoon.slash.database.models.sentiment.Sentiment;
 import de.sharknoon.slash.database.models.sentiment.Subjectivity;
+import de.sharknoon.slash.networking.apis.pushy.PushStatus;
+import de.sharknoon.slash.networking.apis.pushy.Pushy;
 import de.sharknoon.slash.properties.Properties;
 import de.sharknoon.slash.utils.Try;
 import org.apache.commons.lang3.StringUtils;
@@ -82,7 +84,20 @@ public class Aylien {
                         .map(Aylien::getMessageContent)
                         .collect(Collectors.joining(StringUtils.SPACE));
                 Try<Sentiment> emotion = getEmotion(messages);
-                emotion.ifSuccess(sentiment -> DB.setProjectSentiment(project, sentiment));
+                emotion.ifSuccess(sentiment -> {
+                    DB.setProjectSentiment(project, sentiment);
+                    if (sentiment.polarity == Polarity.NEGATIVE && project.projectOwner != null) {
+                        DB.getUser(project.projectOwner).ifPresent(projectOwner ->
+                                Pushy.sendPush(
+                                        PushStatus.BAD_PROJECT_SENTIMENT,
+                                        project.id.toHexString(),
+                                        "Bad sentiment in project " + project.name + ". Please take action!",
+                                        project.name,
+                                        projectOwner
+                                )
+                        );
+                    }
+                });
                 emotion.ifFailure(e -> Logger.getGlobal().log(Level.WARNING, "Could not get Emotion from API", e));
             });
             Logger.getGlobal().log(Level.INFO, "Finished Project Sentiment analysis");
