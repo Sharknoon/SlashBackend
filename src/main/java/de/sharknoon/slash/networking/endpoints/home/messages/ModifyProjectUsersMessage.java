@@ -6,6 +6,7 @@ import de.sharknoon.slash.networking.endpoints.Status;
 import de.sharknoon.slash.networking.endpoints.StatusAndSessionIDMessage;
 
 import java.util.Objects;
+import java.util.Set;
 
 public class ModifyProjectUsersMessage extends StatusAndSessionIDMessage {
 
@@ -14,11 +15,10 @@ public class ModifyProjectUsersMessage extends StatusAndSessionIDMessage {
     private String projectID = "";
 
     @Expose
-    @SerializedName(value = "userID", alternate = {"userid", "userId"})
-    private String userID = "";
+    private Set<String> users = Set.of();
 
     @Expose
-    private boolean addUser = true;
+    private boolean addUsers = true;
 
     public ModifyProjectUsersMessage() {
         super(Status.MODIFY_PROJECT_USERS);
@@ -34,21 +34,21 @@ public class ModifyProjectUsersMessage extends StatusAndSessionIDMessage {
         }
     }
 
-    public String getUserID() {
-        return Objects.requireNonNullElse(userID, "");
+    public Set<String> getUsers() {
+        return Objects.requireNonNullElse(users, Set.of());
     }
 
-    public void setUserID(String userID) {
-        if (userID != null) {
-            this.userID = userID;
+    public void setUsers(Set<String> users) {
+        if (users != null) {
+            this.users = users;
         }
     }
 
-    public boolean isAddUser() {
-        return addUser;
+    public boolean isAddUsers() {
+        return addUsers;
     }
 
-    public void setAddUser(boolean addUser) {
-        this.addUser = addUser;
+    public void setAddUsers(boolean addUsers) {
+        this.addUsers = addUsers;
     }
 }

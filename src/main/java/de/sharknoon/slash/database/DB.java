@@ -25,10 +25,7 @@ import org.bson.codecs.pojo.PojoCodecProvider;
 import org.bson.types.ObjectId;
 
 import java.io.ByteArrayOutputStream;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -274,20 +271,30 @@ public class DB {
         project.messages.add(message);
     }
 
-    public static void addUserToProject(Project project, User user) {
-        projects.updateOne(
-                eq(COLLECTION_ID.value, project.id),
-                addToSet(PROJECTS_COLLECTION_USERS.value, user.id)
-        );
-        project.users.add(user.id);
+    public static void addUsersToProject(Project project, User... users) {
+        addUsersToProject(project, Arrays.asList(users));
     }
 
-    public static void removeUserFromProject(Project project, User user) {
+    public static void addUsersToProject(Project project, Collection<User> users) {
+        List<ObjectId> userIDs = users.stream().map(u -> u.id).collect(Collectors.toList());
         projects.updateOne(
                 eq(COLLECTION_ID.value, project.id),
-                pull(PROJECTS_COLLECTION_USERS.value, user.id)
+                addEachToSet(PROJECTS_COLLECTION_USERS.value, userIDs)
         );
-        project.users.remove(user.id);
+        project.users.addAll(userIDs);
+    }
+
+    public static void removeUsersFromProject(Project project, User... users) {
+        removeUsersFromProject(project, Arrays.asList(users));
+    }
+
+    public static void removeUsersFromProject(Project project, Collection<User> users) {
+        List<ObjectId> userIDs = users.stream().map(u -> u.id).collect(Collectors.toList());
+        projects.updateOne(
+                eq(COLLECTION_ID.value, project.id),
+                pullAll(PROJECTS_COLLECTION_USERS.value, userIDs)
+        );
+        project.users.removeAll(userIDs);
     }
 
     public static void setProjectOwner(Project project, @Nullable User user) {

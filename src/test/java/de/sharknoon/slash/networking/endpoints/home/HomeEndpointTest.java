@@ -509,11 +509,8 @@ class HomeEndpointTest {
 
         he.onOpen(s);
         he.onTextMessage(s, gson.toJson(modifyProjectUsersMessage));
-        Assertions.assertEquals("{\"status\":\"NO_USER_FOUND\",\"description\":\"No user with the specified id was found\"}", sendText);
-
-        modifyProjectUsersMessage.setUserID(user2.id.toString());
-        he.onTextMessage(s, gson.toJson(modifyProjectUsersMessage));
         Assertions.assertEquals("{\"status\":\"NO_PROJECT_FOUND\",\"description\":\"No project with the specified id was found\"}", sendText);
+
 
         //constructing a new project
         AddProjectMessage addProjectMessage = new AddProjectMessage();
@@ -526,6 +523,11 @@ class HomeEndpointTest {
 
         sendText = "";
         modifyProjectUsersMessage.setProjectID(pr.project.id.toString());
+        modifyProjectUsersMessage.setUsers(Set.of("sfgd"));
+        he.onTextMessage(s, gson.toJson(modifyProjectUsersMessage));
+        Assertions.assertEquals("{\"status\":\"NO_USER_FOUND\",\"description\":\"No user with the specified id was found\"}", sendText);
+
+        modifyProjectUsersMessage.setUsers(Set.of(user2.id.toString()));
         he.onTextMessage(s, gson.toJson(modifyProjectUsersMessage));
         Assertions.assertEquals("{\"status\":\"OK\"}", sendText);
 
@@ -536,7 +538,7 @@ class HomeEndpointTest {
         ProjectResponse pr2 = gson.fromJson(sendText, ProjectResponse.class);
         Assertions.assertTrue(pr2.project.usernames.stream().map(u -> u.id).anyMatch(o -> o.equals(user2.id)));
 
-        modifyProjectUsersMessage.setAddUser(false);
+        modifyProjectUsersMessage.setAddUsers(false);
         he.onTextMessage(s, gson.toJson(modifyProjectUsersMessage));
         he.onTextMessage(s, gson.toJson(getProjectMessage));
         pr2 = gson.fromJson(sendText, ProjectResponse.class);

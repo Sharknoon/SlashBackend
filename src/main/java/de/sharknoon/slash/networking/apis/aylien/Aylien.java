@@ -14,6 +14,7 @@ import de.sharknoon.slash.utils.Try;
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.Duration;
+import java.time.LocalTime;
 import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -103,8 +104,11 @@ public class Aylien {
             Logger.getGlobal().log(Level.INFO, "Finished Project Sentiment analysis");
         };
 
-        SCHEDULER.scheduleAtFixedRate(chatMessagesSentiment, 0, DURATION.toSeconds(), TimeUnit.SECONDS);
-        SCHEDULER.scheduleAtFixedRate(projectMessagesSentiment, 0, DURATION.toSeconds(), TimeUnit.SECONDS);
+        LocalTime now = LocalTime.now();
+        LocalTime nextHour = LocalTime.now().withMinute(0).withSecond(0).withNano(0).plusHours(1);
+        long delay = Duration.between(now, nextHour).toSeconds();
+        SCHEDULER.scheduleAtFixedRate(chatMessagesSentiment, delay, DURATION.toSeconds(), TimeUnit.SECONDS);
+        SCHEDULER.scheduleAtFixedRate(projectMessagesSentiment, delay, DURATION.toSeconds(), TimeUnit.SECONDS);
     }
 
     private static String getMessageContent(Message m) {
