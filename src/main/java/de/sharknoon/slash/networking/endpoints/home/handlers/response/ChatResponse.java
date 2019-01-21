@@ -5,7 +5,7 @@ import de.sharknoon.slash.database.models.Chat;
 
 public class ChatResponse {
     @Expose
-    private final String status = "OK_CHAT";
+    private static final String status = "OK_CHAT";
     @Expose
     public Chat chat;
 }

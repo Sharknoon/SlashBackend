@@ -5,7 +5,7 @@ import de.sharknoon.slash.database.models.User;
 
 public class UserResponse {
     @Expose
-    private final String status = "OK_USER";
+    private static final String status = "OK_USER";
     @Expose
     public User user;
 }

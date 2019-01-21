@@ -73,7 +73,7 @@ public class AddChatMessageHandler extends HomeEndpointHandler {
                 c.partnerImage = partner.get().image;
                 c.partnerSentiment = partner.get().sentiment;
                 homeEndpoint.send(cr);
-                Pushy.sendPush(PushStatus.NEW_CHAT_MESSAGE, c.id.toHexString(), m, user.username, partner.get());
+                Pushy.sendMessagePush(PushStatus.NEW_CHAT_MESSAGE, c.id.toHexString(), m, user.username, partner.get());
                 c.partnerUsername = user.username;
                 c.partnerImage = user.image;
                 c.partnerSentiment = user.sentiment;

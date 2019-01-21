@@ -62,7 +62,7 @@ public class AddProjectMessageHandler extends HomeEndpointHandler {
             //Dont want to send the push notification to myself
             Set<User> usersWithoutSender = new HashSet<>(project.usernames);
             usersWithoutSender.remove(user);
-            Pushy.sendPush(PushStatus.NEW_PROJECT_MESSAGE, project.id.toHexString(), message, project.name + ": " + user.username, usersWithoutSender);
+            Pushy.sendMessagePush(PushStatus.NEW_PROJECT_MESSAGE, project.id.toHexString(), message, project.name + ": " + user.username, usersWithoutSender);
         }
     }
 }

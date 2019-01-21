@@ -4,5 +4,5 @@ import com.google.gson.annotations.Expose;
 
 public class LogoutResponse {
     @Expose
-    private final String status = "OK_LOGOUT";
+    private static final String status = "OK_LOGOUT";
 }

@@ -5,7 +5,7 @@ import de.sharknoon.slash.database.models.Project;
 
 public class ProjectResponse {
     @Expose
-    private final String status = "OK_PROJECT";
+    private static final String status = "OK_PROJECT";
     @Expose
     public Project project;
 }

@@ -6,7 +6,6 @@ import de.sharknoon.slash.serialisation.gsonconverter.LocalDateTimeConverter;
 import de.sharknoon.slash.serialisation.gsonconverter.ObjectIdConverter;
 import org.bson.types.ObjectId;
 
-import java.lang.reflect.Modifier;
 import java.time.LocalDateTime;
 
 public class Serialisation {
@@ -16,7 +15,7 @@ public class Serialisation {
             .excludeFieldsWithoutExposeAnnotation()
             .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeConverter())
             .registerTypeAdapter(ObjectId.class, new ObjectIdConverter())
-            .excludeFieldsWithModifiers(Modifier.STATIC)
+            .excludeFieldsWithModifiers()
             .create();
     
     public static Gson getGSON() {

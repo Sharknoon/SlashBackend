@@ -15,7 +15,9 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.time.Duration;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -67,8 +69,10 @@ public class Aylien {
     public static void init() {
         Runnable chatMessagesSentiment = () -> {
             DB.getAllUsers().forEach(user -> {
-                String messages = DB.getAllMessagesOfUser(user)
+                Set<Message> allMessagesOfUser = DB.getAllMessagesOfUser(user);
+                String messages = allMessagesOfUser
                         .stream()
+                        .skip(allMessagesOfUser.size() > 10 ? allMessagesOfUser.size() - 10 : 0)
                         .map(Aylien::getMessageContent)
                         .collect(Collectors.joining(StringUtils.SPACE));
                 Try<Sentiment> emotion = getEmotion(messages);
@@ -79,20 +83,23 @@ public class Aylien {
         };
         Runnable projectMessagesSentiment = () -> {
             DB.getAllProjects().forEach(project -> {
-                String messages = project
-                        .messages
+                Set<Message> allMessagesOfProject = project.messages;
+                String messages = allMessagesOfProject
                         .stream()
+                        .skip(allMessagesOfProject.size() > 10 ? allMessagesOfProject.size() - 10 : 0)
                         .map(Aylien::getMessageContent)
                         .collect(Collectors.joining(StringUtils.SPACE));
                 Try<Sentiment> emotion = getEmotion(messages);
                 emotion.ifSuccess(sentiment -> {
+                    Polarity oldPolarity = project.sentiment.polarity;
                     DB.setProjectSentiment(project, sentiment);
-                    if (sentiment.polarity == Polarity.NEGATIVE && project.projectOwner != null) {
+                    if (sentiment.polarity == Polarity.NEGATIVE &&
+                            project.projectOwner != null &&
+                            oldPolarity != sentiment.polarity) {
                         DB.getUser(project.projectOwner).ifPresent(projectOwner ->
                                 Pushy.sendPush(
                                         PushStatus.BAD_PROJECT_SENTIMENT,
                                         project.id.toHexString(),
-                                        "Bad sentiment in project " + project.name + ". Please take action!",
                                         project.name,
                                         projectOwner
                                 )
@@ -104,9 +111,8 @@ public class Aylien {
             Logger.getGlobal().log(Level.INFO, "Finished Project Sentiment analysis");
         };
 
-        LocalTime now = LocalTime.now();
         LocalTime nextHour = LocalTime.now().withMinute(0).withSecond(0).withNano(0).plusHours(1);
-        long delay = Duration.between(now, nextHour).toSeconds();
+        long delay = LocalTime.now().until(nextHour, ChronoUnit.SECONDS);
         SCHEDULER.scheduleAtFixedRate(chatMessagesSentiment, delay, DURATION.toSeconds(), TimeUnit.SECONDS);
         SCHEDULER.scheduleAtFixedRate(projectMessagesSentiment, delay, DURATION.toSeconds(), TimeUnit.SECONDS);
     }

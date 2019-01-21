@@ -8,7 +8,7 @@ import java.util.Set;
 
 public class HomeResponse {
     @Expose
-    private final String status = "OK_HOME";
+    private static final String status = "OK_HOME";
     @Expose
     public Set<Project> projects;
     @Expose

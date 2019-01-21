@@ -7,7 +7,7 @@ import java.util.Set;
 
 public class UsersResponse {
     @Expose
-    private final String status = "OK_USERS";
+    private static final String status = "OK_USERS";
     @Expose
     public Set<User> users;
 }

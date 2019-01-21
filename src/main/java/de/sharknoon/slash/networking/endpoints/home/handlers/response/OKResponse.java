@@ -4,5 +4,5 @@ import com.google.gson.annotations.Expose;
 
 public class OKResponse {
     @Expose
-    private final String status = "OK";
+    private static final String status = "OK";
 }
