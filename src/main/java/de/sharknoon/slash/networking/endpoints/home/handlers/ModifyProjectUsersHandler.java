@@ -45,10 +45,14 @@ public final class ModifyProjectUsersHandler extends HomeEndpointHandler {
                     .filter(Optional::isPresent)
                     .map(Optional::get)
                     .collect(Collectors.toSet());
+            Project project = optionalProject.get();
             if (modifyProjectUsersMessage.isAddUsers()) {
-                DB.addUsersToProject(optionalProject.get(), users);
+                DB.addUsersToProject(project, users);
             } else {
-                DB.removeUsersFromProject(optionalProject.get(), users);
+                DB.removeUsersFromProject(project, users);
+                if (project.users.isEmpty()) {
+                    DB.deleteProject(project);
+                }
             }
             if (users.size() < usersIDs.size()) {
                 ErrorResponse error = new ErrorResponse();

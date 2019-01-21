@@ -334,6 +334,11 @@ public class DB {
         project.image = image;
     }
 
+    public static void deleteProject(Project project) {
+        projects.deleteOne(
+                eq(COLLECTION_ID.value, project.id)
+        );
+    }
 
     //
     // CHATS
